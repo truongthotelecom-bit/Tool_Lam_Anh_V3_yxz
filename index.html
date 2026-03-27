@@ -111,13 +111,69 @@
     </div>
 </div>
 
+<style>
+    /* Nút Tab Cấp 1 (Nằm cùng hàng nút Đóng) */
+    .m-tab-lvl1 {
+        background: #f0f4f8; border: 1px solid #ccc; color: #555;
+        padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; 
+        cursor: pointer; white-space: nowrap; flex: 0 0 auto; transition: 0.2s;
+    }
+    .m-tab-lvl1.active {
+        background: var(--primary); color: white; border-color: var(--primary);
+        box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
+    }
+    /* Nút Đóng */
+    .m-close-btn {
+        background: #ff4757; color: white; border: none; padding: 8px 14px;
+        border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; 
+        white-space: nowrap; flex-shrink: 0; box-shadow: 0 3px 8px rgba(255, 71, 87, 0.3);
+    }
+
+    /* ÉP CẤP 2 & CẤP 3 BÊN TRONG POPUP PHẢI TRƯỢT NGANG MƯỢT MÀ */
+    #mobileModalBody .sub-tabs, #mobileModalBody .sub-sub-tabs {
+        display: flex !important; flex-wrap: nowrap !important;
+        overflow-x: auto !important; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+        gap: 8px; padding: 5px 0 10px 0 !important; margin: 0 !important;
+        border: none !important; background: transparent !important;
+    }
+    #mobileModalBody .sub-tabs::-webkit-scrollbar, #mobileModalBody .sub-sub-tabs::-webkit-scrollbar { display: none; }
+    
+    /* Giao diện nút Cấp 2 & Cấp 3 */
+    #mobileModalBody .sub-tab-btn, #mobileModalBody .sub-sub-tab-btn {
+        flex: 0 0 auto !important; white-space: nowrap !important;
+        border-radius: 20px !important; padding: 8px 15px !important;
+        font-size: 11px !important; font-weight: bold !important;
+        border: 1px solid #ddd !important; background: #fff !important; color: #555 !important;
+    }
+    /* Đổi màu Xanh Lá cho Cấp 2 khi chọn */
+    #mobileModalBody .sub-tab-btn.active {
+        background: var(--success) !important; color: white !important;
+        border-color: var(--success) !important; box-shadow: 0 2px 6px rgba(40,167,69,0.3) !important;
+    }
+    /* Đổi màu Tím cho Cấp 3 khi chọn */
+    #mobileModalBody .sub-sub-tab-btn.active {
+        background: var(--purple) !important; color: white !important;
+        border-color: var(--purple) !important; box-shadow: 0 2px 6px rgba(108,92,231,0.3) !important;
+    }
+</style>
+
 <div id="mobileSettingModal">
     <div class="mobile-modal-content">
-        <div class="mobile-modal-header">
-            <h3 id="mobileModalTitle">⚙️ TÙY CHỈNH</h3>
-            <button class="mobile-modal-close" onclick="closeMobileModal()">ĐÓNG ⬇</button>
+        
+        <div style="position: sticky; top: 0; z-index: 99; display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: #fff; border-bottom: 1px solid #eee; border-radius: 12px 12px 0 0; gap: 10px;">
+            
+            <div id="mobileTabMenu" style="display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; flex-grow: 1;">
+                <button class="m-tab-lvl1" id="mTab-tab-main" onclick="openMobileModal('num')">📊 Cột Dữ Liệu</button>
+                <button class="m-tab-lvl1" id="mTab-tab-colheader" onclick="openMobileModal('header')">🏷️ Tiêu Đề</button>
+                <button class="m-tab-lvl1" id="mTab-tab-globaltext" onclick="openMobileModal('globaltext')">📝 Chữ Góc</button>
+                <button class="m-tab-lvl1" id="mTab-tab-layout" onclick="openMobileModal('layout')">📐 Lưới</button>
+                <button class="m-tab-lvl1" id="mTab-tab-general" onclick="openMobileModal('general')">🖼️ Nền & In</button>
+            </div>
+
+            <button class="m-close-btn" onclick="closeMobileModal()">✖ ĐÓNG</button>
         </div>
-        <div class="mobile-modal-body" id="mobileModalBody"></div>
+
+        <div class="mobile-modal-body" id="mobileModalBody" style="padding: 10px 15px;"></div>
     </div>
 </div>
 
