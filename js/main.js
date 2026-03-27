@@ -1550,62 +1550,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. ĐỊNH TUYẾN MOBILE MODAL (ĐÃ FIX LỖI DÍNH TRÙM TAB)
     window.openMobileModal = function(tid) {
-    let tabId = ''; let subTabId = '';
-    
-    // KIỂM TRA NHÓM ĐỂ XÁC ĐỊNH TAB CẤP 1 LÀ GÌ
-    let isText = (tid === 'globaltext' || (window.textBlocks && window.textBlocks.find(b => b.id === tid)));
-    let isHeader = (tid === 'header' || ['hNum','hPrice','hMenh','hMang','hData1','hData2'].includes(tid));
+        let tabId = ''; let subTabId = '';
+        
+        // KIỂM TRA NHÓM ĐỂ XÁC ĐỊNH TAB CẤP 1
+        let isText = (tid === 'globaltext' || (window.textBlocks && window.textBlocks.find(b => b.id === tid)));
+        let isHeader = (tid === 'header' || ['hNum','hPrice','hMenh','hMang','hData1','hData2'].includes(tid));
 
-    // ĐỊNH TUYẾN THẲNG VÀO TAB CẤP 1
-    if (tid === 'layout') { tabId = 'tab-layout'; }
-    else if (tid === 'general') { tabId = 'tab-general'; }
-    else if (['num','price','menh','mang','data1','data2'].includes(tid)) { tabId = 'tab-main'; subTabId = 'sub-' + tid; }
-    else if (isHeader) { tabId = 'tab-colheader'; subTabId = tid === 'header' ? 'sub-hCommon' : 'sub-' + tid; }
-    else if (isText) { tabId = 'tab-globaltext'; subTabId = tid === 'globaltext' ? 'sub-gtChung' : 'sub-' + tid; }
+        // ĐỊNH TUYẾN THẲNG VÀO TAB CẤP 1
+        if (tid === 'layout') { tabId = 'tab-layout'; }
+        else if (tid === 'general') { tabId = 'tab-general'; }
+        else if (['num','price','menh','mang','data1','data2'].includes(tid)) { tabId = 'tab-main'; subTabId = 'sub-' + tid; }
+        else if (isHeader) { tabId = 'tab-colheader'; subTabId = tid === 'header' ? 'sub-hCommon' : 'sub-' + tid; }
+        else if (isText) { tabId = 'tab-globaltext'; subTabId = tid === 'globaltext' ? 'sub-gtChung' : 'sub-' + tid; }
 
-    if (!tabId) return;
-    
-    // LẤY NGUYÊN KHỐI TAB CẤP 1
-    let el = document.getElementById(tabId); 
-    if (!el) return;
+        if (!tabId) return;
+        
+        // LẤY NGUYÊN KHỐI TAB CẤP 1
+        let el = document.getElementById(tabId); 
+        if (!el) return;
 
-    // 1. Đồng bộ Desktop
-    let btn1 = document.querySelector(`.tabs button[onclick*="${tabId}"]`); 
-    if(btn1) switchTab(tabId, btn1);
-    if(subTabId) { 
-        let btn2 = document.querySelector(`.sub-tabs button[onclick*="${subTabId}"]`); 
-        if(btn2) switchSubTab(subTabId, btn2); 
-    }
-
-    // 2. Bật màu và tự cuộn Thanh Tab Cấp 1 trên Popup Mobile
-    document.querySelectorAll('.m-tab-lvl1').forEach(btn => btn.classList.remove('active'));
-    let activeMobileTabBtn = document.getElementById('mTab-' + tabId);
-    if (activeMobileTabBtn) {
-        activeMobileTabBtn.classList.add('active');
-        activeMobileTabBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-    }
-
-    let bodyEl = document.getElementById('mobileModalBody');
-    let modalEl = document.getElementById('mobileSettingModal');
-
-    // 3. THUẬT TOÁN ĐỔI TAB: Trả Cấp 1 cũ về Desktop trước khi bốc Cấp 1 mới
-    if (bodyEl && bodyEl.children.length > 0) {
-        let oldEl = bodyEl.children[0];
-        if (window.placeholderNode && window.placeholderNode.parentNode) {
-            window.placeholderNode.parentNode.insertBefore(oldEl, window.placeholderNode);
-            window.placeholderNode.parentNode.removeChild(window.placeholderNode);
+        // 1. ĐỒNG BỘ NÚT BẤM BÊN DƯỚI NỀN (DESKTOP)
+        let btn1 = document.querySelector(`.tabs button[onclick*="${tabId}"]`); 
+        if(btn1) switchTab(tabId, btn1);
+        if(subTabId) { 
+            let btn2 = document.querySelector(`.sub-tabs button[onclick*="${subTabId}"]`); 
+            if(btn2) switchSubTab(subTabId, btn2); 
         }
-    }
-    
-    // 4. Bốc khối Cấp 1 (Bao gồm cả Cấp 2, 3 bên trong) nhét vào Popup
-    window.placeholderNode = document.createComment("mobile-placeholder"); 
-    el.parentNode.insertBefore(window.placeholderNode, el); 
-    window.activeMobileElement = el;
-    
-    bodyEl.appendChild(el); 
-    el.classList.add('active'); // Đảm bảo nó hiện lên
-    modalEl.style.display = 'flex';
-};
+
+        // 2. BẬT MÀU VÀ TỰ CUỘN THANH TAB CẤP 1 TRÊN MOBILE
+        document.querySelectorAll('.m-tab-lvl1').forEach(btn => btn.classList.remove('active'));
+        let activeMobileTabBtn = document.getElementById('mTab-' + tabId);
+        if (activeMobileTabBtn) {
+            activeMobileTabBtn.classList.add('active');
+            activeMobileTabBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        }
+
+        let bodyEl = document.getElementById('mobileModalBody');
+        let modalEl = document.getElementById('mobileSettingModal');
+
+        // 3. THUẬT TOÁN ĐỔI TAB SIÊU MƯỢT (ĐÃ FIX LỖI)
+        if (bodyEl && bodyEl.children.length > 0) {
+            let oldEl = bodyEl.children[0];
+            // Chỉ dọn dẹp nếu tab mới KHÁC tab đang mở
+            if (oldEl !== el) { 
+                oldEl.classList.remove('active');
+                if (window.placeholderNode && window.placeholderNode.parentNode) {
+                    window.placeholderNode.parentNode.insertBefore(oldEl, window.placeholderNode);
+                    window.placeholderNode.parentNode.removeChild(window.placeholderNode);
+                }
+            }
+        }
+        
+        // 4. BỐC KHỐI CẤP 1 NHÉT VÀO POPUP (Nếu nó chưa ở sẵn trong đó)
+        if (!bodyEl.contains(el)) {
+            window.placeholderNode = document.createComment("mobile-placeholder"); 
+            el.parentNode.insertBefore(window.placeholderNode, el); 
+            window.activeMobileElement = el;
+            bodyEl.appendChild(el); 
+        }
+        
+        el.classList.add('active'); 
+        modalEl.style.display = 'flex';
+    };
 
     window.syncTabUX = function(container) {
         if(isSyncingTab || !container || !window.currentUXCategory) return;
