@@ -533,7 +533,26 @@
             <div class="setting-row" style="background:#fff4f4;"><label style="color:var(--danger)">Đóng gáy in</label><div class="setting-inputs"><select id="bindingMode" class="flex-1" onchange="updateUI(); updatePreviewImmediate(); debouncedSave();"><option value="none">1. Không đóng gáy</option><option value="single">2. Đóng gáy 1 mặt</option><option value="double">3. Đóng gáy 2 mặt (Lẻ/Chẵn)</option></select></div></div>
             <div id="grpMarginNormal" class="setting-row"><label>Lề Ngang</label><div class="setting-inputs"><span>Trái:</span><input type="number" id="mLeft" value="30" class="mini"><span>Phải:</span><input type="number" id="mRight" value="30" class="mini"></div></div>
             <div id="grpMarginBinding" class="setting-row" style="display:none; background:#fff4f4;"><label style="color:var(--danger)">Lề Đóng Gáy</label><div class="setting-inputs"><span>Bên Gáy:</span><input type="number" id="marginBinding" value="80" class="mini"><span>Còn Lại:</span><input type="number" id="marginNonBinding" value="30" class="mini"></div></div>
-            <div class="setting-row" style="background:#e8f4ff; border-top:1px dashed #3498db; margin-top:5px;"><label style="color:#0984e3; font-weight:bold;">Kích Thước Cố Định</label><div class="setting-inputs" style="flex-wrap:wrap;"><label><input type="checkbox" id="useFixedSize" onchange="updatePreviewImmediate(); debouncedSave();"> Khóa Khung Hình (px)</label><div style="display:flex; gap:5px; margin-top:5px; width:100%;"><span>W:</span><input type="number" id="fixedW" value="1080" class="mini"><span>H:</span><input type="number" id="fixedH" value="1920" class="mini"></div></div></div>
+            <div class="setting-row" style="background:#e8f4ff; border-top:1px dashed #3498db; margin-top:5px;">
+                <label style="color:#0984e3; font-weight:bold;">Kích Thước Cố Định</label>
+                <div class="setting-inputs" style="flex-wrap:wrap;">
+                    <label style="width:100%;"><input type="checkbox" id="useFixedSize" onchange="updatePreviewImmediate(); debouncedSave();"> Khóa Khung Hình (px)</label>
+                    <select id="fixedSizePreset" style="width:100%; margin-top:5px; font-size:12px;" onchange="if(this.value){let [w,h]=this.value.split('x'); document.getElementById('fixedW').value=w; document.getElementById('fixedH').value=h; updatePreviewImmediate(); debouncedSave();}">
+                        <option value="">-- Tùy chỉnh (Tự nhập) --</option>
+                        <option value="600x800">600 x 800 (Dọc)</option>
+                        <option value="800x600">800 x 600 (Ngang)</option>
+                        <option value="800x800">800 x 800 (Vuông)</option>
+                        <option value="826x1169">826 x 1169 (A4 Dọc)</option>
+                        <option value="1169x826">1169 x 826 (A4 Ngang)</option>
+                        <option value="1080x1080">1080 x 1080 (Vuông chuẩn)</option>
+                        <option value="1080x1920">1080 x 1920 (Story)</option>
+                    </select>
+                    <div style="display:flex; gap:5px; margin-top:5px; width:100%;">
+                        <span>W:</span><input type="number" id="fixedW" value="1080" class="mini">
+                        <span>H:</span><input type="number" id="fixedH" value="1920" class="mini">
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="setting-box">

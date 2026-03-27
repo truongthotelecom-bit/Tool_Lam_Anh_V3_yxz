@@ -54,6 +54,41 @@
         font-style: normal;
         font-display: swap;
     }
+    /* Thêm vào style.css nếu cần */
+    #mobileModalBody {
+        display: flex !important;
+        flex-direction: column !important;
+        overflow-y: auto;
+    }
+    .modal-shortcuts {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    }
+    .btn-shortcut {
+        flex: 1;
+        padding: 8px 5px;
+        border: 1px solid var(--success);
+        background: white;
+        color: var(--success);
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: all 0.2s;
+    }
+    .btn-shortcut:active {
+        background: var(--success);
+        color: white;
+    }
+
+
     :root {--primary: #007bff; --bg: #f4f7f6; --surface: #ffffff; --border: #e0e0e0; --danger: #d63031; --success: #28a745; --purple: #6c5ce7; --header: #8e44ad; --cell: #ff8c00;}
     *, *::before, *::after { box-sizing: border-box; }
     html, body { width: 100%; max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; }
