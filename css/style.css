@@ -79,7 +79,14 @@
     .tabs::-webkit-scrollbar { display: none; }
     .tab-btn {background: #f4f7f6; border: 1px solid #ddd; border-bottom: none; padding: 10px 12px; font-weight: bold; cursor: pointer; color: #666; font-size: 12px; border-radius: 8px 8px 0 0; flex: 0 0 auto; white-space: nowrap; transition: 0.2s;}
     .tab-btn.active {color: var(--primary); background: #e8f4ff; border-color: var(--primary); border-bottom: 2px solid #e8f4ff; margin-bottom: -2px;}
-    .tab-content {display: none; animation: fadeIn 0.3s;} .tab-content.active {display: block;}
+    .tab-content {display: none; animation: fadeIn 0.3s;} .tab-content.active {display: block; overflow-y: auto; max-height: calc(100vh - 200px);}
+    /* Thanh cuộn mỏng cho cột settings */
+    .col-settings { min-height: 0; }
+    .col-settings .tab-content.active::-webkit-scrollbar { width: 4px; }
+    .col-settings .tab-content.active::-webkit-scrollbar-track { background: transparent; }
+    .col-settings .tab-content.active::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+    .col-settings .tab-content.active::-webkit-scrollbar-thumb:hover { background: #aaa; }
+    .col-settings .tab-content.active { scrollbar-width: thin; scrollbar-color: #ccc transparent; }
     
     /* --- HỆ THỐNG TAB CẤP 2 (PHÂN NHÓM) --- */
     .sub-tabs { display: flex; background: #fdfdfd; padding: 4px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 12px; flex-wrap: nowrap; gap: 4px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;}
@@ -132,8 +139,21 @@
     #drmMessage { color: #e74c3c; font-weight: bold; margin-top: 15px; font-size: 14px; }
     
     /* --- TRẢ POPUP VỀ ĐÁY BÁN MÀN HÌNH --- */
-    #mobileSettingModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100%; background: transparent; z-index: 999998; flex-direction: column; justify-content: flex-end; animation: fadeIn 0.2s; pointer-events: none; }
-    .mobile-modal-content { pointer-events: auto; background: #f4f7f6; width: 100%; max-height: 50vh; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.4); animation: slideUp 0.3s cubic-bezier(0.1, 0.8, 0.1, 1); padding-bottom: 20px; margin: 0; }
+    #mobileSettingModal { 
+        display: none; 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100vw; 
+        height: 100%; 
+        background: rgba(0,0,0,0.3); /* Phủ một lớp màu đen mờ nhẹ để dễ nhìn popup */
+        z-index: 999998; 
+        flex-direction: column; 
+        justify-content: flex-end; 
+        animation: fadeIn 0.2s; 
+        pointer-events: auto; /* QUAN TRỌNG NHẤT: Cho phép nhận cú click */
+    }
+.mobile-modal-content { pointer-events: auto; background: #f4f7f6; width: 100%; max-height: 50vh; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.4); animation: slideUp 0.3s cubic-bezier(0.1, 0.8, 0.1, 1); padding-bottom: 20px; margin: 0; }
     .mobile-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fff; border-bottom: 1px solid #ddd; border-radius: 20px 20px 0 0; flex-shrink: 0;}
     .mobile-modal-header h3 { margin: 0; font-size: 15px; color: var(--primary); font-weight: 800;}
     .mobile-modal-close { background: #e0e0e0; color: #333; border: none; padding: 6px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px;}
@@ -149,7 +169,108 @@
         .mobile-modal-header { border-radius: 12px 12px 0 0; }
     }
     @keyframes popUpRight { from { opacity: 0; transform: translateX(50px) scale(0.9); } to { opacity: 1; transform: translateX(0) scale(1); } }
+    /* --- MOBILE MODAL: BACKDROP NHẤP VÀO ĐỂ ĐÓNG --- */
+    #mobileSettingModal {
+        background: rgba(0,0,0,0.25) !important;
+        pointer-events: auto !important;
+    }
+    .mobile-modal-content {
+        pointer-events: auto !important;
+        box-shadow: 0 -8px 32px rgba(0,0,0,0.2) !important;
+    }
 
+    /* --- MOBILE MODAL: HEADER AREA --- */
+    .mobile-modal-header-area {
+        position: sticky;
+        top: 0;
+        z-index: 99;
+        background: #fff;
+        border-radius: 16px 16px 0 0;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 4px;
+    }
+    .mobile-modal-drag-handle {
+        width: 40px; height: 4px;
+        background: #ddd;
+        border-radius: 2px;
+        margin: 8px auto 4px;
+    }
+    .mobile-modal-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 2px 14px 6px;
+    }
+    .mobile-modal-title {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--primary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .mobile-modal-close-btn {
+        background: #f0f0f0;
+        border: none;
+        border-radius: 50%;
+        width: 26px; height: 26px;
+        font-size: 13px;
+        color: #666;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+    }
+    .mobile-modal-close-btn:hover { background: #e74c3c; color: #fff; }
+
+    /* --- MOBILE TAB NAVIGATION --- */
+    #mobileTabMenu {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        padding: 4px 12px 8px;
+    }
+    #mobileTabMenu::-webkit-scrollbar { display: none; }
+
+    /* --- M-TAB BUTTON STYLES --- */
+    .m-tab-lvl1 {
+        background: #f0f4ff;
+        border: 1.5px solid #d0dcff;
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        color: #4a6fa5;
+        transition: all 0.2s;
+    }
+    .m-tab-lvl1.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+        box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+    }
+    .m-tab-lvl1:hover { filter: brightness(0.93); }
+
+    /* --- MOBILE MODAL BODY --- */
+    .mobile-modal-body {
+        padding: 10px 15px 20px;
+        overflow-y: auto;
+        flex-grow: 1;
+    }
+
+    /* --- FULLSCREEN: POPUP NỔI TRÊN CANVAS --- */
+    .fullscreen-mode #mobileSettingModal {
+        z-index: 1000001 !important;
+    }
+    .col-preview.fullscreen #mobileSettingModal {
+        z-index: 1000001 !important;
+    }
+    
     #fabContainer { position: fixed; bottom: 30px; right: 20px; z-index: 999997; width: 55px; height: 55px; }
     #fabBtn { background: var(--purple); color: white; width: 100%; height: 100%; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4); font-size: 24px; cursor: grab; user-select: none; -webkit-tap-highlight-color: transparent; transition: transform 0.1s;}
     #fabBtn:active { cursor: grabbing; transform: scale(0.95); }

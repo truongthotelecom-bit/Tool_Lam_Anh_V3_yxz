@@ -3,14 +3,56 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
-<title>Tool Bảng Số VIP - Bản Quyền Giao Khách</title>
+<title>Tool Bảng Số VIP - Bản Quyền Giao Khách (UPGRADED)</title>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Oswald:wght@400;700&family=Pattaya&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<style>
+    /* CSS GIAO DIỆN PRO-BOX MỚI TỪ BẢN THAM KHẢO */
+    .pro-box { border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px; overflow: hidden; border: 1px solid #eaeaea; }
+    .pro-title { padding: 10px 15px; font-weight: bold; font-size: 13px; text-transform: uppercase; color: #fff; background: #34495e; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+    .pro-row { display: flex; padding: 10px 15px; border-bottom: 1px solid #fcfcfc; align-items: center; }
+    .pro-row:last-child { border-bottom: none; }
+    .pro-row > label { width: 90px; font-size: 12px; font-weight: 600; color: #555; flex-shrink: 0; margin:0; }
+    .pro-inputs { display: flex; flex: 1; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; }
+    .pro-inputs input[type="number"], .pro-inputs input[type="text"] { width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; text-align: center; outline: none; }
+    .pro-inputs input[type="text"] { width: 100%; text-align: left; }
+    .pro-inputs select { flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
+    .pro-inputs input[type="color"] { padding: 0; width: 28px; height: 28px; border: none; border-radius: 4px; cursor: pointer; }
+    .pro-inputs label { display: flex; align-items: center; gap: 4px; cursor: pointer; margin:0; font-weight:bold; }
+    .btn-mini { background: #007bff; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+    .column.fullscreen { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: #fff !important; margin: 0 !important; padding: 20px !important; box-sizing: border-box; overflow-y: auto; }
+    /* Khung chứa preview */
+    #canvasWrapper {
+        width: 100%;
+        height: 85vh; /* Chiều cao cố định vùng review */
+        background: #e9ecef;
+        overflow: auto;      /* Cho phép hiện thanh cuộn tự nhiên */
+        
+        display: flex;
+        justify-content: center; /* CĂN GIỮA NGANG */
+        align-items: flex-start; /* DÍNH MÉP TRÊN */
+        
+        padding: 20px;       /* Khoảng hở nhỏ cho đẹp */
+        box-sizing: border-box;
+        cursor: grab;        /* Biểu tượng bàn tay để kéo cuộn */
+    }
+
+    #canvasWrapper:active {
+        cursor: grabbing;    /* Khi đang bấm chuột trái để kéo */
+    }
+
+    #preview {
+        display: block;
+        flex-shrink: 0; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        /* Tuyệt đối không để margin: auto; */
+    }
+
+</style>
 </head>
 <body>
-<div id="applyBtnContainer" style="display:none; position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 1000000; padding: 10px 25px; background: var(--success); color: white; border-radius: 30px; font-weight: bold; cursor: grab; box-shadow: 0 5px 15px rgba(40,167,69,0.4); font-size: 14px; user-select: none;">
-    ✅ ÁP DỤNG (Chốt)
-</div>
+
+<div id="applyBtnContainer" style="display:none; position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 1000000; padding: 10px 25px; background: var(--success); color: white; border-radius: 30px; font-weight: bold; cursor: grab; box-shadow: 0 5px 15px rgba(40,167,69,0.4); font-size: 14px; user-select: none;">✅ ÁP DỤNG (Chốt)</div>
 <div id="quickSliderContainer" style="display:none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 450px; background: rgba(255,255,255,0.98); padding: 15px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.4); z-index: 1000000; border: 2px solid var(--primary);">
     <div id="quickSliderHeader" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; cursor: grab; padding-bottom: 8px; border-bottom: 1px dashed #ddd;">
         <b id="quickSliderLabel" style="font-size: 12px; color: #333; text-transform: uppercase; pointer-events: none;">Thông số</b>
@@ -26,11 +68,8 @@
         <button id="btnSliderPlus" style="width: 45px; height: 45px; border-radius: 10px; background: #f8f9fa; border: 1px solid #ddd; font-size: 20px; font-weight: bold; color: var(--primary); cursor: pointer;">+</button>
     </div>
 </div>
-</div>
 
-<div id="fabContainer">
-    <div id="fabBtn" title="Mở Menu Mẫu Thiết Kế">🎨</div>
-</div>
+<div id="fabContainer"><div id="fabBtn" title="Mở Menu Mẫu Thiết Kế">🎨</div></div>
 <div id="exportFabContainer" style="position: fixed; bottom: 100px; right: 20px; z-index: 999997; width: 55px; height: 55px;">
     <div id="exportFabBtn" title="Menu Xuất File" style="background: var(--success); color: white; width: 100%; height: 100%; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4); font-size: 24px; cursor: pointer;">💾</div>
 </div>
@@ -44,50 +83,15 @@
     <button onclick="generateAllImages()" class="btn-success" style="border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📦 Tải ZIP</button>
     <button onclick="exportToExcel()" class="btn-excel" style="background:#20c997; color:#fff; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📊 Xuất Excel</button>
 </div>
-<div id="helpModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; animation: fadeIn 0.2s;">
-    <div style="background: #fff; padding: 20px; border-radius: 12px; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 15px;">
-            <h3 style="margin: 0; color: #d35400; font-size: 16px;">📖 HƯỚNG DẪN NHẬP DỮ LIỆU</h3>
-            <span style="cursor: pointer; font-size: 24px; color: #999; line-height: 1; padding: 0 5px;" onclick="closeHelpModal()">✖</span>
-        </div>
-        <div style="font-size: 13px; color: #333; line-height: 1.6;">
-            <p>Hệ thống tự động nhận diện dữ liệu theo từng dòng. Bạn có thể nhập theo các định dạng sau:</p>
-            
-            <b style="color: var(--primary);">1. Nhập Cơ Bản (Chỉ hiện Số và Giá):</b>
-            <p style="margin: 4px 0; color: #666; font-size: 12px;">Phân cách Số và Giá bằng Khoảng trắng, Dấu chấm, hoặc Dấu gạch ngang.</p>
-            <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; margin: 5px 0 15px 0; border-left: 3px solid var(--primary);">
-                0909.123.456 500k<br>
-                0988-888-888 1.500.000<br>
-                090.999.9999 = 2 Triệu
-            </div>
-            
-            <b style="color: #e84393;">2. Nhập Nâng Cao (Thêm Dữ Liệu 1 & Dữ Liệu 2):</b>
-            <p style="margin: 4px 0; color: #666; font-size: 12px;">Sử dụng dấu gạch đứng <code>|</code> để phân cách các cột.</p>
-            <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; margin: 5px 0 15px 0; border-left: 3px solid #e84393;">
-                <b>Cú pháp:</b> Số | Giá | Dữ liệu 1 | Dữ liệu 2<br><br>
-                0909.123.456 | 500k | Sim Vip | Mới về<br>
-                0988.88.88.88 | 50 Tr | Trả sau | Khuyến mãi lớn<br>
-                0912.345.678 | Liên hệ | | Số độc
-            </div>
-            
-            <ul style="padding-left: 20px; margin-bottom: 0; color: var(--danger); font-weight: bold;">
-                <li>Nếu không nhập DL1 hoặc DL2, ô tương ứng sẽ tự động tàng hình!</li>
-                <li>Cột Mệnh và Nhà Mạng sẽ tự động được AI phân tích từ Số SIM.</li>
-            </ul>
-        </div>
-        <div style="text-align: center; margin-top: 20px;">
-            <button onclick="closeHelpModal()" style="background: #f39c12; color: #fff; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);">Đã Hiểu</button>
-        </div>
-    </div>
-</div>
 
-<div id="themeModalOverlay">
-    <div id="themeModalContent">
-        <div class="theme-modal-header">
-            <span>🎨 QUẢN LÝ MẪU THIẾT KẾ</span>
-            <span class="theme-modal-close" onclick="closeThemeModal()">✖</span>
+<div id="themeModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center; padding: 15px;">
+    <div id="themeModalContent" style="background: #fff; padding: 20px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+        <div class="theme-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--success); padding-bottom: 10px; margin-bottom: 15px;">
+            <span style="font-weight: bold; color: var(--success); font-size: 16px;">🎨 QUẢN LÝ MẪU THIẾT KẾ</span>
+            <span class="theme-modal-close" onclick="document.getElementById('themeModalOverlay').style.display='none'" style="cursor: pointer; font-size: 24px; color: red; line-height: 1;">✖</span>
         </div>
-        <select id="builtinTemplates" onchange="loadBuiltinTemplate(this.value); closeThemeModal();" style="width: 100%; padding: 12px; border: 2px solid var(--success); border-radius: 8px; font-size: 14px; font-weight:bold; color: var(--success); cursor:pointer; text-align: center;">
+        
+        <select id="builtinTemplates" onchange="if(typeof loadBuiltinTemplate === 'function') loadBuiltinTemplate(this.value); document.getElementById('themeModalOverlay').style.display='none';" style="width: 100%; padding: 12px; border: 2px solid var(--success); border-radius: 8px; font-size: 14px; font-weight:bold; color: var(--success); cursor:pointer; text-align: center;">
             <option value="">✨ CHỌN MẪU CÓ SẴN</option>
             <option value="mau_vip_1">🔥 Mẫu 1x1 - 1</option>
             <option value="mau_vip_2">💎 Mẫu 2x10 - 1</option>
@@ -95,92 +99,27 @@
             <option value="mau_vip_4">⭐ Mẫu 3x8 - 1</option>
             <option value="mau_vip_5">⚡ Mẫu 3x25 -1</option>
         </select>
-        <input type="file" id="importConfig" accept=".json,.lite" style="display:none" onchange="handleImport(event); closeThemeModal();">
+        <input type="file" id="importConfig" accept=".json,.lite" style="display:none" onchange="if(typeof handleImport==='function') handleImport(event); document.getElementById('themeModalOverlay').style.display='none';">
+        
         <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
             <label style="font-size: 11px; font-weight: bold; color: var(--primary); display: block; margin-bottom: 8px;">☁️ KHO MẪU ĐÁM MÂY TỰ ĐỘNG</label>
-            <div id="cloudTemplatesList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 300px; overflow-y: auto; padding: 5px;">
+            <div style="padding-bottom: 10px;">
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
+                    <input type="text" id="searchTemplateInput" onkeyup="if(typeof liveSearch==='function') liveSearch('searchTemplateInput', 'cloudTemplatesList')" placeholder="Tìm mẫu (VD: vip, 3x8...)" style="width: 100%; padding: 8px 10px 8px 32px; border: 1px solid #ddd; border-radius: 20px; font-size: 12px; outline: none; box-sizing: border-box; transition: 0.3s;">
+                </div>
+            </div>
+            <div id="cloudTemplatesList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 250px; overflow-y: auto; padding: 5px;">
                 <div style="grid-column: 1/-1; text-align: center; font-size: 11px; color: #888;">Đang tải danh sách...</div>
             </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;">
-            <button onclick="createNewLite()" style="background:#007bff; border:1px solid #0056b3; color:#fff; box-shadow: 0 2px 5px rgba(0,123,255,0.3);" title="Tạo Mẫu Trắng Cơ Bản">🆕 TẠO MỚI</button>
-            <button onclick="document.getElementById('importConfig').click()" style="background:#f4f7f6; border:1px solid #ccc; color:#333; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">📂 NẠP MẪU</button>
-            <button onclick="exportConfig(); closeThemeModal();" class="btn-danger" style="box-shadow: 0 2px 5px rgba(214,48,49,0.3);">💾 XUẤT MẪU LITE</button>
-            <button onclick="resetToDefault(); closeThemeModal();" style="background:#ffc107; border:1px solid #d39e00; color:#000; box-shadow: 0 2px 5px rgba(255,193,7,0.3);">🔄 VỀ GỐC</button>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* ĐƯỜNG BĂNG 1: Nút Tab Cấp 1 */
-    .m-tab-lvl1 {
-        background: #f0f4f8; border: 1px solid #ccc; color: #555;
-        padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; 
-        cursor: pointer; white-space: nowrap; flex: 0 0 auto; transition: 0.2s;
-    }
-    .m-tab-lvl1.active {
-        background: var(--primary); color: white; border-color: var(--primary);
-        box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
-    }
-
-    /* ĐƯỜNG BĂNG 2 & 3: Ép tràn viền sát mép điện thoại, tạo cảm giác vuốt vô tận */
-    #mobileModalBody .sub-tabs, #mobileModalBody .sub-sub-tabs {
-        display: flex !important; flex-wrap: nowrap !important;
-        overflow-x: auto !important; scrollbar-width: none; -webkit-overflow-scrolling: touch;
-        gap: 8px; 
-        padding: 12px 15px !important; 
-        margin: 0 -15px !important; /* Margin âm bẻ gãy khoảng cách để tràn sát mép màn hình */
-        background: #fafafa !important; /* Phủ màu nền xám nhẹ để phân tách các đường băng */
-        border-bottom: 1px solid #eee !important;
-        border-top: none !important;
-    }
-    #mobileModalBody .sub-tabs::-webkit-scrollbar, #mobileModalBody .sub-sub-tabs::-webkit-scrollbar { display: none; }
-    
-    /* Giao diện nút Cấp 2 & Cấp 3 */
-    #mobileModalBody .sub-tab-btn, #mobileModalBody .sub-sub-tab-btn {
-        flex: 0 0 auto !important; white-space: nowrap !important;
-        border-radius: 20px !important; padding: 8px 16px !important;
-        font-size: 11px !important; font-weight: bold !important;
-        border: 1px solid #ddd !important; background: #fff !important; color: #555 !important;
-    }
-    
-    /* Màu khi chọn: Cấp 2 (Xanh lá) - Cấp 3 (Tím) */
-    #mobileModalBody .sub-tab-btn.active {
-        background: var(--success) !important; color: white !important;
-        border-color: var(--success) !important; box-shadow: 0 2px 6px rgba(40,167,69,0.3) !important;
-    }
-    #mobileModalBody .sub-sub-tab-btn.active {
-        background: var(--purple) !important; color: white !important;
-        border-color: var(--purple) !important; box-shadow: 0 2px 6px rgba(108,92,231,0.3) !important;
-    }
-</style>
-
-<div id="mobileSettingModal">
-    <div class="mobile-modal-content" style="padding-top: 0; overflow: hidden;">
         
-        <div style="position: sticky; top: 0; z-index: 99; display: flex; align-items: center; padding: 12px 15px; background: #fff; border-bottom: 1px solid #eee; border-radius: 12px 12px 0 0;">
-            
-            <div id="mobileTabMenu" style="display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; width: 100%;">
-                <button class="m-tab-lvl1" id="mTab-tab-main" onclick="openMobileModal('num')">📊 Cột Dữ Liệu</button>
-                <button class="m-tab-lvl1" id="mTab-tab-colheader" onclick="openMobileModal('header')">🏷️ Tiêu Đề</button>
-                <button class="m-tab-lvl1" id="mTab-tab-globaltext" onclick="openMobileModal('globaltext')">📝 Chữ Góc</button>
-                <button class="m-tab-lvl1" id="mTab-tab-general" onclick="openMobileModal('general')">🖼️ Nền & In</button>
-            </div>
-
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-top: 15px;">
+            <button onclick="if(typeof createNewLite==='function') createNewLite()" style="background:#007bff; border:1px solid #0056b3; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🆕 TẠO MỚI</button>
+            <button onclick="document.getElementById('importConfig').click()" style="background:#f4f7f6; border:1px solid #ccc; color:#333; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">📂 NẠP MẪU</button>
+            <button onclick="if(typeof exportConfig==='function') exportConfig(); document.getElementById('themeModalOverlay').style.display='none';" style="background:#e74c3c; border:1px solid #c0392b; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">💾 XUẤT LITE</button>
+            <button onclick="if(typeof resetToDefault==='function') resetToDefault(); document.getElementById('themeModalOverlay').style.display='none';" style="background:#ffc107; border:1px solid #d39e00; color:#000; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🔄 VỀ GỐC</button>
         </div>
-        
-        <div class="mobile-modal-body" id="mobileModalBody" style="padding: 0 15px 15px 15px;"></div>
-    </div>
-</div>
-
-<div id="drmOverlay">
-    <div class="drm-box">
-        <h2>⚠ PHẦN MỀM ĐÃ BỊ KHÓA</h2>
-        <div class="drm-mac" id="displayMac">ĐANG TẠO MÃ...</div>
-        <button onclick="copyMac()" class="drm-btn" style="background:#007bff; margin-bottom:20px;">📋 COPY MÃ MÁY NÀY</button>
-        <input type="text" id="licenseKeyInput" class="drm-input" placeholder="Nhập Key...">
-        <button class="drm-btn" onclick="activateLicense()">🔓 KÍCH HOẠT NGAY</button>
-        <div id="drmMessage"></div>
     </div>
 </div>
 
@@ -188,460 +127,1541 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <h3 style="margin:0;">1. DANH SÁCH SIM</h3><span id="saveStatus">✔ Đã lưu</span>
     </div>
-    <select id="filterMenh" onchange="updatePreviewImmediate(); debouncedSave();" style="width:100%; padding:10px; border:2px solid var(--primary); border-radius:6px; font-weight:bold; color:var(--primary); margin-bottom:10px;">
+    <select id="filterMenh" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();" style="width:100%; padding:10px; border:2px solid var(--primary); border-radius:6px; font-weight:bold; color:var(--primary); margin-bottom:10px;">
         <option value="ALL">🌈 Lọc Mệnh: TẤT CẢ SIM</option>
         <option value="KIM">🤍 Chỉ hiện Mệnh KIM</option> <option value="MỘC">💚 Chỉ hiện Mệnh MỘC</option>
         <option value="THỦY">💙 Chỉ hiện Mệnh THỦY</option> <option value="HỎA">❤ Chỉ hiện Mệnh HỎA</option> <option value="THỔ">🤎 Chỉ hiện Mệnh THỔ</option>
     </select>
-    <textarea id="list">0909.123.456 1000000000&#10;0988.88.88.88 50000000</textarea>
+    <textarea id="list">0909.123.456 1000000000 | VIP | Mới&#10;0988.88.88.88 50000000 | Thường | Xả hàng</textarea>
     <div style="display: flex; margin-top: 10px; gap: 8px;">
         <button onclick="pasteList()" class="btn-success" style="flex:1; padding:12px;">📋 Dán SIM</button>
-        <button onclick="document.getElementById('list').value=''; updatePreviewImmediate(); debouncedSave();" class="btn-danger" style="flex:1; padding:12px;">🗑️ Xóa hết</button>
+        <button onclick="document.getElementById('list').value=''; if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();" class="btn-danger" style="flex:1; padding:12px;">🗑️ Xóa hết</button>
     </div>
 </div>
 
 <div class="column col-preview" id="previewColumn">
     <div class="preview-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); margin-bottom: 10px; padding-bottom: 5px;">
-        <h3 style="margin:0; border:none;">2. PREVIEW V15 FINAL</h3>
+        <h3 style="margin:0; border:none;">2. BẢN VẼ FINAL</h3>
         <div style="font-size:11px; color:red; font-weight:bold;" id="canvasSizeDisplay">Size: 0x0 px</div>
     </div>
     
     <div class="zoom-bar" style="display: flex; gap: 5px; margin-bottom: 10px; background: #e8f4ff; padding: 5px; border-radius: 4px; align-items:center;">
-        <button id="toggleFullBtn" onclick="toggleFullscreen()" style="background:#34495e; color:#fff; padding:6px 12px;">🔲 TOÀN MÀN HÌNH</button>
+        <button id="toggleFullBtn" onclick="toggleFullscreen()" style="background:#34495e; color:#fff; padding:6px 12px; border:none; border-radius:4px; cursor:pointer;">🔲 TOÀN MÀN HÌNH</button>
         <div style="flex-grow:1;"></div>
-        <button onclick="fitZoom()" style="background:#fff; border:1px solid #ccc;">Fit</button>
-        <input type="range" id="zoomSlider" min="10" max="300" value="100" oninput="applyZoom(this.value)" style="width: 80px;">
-        <span id="zoomVal" style="font-weight:bold; font-size:12px; width:40px;">100%</span>
+        <button onclick="fitZoom()" style="background:#fff; border:1px solid #ccc; border-radius:4px; padding:4px 8px; cursor:pointer;">Fit</button>
+        <input type="range" id="zoomSlider" min="10" max="300" value="100" oninput="applyZoom(this.value)" style="width: 80px; cursor:pointer;">
+        <span id="zoomVal" style="font-weight:bold; font-size:12px; width:40px; display:inline-block;">100%</span>
     </div>
 
-    <div id="canvasWrapper">
-        <canvas id="preview"></canvas>
+    <div id="canvasWrapper"><canvas id="preview"></canvas></div>
+
+    <div class="preview-pagination" style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 10px;">
+        <button onclick="prevStep()" style="cursor:pointer; padding:5px 15px; border-radius:4px; background:#007bff; color:#fff; border:none; font-weight:bold;">◀ Lùi</button>
+        <span style="font-size:13px; font-weight:bold; background:#eee; padding:5px 10px; border-radius:4px;">Trang <input type="number" id="pageInput" value="1" onchange="goToPage(this.value)" style="width:40px; text-align:center; border:1px solid #ccc; border-radius:3px;"> / <span id="totalPagesText">1</span></span>
+        <button onclick="nextStep()" style="cursor:pointer; padding:5px 15px; border-radius:4px; background:#007bff; color:#fff; border:none; font-weight:bold;">Tới ▶</button>
     </div>
 
-    <div class="preview-pagination" style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-bottom: 10px;">
-        <button onclick="prevStep()">◀</button>
-        <span style="font-size:12px; font-weight:bold;">Trang <input type="number" id="pageInput" value="1" onchange="goToPage(this.value)" style="width:40px; text-align:center;"> / <span id="totalPagesText">1</span></span>
-        <button onclick="nextStep()">▶</button>
-    </div>
-
-    <div class="preview-actions" style="display: flex; gap: 5px; justify-content: center; flex-wrap:wrap;">
-        <button onclick="copyCanvas()" class="btn-primary">📋 Copy</button>
-        <button onclick="downloadSingleImage()" class="btn-primary" style="background:#17a2b8;">💾 Lưu 1 Ảnh</button>
-        <button onclick="printAllPages()" class="btn-purple">🖨️ In A4</button>
-        <button onclick="generateAllImages()" class="btn-success">📦 ZIP</button>
+    <div class="preview-actions" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
+        <button onclick="copyCanvas()" style="background:#007bff; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📋 Copy</button>
+        <button onclick="downloadSingleImage()" style="background:#17a2b8; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">💾 Lưu 1 Ảnh</button>
+        <button onclick="printAllPages()" style="background:#8e44ad; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">🖨️ In A4</button>
+        <button onclick="generateAllImages()" style="background:#27ae60; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📦 Tải ZIP</button>
     </div>
 </div>
 
 <div class="column col-settings">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 10px;">
-        <h3 style="margin:0; font-size: 14px; color: #333;">3. THIẾT KẾ CẢNH QUAN</h3>
-    </div>
-
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('tab-layout', this)">Lưới</button>
-        <button class="tab-btn" onclick="switchTab('tab-num', this)">Số</button>
-        <button class="tab-btn" onclick="switchTab('tab-price', this)">Giá</button>
-        <button class="tab-btn" onclick="switchTab('tab-menh', this)">Mệnh</button>
-        <button class="tab-btn" onclick="switchTab('tab-mang', this)">Mạng</button>
-        <button class="tab-btn" onclick="switchTab('tab-colheader', this)">Tiêu Đề</button>
-        <button class="tab-btn" onclick="switchTab('tab-globaltext', this)">Chữ Góc</button>
-        <button class="tab-btn" onclick="switchTab('tab-general', this)">Nền</button>
+        <button class="tab-btn active" onclick="switchTab('tab-layout', this)">1. Lưới & Cột</button>
+        <button class="tab-btn" onclick="switchTab('tab-colheader', this)">2. Tiêu Đề</button>
+        <button class="tab-btn" onclick="switchTab('tab-globaltext', this)">3. Chữ Góc</button>
+        <button class="tab-btn" onclick="switchTab('tab-general', this)">4. Nền & In</button>
     </div>
+    <div id="dynamic-tabs-container"></div>
+</div>
 
-    <div id="tab-layout" class="tab-content active">
-        <div class="setting-box" style="border-top: 3px solid var(--danger);">
-            <div class="setting-title" style="color:var(--danger);">📊 KÍCH THƯỚC Ô LƯỚI</div>
-            <div class="setting-row">
-                <label>Cột hiển thị</label>
-                <div class="setting-inputs" style="font-weight:bold; gap: 15px;">
-                    <label><input type="checkbox" id="chkSo" checked onchange="updateUI(); updatePreviewImmediate(); debouncedSave();">Số</label>
-                    <label><input type="checkbox" id="chkGia" checked onchange="updateUI(); updatePreviewImmediate(); debouncedSave();">Giá</label>
-                    <label><input type="checkbox" id="chkMenh" checked onchange="updateUI(); updatePreviewImmediate(); debouncedSave();">Mệnh</label>
-                    <label><input type="checkbox" id="chkMang" checked onchange="updateUI(); updatePreviewImmediate(); debouncedSave();">Mạng</label>
-                </div>
-            </div>
-            <div class="setting-row"><label>Size 1 Cell</label><div class="setting-inputs"><span>W:</span><input type="number" id="cellW" value="380" class="mini"><span>H:</span><input type="number" id="cellH" value="50" class="mini"></div></div>
-            <div class="setting-row"><label>Số lượng</label><div class="setting-inputs"><span>Cột:</span><input type="number" id="tableCols" value="2" class="mini"><span>Dòng:</span><input type="number" id="tableRows" value="10" class="mini"></div></div>
-            <div class="setting-row"><label>Cách nhau</label><div class="setting-inputs"><span>Cột:</span><input type="number" id="tableGap" value="15" class="mini"><span>Dòng:</span><input type="number" id="rowGap" value="5" class="mini"></div></div>
+<script>
+    function generateColTab(prefix, title, defX, hasShape, defW, defBg) {
+    let html = `
+    <div id="sub-${prefix}" class="sub-tab-content">
+        <div class="sub-sub-tabs">
+            <button class="sub-sub-tab-btn active" onclick="switchSubSubTab('ssub-${prefix}-pos', this)">📐 Vị Trí</button>
+            <button class="sub-sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-format', this)">📝 Chữ & Bóng</button>
+            <button class="sub-sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-bg', this)">🎨 Nền Ô</button>
+            ${hasShape ? `<button class="sub-sub-tab-btn" style="color: #e74c3c; font-weight: bold;" onclick="switchSubSubTab('ssub-${prefix}-shape', this)">💎 Khối Độc Lập</button>` : ''}
         </div>
 
-        <div class="setting-box">
-            <div class="setting-title">🖼️ NỀN & VIỀN Ô LƯỚI</div>
-            <div class="setting-row"><label>Kiểu nền</label><div class="setting-inputs"><select id="cellBgMode" class="flex-1" onchange="updateUI()"><option value="solid">Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh tải lên</option></select></div></div>
-            <div class="setting-row" id="cellBgSolidGrp"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="cellBgColor" value="#ffffff"><label><input type="checkbox" id="cellBgTrans" checked> Trong suốt</label></div></div>
-            <div class="setting-row" id="cellBgGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="cellBgGradient1" value="#ffffff"><span>-></span><input type="color" id="cellBgGradient2" value="#f0f0f0"></div></div>
-            <div class="setting-row" id="cellBgImgGrp" style="display:none; align-items: flex-start;">
-                <label style="margin-top: 8px;">Ảnh Nền Ô</label>
-                <div class="setting-inputs" style="flex-direction: column; align-items: flex-start; width: 100%; min-width: 0;">
-                    <div style="display:flex; gap:5px; width:100%; overflow: hidden;">
-                        <input type="file" id="cellBgInput" accept="image/*" style="flex: 1; width: 50px; padding: 6px; font-size: 11px; overflow: hidden;">
-                        <button onclick="openBgCloudModal('cell')" style="background:var(--danger); color:#fff; border:none; border-radius:4px; padding:0 10px; flex-shrink: 0; font-size: 11px; white-space: nowrap;">☁️ KHO NỀN Ô</button>
-                    </div>
-                    <input type="text" id="cellBgDriveLink" placeholder="Hoặc dán Link Ảnh Drive..." style="width:100%; border-color: var(--danger);">
-                </div>
+        <div id="ssub-${prefix}-pos" class="sub-sub-tab-content active">
+            <div class="pro-box"><div class="pro-title">📐 Vị Trí & Kích Thước</div>
+            <div class="pro-row"><label>Kích thước</label><div class="pro-inputs"><span>W:</span><input type="number" id="${prefix}W" value="${defW}"><span>H:</span><input type="number" id="${prefix}H" value="50"></div></div>
+            <div class="pro-row"><label>Lệch vị trí</label><div class="pro-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="0"></div></div>
+            <div class="pro-row"><label>Khóa/Canh</label><div class="pro-inputs"><select id="${prefix}AlignX"><option value="left" ${prefix==='num'?'selected':''}>Trái</option><option value="center" ${prefix==='price'||prefix==='data1'||prefix==='data2'?'selected':''}>Giữa</option><option value="right" ${prefix==='menh'||prefix==='mang'?'selected':''}>Phải</option></select><select id="${prefix}AlignY"><option value="top">Trên</option><option value="middle" selected>Giữa</option><option value="bottom">Dưới</option></select><label style="color:red;"><input type="checkbox" id="${prefix}Locked">🔒 Khóa</label></div></div>
             </div>
-            <div class="setting-row"><label>Bo & Viền</label><div class="setting-inputs"><span>Bo(R):</span><input type="number" id="cellRadius" value="0" class="mini"><span>Dày:</span><input type="number" id="cellBorderW" value="1" class="mini"></div></div>
-            <div class="setting-row"><label>Màu viền</label><div class="setting-inputs"><input type="color" id="cellBorderColor" value="#cccccc"><label><input type="checkbox" id="cellBorderTrans" checked> Ẩn</label></div></div>
         </div>
 
-        <div class="setting-box" style="border-top: 3px solid var(--success);">
-            <div class="setting-title" style="color:var(--success);">🦓 NỀN XEN KẼ (NGỰA VẰN)</div>
-            <div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="useZebra" onchange="updateUI()"> Kích hoạt nền xen kẽ</label></div></div>
-            <div id="zebraGroup" style="display:none;">
-                <div class="setting-row" style="background:#f4f4f4;"><label>Dòng LẺ</label><div class="setting-inputs"><span>Nền:</span><input type="color" id="zebraOddBg" value="#f4f4f4"><span>Số:</span><input type="color" id="zebraOddColorNum" value="#000"><span>Giá:</span><input type="color" id="zebraOddColorPrice" value="#000"><span>Mệnh:</span><input type="color" id="zebraOddColorMenh" value="#000"><span>Mạng:</span><input type="color" id="zebraOddColorMang" value="#000"></div></div>
-                <div class="setting-row"><label>Dòng CHẴN</label><div class="setting-inputs"><span>Nền:</span><input type="color" id="zebraEvenBg" value="#ffffff"><span>Số:</span><input type="color" id="zebraEvenColorNum" value="#000"><span>Giá:</span><input type="color" id="zebraEvenColorPrice" value="#000"><span>Mệnh:</span><input type="color" id="zebraEvenColorMenh" value="#000"><span>Mạng:</span><input type="color" id="zebraEvenColorMang" value="#000"></div></div>
+        <div id="ssub-${prefix}-format" class="sub-sub-tab-content">
+            <div class="pro-box"><div class="pro-title" style="background:#2ecc71;">🔠 Định Dạng Chữ</div>
+            <div class="pro-row"><label>Font & Cỡ</label><div class="pro-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
+            <div class="pro-row"><label>Canh & Lệch</label><div class="pro-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
+            <div class="pro-row"><label>Màu Chữ</label><div class="pro-inputs">
+                <select id="${prefix}ColorMode" onchange="document.getElementById('${prefix}ColorSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}ColorGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}ColorImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select>
+            </div></div>
+            <div class="pro-row" id="${prefix}ColorSolidGrp"><label>Màu trơn</label><div class="pro-inputs"><input type="color" id="${prefix}Color" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+            <div class="pro-row" id="${prefix}ColorGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}ColorGradient1" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}ColorGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}ColorGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+            <div class="pro-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;">
+                <input type="file" id="${prefix}ColorInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}ColorImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
+                <button type="button" onclick="openBgCloudModal('${prefix}ColorImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+            </div></div>
+            <div class="pro-row"><label>Trang trí</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}Bold" checked><b>B</b></label><label><input type="checkbox" id="${prefix}Italic"><i>I</i></label><label><input type="checkbox" id="${prefix}Underline"><u>U</u></label><label><input type="checkbox" id="${prefix}Stroke">Viền</label><input type="color" id="${prefix}StrokeColor" value="#ffffff"><input type="number" id="${prefix}StrokeWidth" value="1"></div></div>
             </div>
+            <div class="pro-box" style="border: 1px solid #27ae60;"><div class="pro-title" style="background:#e8f4e8; color:#27ae60;">⛅ BÓNG CHỮ RIÊNG</div><div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}ObjShadow"> Bật bóng chữ</label><span>X:</span><input type="number" id="${prefix}ObjShadowX" value="3"><span>Y:</span><input type="number" id="${prefix}ObjShadowY" value="3"><span>Mờ:</span><input type="number" id="${prefix}ObjShadowBlur" value="5"><input type="color" id="${prefix}ObjShadowColor" value="#000000"></div></div></div>
         </div>
-    </div>
 
-    <div id="tab-num" class="tab-content">
-        <div class="sub-tabs">
-            <button class="sub-tab-btn active" onclick="switchSubTab('sub-num-pos', this)">📐 Vị Trí</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-num-format', this)">📝 Định Dạng</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-num-bg', this)">🎨 Nền & Viền</button>
-        </div>
-        
-        <div id="sub-num-format" class="sub-tab-content">
-            <div class="setting-box" style="border-top: 3px solid var(--primary);">
-                <div class="setting-title" style="color:var(--primary);">📝 ĐỊNH DẠNG CHỮ SỐ</div>
-                <div class="setting-row"><label>Font chữ</label><div class="setting-inputs"><select id="numFont" class="font-selector flex-1"></select></div></div>
-                <div class="setting-row"><label>Kích cỡ</label><div class="setting-inputs"><span>Size:</span><input type="number" id="numSize" value="24" class="mini"><span>Màu:</span><input type="color" id="numColor" value="#000000"><span>Giãn Y:</span><input type="number" id="numScaleY" value="1" step="0.1" class="mini"></div></div>
-                <div class="setting-row"><label>Canh chữ</label><div class="setting-inputs"><select id="numTextAlign" class="mini"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="numTextPad" value="10" class="mini"></div></div>
-                <div class="setting-row"><label>Lệch / Xoay</label><div class="setting-inputs"><span>X:</span><input type="number" id="numTextX" value="0" class="mini"><span>Y:</span><input type="number" id="numTextY" value="0" class="mini"><label style="color:var(--danger)">Góc xoay:</label><input type="number" id="numAngle" value="0" class="mini" title="Độ xoay khối"></div></div>
-                <div class="setting-row"><label>Hiệu ứng</label><div class="setting-inputs effect-group"><label><input type="checkbox" id="numBold" checked><b>B</b></label><label><input type="checkbox" id="numItalic"><i>I</i></label><label><input type="checkbox" id="numUnderline"><u>U</u></label><label><input type="checkbox" id="numShadow">Bóng</label><label><input type="checkbox" id="numStroke">Viền</label><input type="color" id="numStrokeColor" value="#000000"><input type="number" id="numStrokeWidth" value="1" style="width:30px;"></div></div>
+        <div id="ssub-${prefix}-bg" class="sub-sub-tab-content">             
+            <div class="pro-box">
+                <div class="pro-title" style="background:#3498db;">🎨 NỀN Ô KHUNG</div>
+                <div class="pro-row"><label>Kiểu nền</label><div class="pro-inputs">
+                    <select id="${prefix}BgMode" onchange="document.getElementById('${prefix}BgSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}BgGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}BgImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh lót</option></select>
+                    <label><input type="checkbox" id="${prefix}BgTrans" checked>Ẩn</label>
+                </div></div>
+                <div class="pro-row" id="${prefix}BgSolidGrp"><label>Màu lót</label><div class="pro-inputs"><input type="color" id="${prefix}Bg" value="${defBg}" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="pro-row" id="${prefix}BgGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}BgGradient1" value="${defBg}" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}BgGradient2" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}BgGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="pro-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;">
+                    <input type="file" id="${prefix}BgInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}BgImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
+                    <button type="button" onclick="openBgCloudModal('${prefix}BgImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                </div></div>
+            </div>
+            <div class="pro-box">
+                <div class="pro-title" style="background:#f39c12;">🔲 VIỀN Ô KHUNG</div>
+                <div class="pro-row"><label>Kiểu viền</label><div class="pro-inputs">
+                    <select id="${prefix}BorderMode" onchange="document.getElementById('${prefix}BorderSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}BorderGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}BorderImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh</option></select>
+                    <label><input type="checkbox" id="${prefix}BorderTrans" checked>Ẩn</label>
+                </div></div>
+                <div class="pro-row" id="${prefix}BorderSolidGrp"><label>Màu viền</label><div class="pro-inputs"><input type="color" id="${prefix}BorderColor" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="pro-row" id="${prefix}BorderGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}BorderGradient1" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}BorderGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}BorderGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="pro-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;">
+                    <input type="file" id="${prefix}BorderInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}BorderImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
+                    <button type="button" onclick="openBgCloudModal('${prefix}BorderImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                </div></div>
+                <div class="pro-row"><label>Dày/Bo</label><div class="pro-inputs"><span>Dày:</span><input type="number" id="${prefix}BorderW" value="2" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Bo(R):</span><input type="number" id="${prefix}Radius" value="8" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><select id="${prefix}BorderStyle" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div>
+            </div>
+            <div class="pro-box" style="border: 1px solid #d35400;">
+                <div class="pro-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG NỀN Ô</div>
+                <div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}BoxShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> Bật bóng Nền</label><span>X:</span><input type="number" id="${prefix}BoxShadowX" value="5"><span>Y:</span><input type="number" id="${prefix}BoxShadowY" value="5"><span>Mờ:</span><input type="number" id="${prefix}BoxShadowBlur" value="10"><input type="color" id="${prefix}BoxShadowColor" value="#000000"></div></div>
+            </div>
+            <div class="pro-box" style="border: 1px solid #e67e22;">
+                <div class="pro-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div>
+                <div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}BorderShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> Bật bóng Viền</label><span>X:</span><input type="number" id="${prefix}BorderShadowX" value="2"><span>Y:</span><input type="number" id="${prefix}BorderShadowY" value="2"><span>Mờ:</span><input type="number" id="${prefix}BorderShadowBlur" value="4"><input type="color" id="${prefix}BorderShadowColor" value="#000000"></div></div>
             </div>
         </div>
-        <div id="sub-num-pos" class="sub-tab-content active">
-            <div class="setting-box">
-                <div class="setting-title">📐 VỊ TRÍ & KHỐI</div>
-                <div class="setting-row"><label>Kích thước</label><div class="setting-inputs"><span>W:</span><input type="number" id="numW" value="200" class="mini"><span>H:</span><input type="number" id="numH" value="50" class="mini"></div></div>
-                <div class="setting-row"><label>Lệch khối</label><div class="setting-inputs"><span>X:</span><input type="number" id="numX" value="0" class="mini"><span>Y:</span><input type="number" id="numY" value="0" class="mini"></div></div>
-                <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs"><select id="numAlignX" class="mini"><option value="left" selected>Trái</option><option value="center">Giữa</option><option value="right">Phải</option></select><select id="numAlignY" class="mini"><option value="top">Trên</option><option value="middle" selected>Giữa</option><option value="bottom">Dưới</option></select><label style="color:red;"><input type="checkbox" id="numLocked" onchange="updatePreviewImmediate(); debouncedSave();"> 🔒 Khóa kéo</label></div></div>
-            </div>
-        </div>
-        <div id="sub-num-bg" class="sub-tab-content">
-            <div class="setting-box">
-                <div class="setting-title">🎨 NỀN & VIỀN</div>
-                <div class="setting-row" style="background:#fffcf0; border-bottom:1px dashed #ff4757;"><label style="color:#ff4757; font-weight:bold;">⛅ Đổ Bóng</label><div class="setting-inputs" style="flex-wrap:wrap;"><label style="color:red;"><input type="checkbox" id="numObjShadow" onchange="updatePreviewImmediate(); debouncedSave();"> Bật Bóng Cho Khối Này</label><div style="display:flex; width:100%; gap:5px; align-items:center; margin-top:5px;"><span>X:</span><input type="number" id="numObjShadowX" value="5" class="mini"><span>Y:</span><input type="number" id="numObjShadowY" value="5" class="mini"><span>Mờ:</span><input type="number" id="numObjShadowBlur" value="10" class="mini"><input type="color" id="numObjShadowColor" value="#000000" style="padding:0; width:24px; height:24px;"></div></div></div>
-                <div class="setting-row"><label>Nền/Viền</label><div class="setting-inputs"><input type="color" id="numBg" value="#ffffff"><label><input type="checkbox" id="numBgTrans" checked> Ẩn Nền</label><input type="color" id="numBorder" value="#007bff"><label><input type="checkbox" id="numBorderTrans" checked> Ẩn Viền</label></div></div>
-                <div class="setting-row"><label>Độ dày/Bo</label><div class="setting-inputs"><span>Dày viền:</span><input type="number" id="numBorderW" value="2" class="mini"><span>Bo góc(R):</span><input type="number" id="numRadius" value="8" class="mini"></div></div>
-            </div>
-        </div>
-    </div>
 
-    <div id="tab-price" class="tab-content">
-        <div class="sub-tabs">
-            <button class="sub-tab-btn active" onclick="switchSubTab('sub-price-pos', this)">📐 Vị Trí</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-price-format', this)">📝 Định Dạng</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-price-bg', this)">🎨 Nền & Viền</button>
-        </div>
-        
-        <div id="sub-price-format" class="sub-tab-content">
-            <div class="setting-box" style="border-top: 3px solid var(--success);">
-                <div class="setting-title" style="color:var(--success);">📝 ĐỊNH DẠNG CHỮ GIÁ</div>
-                <div class="setting-row"><label>Font chữ</label><div class="setting-inputs"><select id="priceFont" class="font-selector flex-1"></select></div></div>
-                <div class="setting-row"><label>Kích cỡ</label><div class="setting-inputs"><span>Size:</span><input type="number" id="priceSize" value="20" class="mini"><span>Màu:</span><input type="color" id="priceColor" value="#000000"><span>Giãn Y:</span><input type="number" id="priceScaleY" value="1" step="0.1" class="mini"></div></div>
-                <div class="setting-row"><label>Canh chữ</label><div class="setting-inputs"><select id="priceTextAlign" class="mini"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="priceTextPad" value="10" class="mini"></div></div>
-                <div class="setting-row"><label>Lệch / Xoay</label><div class="setting-inputs"><span>X:</span><input type="number" id="priceTextX" value="0" class="mini"><span>Y:</span><input type="number" id="priceTextY" value="0" class="mini"><label style="color:var(--danger)">Góc xoay:</label><input type="number" id="priceAngle" value="0" class="mini" title="Độ xoay"></div></div>
-                <div class="setting-row"><label>Hiệu ứng</label><div class="setting-inputs effect-group"><label><input type="checkbox" id="priceBold" checked><b>B</b></label><label><input type="checkbox" id="priceItalic"><i>I</i></label><label><input type="checkbox" id="priceUnderline"><u>U</u></label><label><input type="checkbox" id="priceShadow">Bóng</label><label><input type="checkbox" id="priceStroke">Viền</label><input type="color" id="priceStrokeColor" value="#000000"><input type="number" id="priceStrokeWidth" value="1" style="width:30px;"></div></div>
-            </div>
-            <div class="setting-box" style="background:#fafffa;">
-                <div class="setting-title" style="color:var(--success);">✂️ RÚT GỌN GIÁ</div>
-                <div class="setting-row"><label>Kèm chữ</label><div class="setting-inputs"><span>Đầu:</span><input type="text" id="pricePrefix" value="" class="mini"><span>Cuối:</span><input type="text" id="priceSuffix" value="" class="mini" placeholder="đ, K"></div></div>
-                <div class="setting-row"><label>Rút gọn</label><div class="setting-inputs"><select id="priceFormatMode" class="flex-1"><option value="auto">Tự động (5 Tr, 1 Tỷ)</option><option value="div1m">Chia 1 Triệu</option><option value="div1k">Chia 1 Ngàn</option><option value="comma">Thêm phẩy</option><option value="raw">Giữ nguyên</option></select></div></div>
-            </div>
-        </div>
-        <div id="sub-price-pos" class="sub-tab-content active">
-            <div class="setting-box">
-                <div class="setting-title">📐 VỊ TRÍ & KHỐI</div>
-                <div class="setting-row"><label>Kích thước</label><div class="setting-inputs"><span>W:</span><input type="number" id="priceW" value="110" class="mini"><span>H:</span><input type="number" id="priceH" value="50" class="mini"></div></div>
-                <div class="setting-row"><label>Lệch khối</label><div class="setting-inputs"><span>X:</span><input type="number" id="priceX" value="65" class="mini"><span>Y:</span><input type="number" id="priceY" value="0" class="mini"></div></div>
-                <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs"><select id="priceAlignX" class="mini"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><select id="priceAlignY" class="mini"><option value="top">Trên</option><option value="middle" selected>Giữa</option><option value="bottom">Dưới</option></select><label style="color:red;"><input type="checkbox" id="priceLocked" onchange="updatePreviewImmediate(); debouncedSave();"> 🔒 Khóa kéo</label></div></div>
-            </div>
-        </div>
-        <div id="sub-price-bg" class="sub-tab-content">
-            <div class="setting-box">
-                <div class="setting-title">🎨 NỀN & VIỀN</div>
-                <div class="setting-row" style="background:#fffcf0; border-bottom:1px dashed #ff4757;"><label style="color:#ff4757; font-weight:bold;">⛅ Đổ Bóng</label><div class="setting-inputs" style="flex-wrap:wrap;"><label style="color:red;"><input type="checkbox" id="priceObjShadow" onchange="updatePreviewImmediate(); debouncedSave();"> Bật Bóng Cho Khối Này</label><div style="display:flex; width:100%; gap:5px; align-items:center; margin-top:5px;"><span>X:</span><input type="number" id="priceObjShadowX" value="5" class="mini"><span>Y:</span><input type="number" id="priceObjShadowY" value="5" class="mini"><span>Mờ:</span><input type="number" id="priceObjShadowBlur" value="10" class="mini"><input type="color" id="priceObjShadowColor" value="#000000" style="padding:0; width:24px; height:24px;"></div></div></div>
-                <div class="setting-row"><label>Nền/Viền</label><div class="setting-inputs"><input type="color" id="priceBg" value="#ffffff"><label><input type="checkbox" id="priceBgTrans" checked> Ẩn Nền</label><input type="color" id="priceBorder" value="#007bff"><label><input type="checkbox" id="priceBorderTrans"> Ẩn Viền</label></div></div>
-                <div class="setting-row"><label>Độ dày/Bo</label><div class="setting-inputs"><span>Dày viền:</span><input type="number" id="priceBorderW" value="2" class="mini"><span>Bo góc(R):</span><input type="number" id="priceRadius" value="8" class="mini"></div></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tab-menh" class="tab-content">
-        <div class="sub-tabs">
-            <button class="sub-tab-btn active" onclick="switchSubTab('sub-menh-pos', this)">📐 Vị Trí</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-menh-format', this)">📝 Định Dạng</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-menh-bg', this)">🎨 Khối & Nền</button>
-        </div>
-        
-        <div id="sub-menh-format" class="sub-tab-content">
-            <div class="setting-box" style="border-top: 3px solid var(--danger);">
-                <div class="setting-title" style="color:var(--danger);">📝 ĐỊNH DẠNG CHỮ MỆNH</div>
-                <div class="setting-row"><label>Font chữ</label><div class="setting-inputs"><select id="menhFont" class="font-selector flex-1"></select></div></div>
-                <div class="setting-row"><label>Kích cỡ</label><div class="setting-inputs"><span>Tỉ lệ:</span><input type="number" id="menhTextScale" value="70" class="mini"><span>% Màu:</span><input type="color" id="menhColor" value="#ffffff"><span>Giãn Y:</span><input type="number" id="menhScaleY" value="1" step="0.1" class="mini"></div></div>
-                <div class="setting-row"><label>Canh chữ</label><div class="setting-inputs"><select id="menhTextAlign" class="mini"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="menhTextPad" value="5" class="mini"></div></div>
-                <div class="setting-row"><label>Lệch / Xoay</label><div class="setting-inputs"><span>X:</span><input type="number" id="menhTextX" value="0" class="mini"><span>Y:</span><input type="number" id="menhTextY" value="0" class="mini"><label style="color:var(--danger)">Góc xoay:</label><input type="number" id="menhAngle" value="0" class="mini" title="Độ xoay cả khối chữ + hình"></div></div>
-                <div class="setting-row"><label>Hiệu ứng</label><div class="setting-inputs effect-group"><label><input type="checkbox" id="menhBold" checked><b>B</b></label><label><input type="checkbox" id="menhItalic"><i>I</i></label><label><input type="checkbox" id="menhUnderline"><u>U</u></label><label><input type="checkbox" id="menhShadow">Bóng</label><label><input type="checkbox" id="menhStroke">Viền</label><input type="color" id="menhStrokeColor" value="#000000"><input type="number" id="menhStrokeWidth" value="1" style="width:30px;"></div></div>
-            </div>
-        </div>
-        <div id="sub-menh-pos" class="sub-tab-content active">
-            <div class="setting-box">
-                <div class="setting-title">📐 VỊ TRÍ & KHỐI</div>
-                <div class="setting-row"><label>Kích thước</label><div class="setting-inputs"><span>W:</span><input type="number" id="menhW" value="70" class="mini"><span>H:</span><input type="number" id="menhH" value="50" class="mini"></div></div>
-                <div class="setting-row"><label>Lệch khối</label><div class="setting-inputs"><span>X:</span><input type="number" id="menhX" value="0" class="mini"><span>Y:</span><input type="number" id="menhY" value="0" class="mini"></div></div>
-                <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs"><select id="menhAlignX" class="mini"><option value="left">Trái</option><option value="center">Giữa</option><option value="right" selected>Phải</option></select><select id="menhAlignY" class="mini"><option value="top">Trên</option><option value="middle" selected>Giữa</option><option value="bottom">Dưới</option></select><label style="color:red;"><input type="checkbox" id="menhLocked" onchange="updatePreviewImmediate(); debouncedSave();"> 🔒 Khóa</label></div></div>
-            </div>
-        </div>
-        <div id="sub-menh-bg" class="sub-tab-content">
-            <div class="setting-box">
-                <div class="setting-title">💎 HÌNH DÁNG KHỐI TỰ ĐỘNG</div>
-                <div class="setting-row">
-                    <label>Kiểu khối</label>
-                    <div class="setting-inputs">
-                        <select id="menhShape" class="flex-1" style="font-weight:bold; color:var(--danger);">
-                            <option value="none">Không khối</option><option value="text_only">Chữ theo màu</option>
-                            <optgroup label="--- Khối 2D Phẳng ---"><option value="rounded_expanded">Bôi bo tròn</option><option value="expanded_straight">Bôi vuông</option><option value="rect_rounded" selected>Chữ nhật bo góc</option><option value="rect_straight">Chữ nhật vuông</option><option value="circle">Hình tròn</option><option value="square">Hình vuông</option><option value="rounded">Vuông bo góc</option><option value="pentagon">Ngũ giác</option><option value="hexagon">Lục giác</option><option value="octagon">Bát giác</option><option value="diamond">Hình Thoi</option><option value="teardrop">Giọt nước</option><option value="star_5">Ngôi sao</option></optgroup>
-                            <optgroup label="--- Khối 3D Nổi Nút Bấm ---"><option value="3d_rounded_expanded">3D Bôi bo tròn</option><option value="3d_expanded_straight">3D Bôi vuông</option><option value="3d_rect_rounded">3D Chữ nhật bo</option><option value="3d_rect_straight">3D Chữ nhật vuông</option><option value="3d_circle">3D Tròn</option><option value="3d_square">3D Vuông</option><option value="3d_rounded">3D Vuông bo</option><option value="3d_pentagon">3D Ngũ giác</option><option value="3d_hexagon">3D Lục giác</option><option value="3d_octagon">3D Bát giác</option><option value="3d_diamond">3D Thoi</option><option value="3d_teardrop">3D Giọt nước</option><option value="3d_star_5">3D Ngôi sao</option></optgroup>
+        ${hasShape ? `
+        <div id="ssub-${prefix}-shape" class="sub-sub-tab-content">
+            <div class="pro-box" style="border: 2px solid #e74c3c;">
+                <div class="pro-title" style="background:#fff0f0; color:#e74c3c;">💎 THIẾT KẾ KHỐI ĐỘC LẬP (LỚP 3)</div>
+                
+                <div class="pro-row">
+                    <label>1. Chọn dáng</label>
+                    <div class="pro-inputs">
+                        <select id="${prefix}ShapeType" onchange="toggleShapeOptions('${prefix}'); typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="font-weight:bold; color:#e74c3c;">
+                            <option value="none" selected>Không dùng khối</option>
+                            <option value="text_only">Chữ theo màu mạng</option>
+                            <option disabled>--- Các Loại Khối ---</option>
+                            <option value="circle">Hình tròn</option>
+                            <option value="diamond">Hình Thoi</option>
+                            <option value="pentagon">Ngũ giác (5)</option>
+                            <option value="hexagon">Lục giác (6)</option>
+                            <option value="octagon">Bát giác (8)</option>
+                            <option value="teardrop">Giọt nước</option>
+                            <option value="star">Ngôi sao</option>
                         </select>
                     </div>
                 </div>
+
+                <div id="${prefix}ShapeOptions" style="display: none; border-top: 1px dashed #e74c3c; padding-top: 10px; margin-top: 8px;">
+                    
+                    <div class="pro-row">
+                        <label>5. Kích thước</label>
+                        <div class="pro-inputs">
+                            <span>W:</span><input type="number" id="${prefix}ShapeW" value="45" style="width:45px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                            <span>H:</span><input type="number" id="${prefix}ShapeH" value="45" style="width:45px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                        </div>
+                    </div>
+
+                    <div class="pro-box" style="border: 1px solid #f39c12; margin-top: 10px;">
+                        <div class="pro-title" style="background:#fdf2e9; color:#f39c12;">🔲 VIỀN KHỐI</div>
+                        
+                        <div class="pro-row">
+                            <label>Kiểu viền</label>
+                            <div class="pro-inputs">
+                                <select id="${prefix}ShapeBorderMode" onchange="document.getElementById('${prefix}ShapeBorderSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}ShapeBorderGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}ShapeBorderImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();">
+                                    <option value="solid" selected>Màu trơn</option>
+                                    <option value="gradient">Gradient</option>
+                                    <option value="image">Lồng Ảnh</option>
+                                </select>
+                                <label><input type="checkbox" id="${prefix}ShapeBorderTrans" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> Ẩn</label>
+                            </div>
+                        </div>
+
+                        <div class="pro-row" id="${prefix}ShapeBorderSolidGrp">
+                            <label>Màu viền</label>
+                            <div class="pro-inputs">
+                                <input type="color" id="${prefix}ShapeBorderColor" value="#ffffff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                            </div>
+                        </div>
+
+                        <div class="pro-row" id="${prefix}ShapeBorderGradGrp" style="display:none;">
+                            <label>Gradient</label>
+                            <div class="pro-inputs">
+                                <input type="color" id="${prefix}ShapeBorderGradient1" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>➔</span>
+                                <input type="color" id="${prefix}ShapeBorderGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>Góc:</span><input type="number" id="${prefix}ShapeBorderGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                            </div>
+                        </div>
+
+                        <div class="pro-row" id="${prefix}ShapeBorderImgGrp" style="display:none;">
+                            <label>Ảnh lồng</label>
+                            <div class="pro-inputs" style="display:flex; gap:5px; width:100%;">
+                                <input type="file" id="${prefix}ShapeBorderInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}ShapeBorderImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
+                                <button type="button" onclick="openBgCloudModal('${prefix}ShapeBorderImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                            </div>
+                        </div>
+
+                        <div class="pro-row">
+                            <label>Dày/Bo</label>
+                            <div class="pro-inputs">
+                                <span>Dày:</span><input type="number" id="${prefix}ShapeBorderW" value="2" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>Bo(R):</span><input type="number" id="${prefix}ShapeRadius" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <select id="${prefix}ShapeBorderStyle" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                    <option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pro-box" style="border: 1px solid #d35400; margin-top: 10px;">
+                        <div class="pro-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG KHỐI</div>
+                        <div class="pro-row">
+                            <label>Trạng thái</label>
+                            <div class="pro-inputs">
+                                <input type="checkbox" id="${prefix}ShapeBoxShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> <span>Bật</span>
+                                <span>X:</span><input type="number" id="${prefix}ShapeBoxShadowX" value="2" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>Y:</span><input type="number" id="${prefix}ShapeBoxShadowY" value="2" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>Mờ:</span><input type="number" id="${prefix}ShapeBoxShadowBlur" value="4" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <input type="color" id="${prefix}ShapeBoxShadowColor" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pro-box" style="border: 1px solid #e67e22; margin-top: 10px;">
+                        <div class="pro-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div>
+                        <div class="pro-row">
+                            <label>Trạng thái</label>
+                            <div class="pro-inputs">
+                                <input type="checkbox" id="${prefix}ShapeBorderShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> <span>Bật</span>
+                                <span>X:</span><input type="number" id="${prefix}ShapeBorderShadowX" value="0" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>Y:</span><input type="number" id="${prefix}ShapeBorderShadowY" value="0" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>Mờ:</span><input type="number" id="${prefix}ShapeBorderShadowBlur" value="3" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <input type="color" id="${prefix}ShapeBorderShadowColor" value="#ffffff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
-            <div class="setting-box">
-                <div class="setting-title">🎨 NỀN KHUNG TỔNG</div>
-                <div class="setting-row" style="background:#fffcf0; border-bottom:1px dashed #ff4757;"><label style="color:#ff4757; font-weight:bold;">⛅ Đổ Bóng</label><div class="setting-inputs" style="flex-wrap:wrap;"><label style="color:red;"><input type="checkbox" id="menhObjShadow" onchange="updatePreviewImmediate(); debouncedSave();"> Bật Bóng Cho Khối Này</label><div style="display:flex; width:100%; gap:5px; align-items:center; margin-top:5px;"><span>X:</span><input type="number" id="menhObjShadowX" value="5" class="mini"><span>Y:</span><input type="number" id="menhObjShadowY" value="5" class="mini"><span>Mờ:</span><input type="number" id="menhObjShadowBlur" value="10" class="mini"><input type="color" id="menhObjShadowColor" value="#000000" style="padding:0; width:24px; height:24px;"></div></div></div>
-                <div class="setting-row"><label>Nền khung</label><div class="setting-inputs"><input type="color" id="menhBg" value="#ffffff"><label><input type="checkbox" id="menhBgTrans" checked> Tr.Suốt</label><span>Bo(R):</span><input type="number" id="menhRadius" value="8" class="mini"></div></div>
-                <div class="setting-row"><label>Viền khung</label><div class="setting-inputs"><input type="color" id="menhBorderColor" value="#007bff"><label><input type="checkbox" id="menhBorderTrans"> Ẩn</label><span>Dày:</span><input type="number" id="menhBorderW" value="2" class="mini"></div></div>
+        </div>
+        ` : ''}
+
+        ${prefix === 'price' ? `
+        <div class="pro-box" style="background:#fafffa; border: 1px solid #2ecc71; margin-top: 15px;">
+            <div class="pro-title" style="background:#2ecc71;">✂️ CÀI ĐẶT HIỂN THỊ GIÁ</div>
+            <div class="pro-row"><label>Hiển thị</label><div class="pro-inputs"><label><input type="checkbox" id="showPrice" checked> Hiện giá tiền</label></div></div>
+            <div class="pro-row"><label>Kèm chữ</label><div class="pro-inputs"><span>Đầu:</span><input type="text" id="pricePrefix" value="" style="width:50px;"><span>Cuối:</span><input type="text" id="priceSuffix" value="đ" style="width:50px;"></div></div>
+            <div class="pro-row"><label>Rút gọn</label><div class="pro-inputs"><select id="priceFormatMode" style="flex:1;"><option value="auto">Tự động (5 Tr, 1 Tỷ)</option><option value="div1m">Chia 1 Triệu</option><option value="div1k">Chia 1 Ngàn</option><option value="comma">Thêm phẩy</option><option value="raw" selected>Giữ nguyên</option></select></div></div>
+        </div>
+        ` : ''}
+    </div>`;
+    return html;
+}
+    function generateHeaderTab(prefix, title, defX, defW, defY = 0, ax = 'center', ay = 'top') {
+        let html = `
+        <div id="sub-${prefix}" class="sub-tab-content">
+            <div class="sub-sub-tabs">
+                <button class="sub-sub-tab-btn active" onclick="switchSubSubTab('ssub-${prefix}-pos', this)">📐 Vị Trí</button>
+                <button class="sub-sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-format', this)">📝 Định Dạng</button>
+                <button class="sub-sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-bg', this)">🎨 Nền & Viền</button>
             </div>
+            <div id="ssub-${prefix}-format" class="sub-sub-tab-content">
+                <div class="pro-box"><div class="pro-title" style="background:#2ecc71;">🔠 Định Dạng Chữ</div>
+                <div class="pro-row"><label style="color:#e74c3c;">Tên hiển thị</label><div class="pro-inputs"><input type="text" id="${prefix}Text" value="${title}" class="flex-1"></div></div>
+                <div class="pro-row"><label>Font & Cỡ</label><div class="pro-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
+                <div class="pro-row"><label>Canh & Lệch</label><div class="pro-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
+                <div class="pro-row"><label>Màu Chữ</label><div class="pro-inputs"><select id="${prefix}ColorMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select></div></div>
+                <div class="pro-row" id="${prefix}ColorSolidGrp"><label>Màu trơn</label><div class="pro-inputs"><input type="color" id="${prefix}Color" value="#000000"></div></div>
+                <div class="pro-row" id="${prefix}ColorGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}ColorGradient1" value="#000000"><span>➔</span><input type="color" id="${prefix}ColorGradient2" value="#ff0000"><span>Góc:</span><input type="number" id="${prefix}ColorGradAngle" value="0" style="width:40px;"></div></div>
+                <div class="pro-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}ColorInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}ColorImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
+                <div class="pro-row"><label>Trang trí</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}Bold" checked><b>B</b></label><label><input type="checkbox" id="${prefix}Italic"><i>I</i></label><label><input type="checkbox" id="${prefix}Underline"><u>U</u></label><label><input type="checkbox" id="${prefix}Stroke">Viền</label><input type="color" id="${prefix}StrokeColor" value="#ffffff"><input type="number" id="${prefix}StrokeWidth" value="1"></div></div>
+                </div>
+                <div class="pro-box" style="border: 1px solid #27ae60;"><div class="pro-title" style="background:#e8f4e8; color:#27ae60;">⛅ BÓNG CHỮ (ObjShadow)</div><div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}ObjShadow"> Bật bóng chữ</label><span>X:</span><input type="number" id="${prefix}ObjShadowX" value="3"><span>Y:</span><input type="number" id="${prefix}ObjShadowY" value="3"><span>Mờ:</span><input type="number" id="${prefix}ObjShadowBlur" value="5"><input type="color" id="${prefix}ObjShadowColor" value="#000000"></div></div></div>
+            </div>
+            <div id="ssub-${prefix}-pos" class="sub-sub-tab-content active">
+                <div class="pro-box"><div class="pro-title">📐 Vị Trí & Kích Thước</div>
+                <div class="pro-row"><label>Kích thước</label><div class="pro-inputs"><span>W:</span><input type="number" id="${prefix}W" value="${defW}"><span>H:</span><input type="number" id="${prefix}H" value="40"></div></div>
+                <div class="pro-row"><label>Lệch khối</label><div class="pro-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="${defY}"></div></div>
+                <div class="pro-row"><label>Khóa/Canh</label><div class="pro-inputs">
+                    <select id="${prefix}AlignX"><option value="left" ${ax==='left'?'selected':''}>Trái</option><option value="center" ${ax==='center'?'selected':''}>Giữa</option><option value="right" ${ax==='right'?'selected':''}>Phải</option></select>
+                    <select id="${prefix}AlignY"><option value="top" ${ay==='top'?'selected':''}>Trên</option><option value="middle" ${ay==='middle'?'selected':''}>Giữa</option><option value="bottom" ${ay==='bottom'?'selected':''}>Dưới</option></select>
+                    <label style="color:red;"><input type="checkbox" id="${prefix}Locked">🔒 Khóa</label>
+                </div></div>
+                </div>
+            </div>
+            <div id="ssub-${prefix}-bg" class="sub-sub-tab-content">
+                <div class="pro-box"><div class="pro-title" style="background:#e74c3c;">🎨 NỀN Ô KHUNG</div>
+                <div class="pro-row"><label>Kiểu nền</label><div class="pro-inputs"><select id="${prefix}BgMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh lót</option></select><label><input type="checkbox" id="${prefix}BgTrans" checked>Ẩn</label></div></div>
+                <div class="pro-row" id="${prefix}BgSolidGrp"><label>Màu lót</label><div class="pro-inputs"><input type="color" id="${prefix}Bg" value="#ffffff"></div></div>
+                <div class="pro-row" id="${prefix}BgGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}BgGradient1" value="#ffffff"><span>➔</span><input type="color" id="${prefix}BgGradient2" value="#007bff"><span>Góc:</span><input type="number" id="${prefix}BgGradAngle" value="0" style="width:40px;"></div></div>
+                <div class="pro-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}BgInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}BgImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
+                </div>
+                <div class="pro-box"><div class="pro-title" style="background:#f39c12;">🔲 VIỀN Ô KHUNG</div>
+                <div class="pro-row"><label>Kiểu viền</label><div class="pro-inputs"><select id="${prefix}BorderMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh</option></select><label><input type="checkbox" id="${prefix}BorderTrans" checked>Ẩn</label></div></div>
+                <div class="pro-row" id="${prefix}BorderSolidGrp"><label>Màu viền</label><div class="pro-inputs"><input type="color" id="${prefix}BorderColor" value="#007bff"></div></div>
+                <div class="pro-row" id="${prefix}BorderGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}BorderGradient1" value="#007bff"><span>➔</span><input type="color" id="${prefix}BorderGradient2" value="#ff0000"><span>Góc:</span><input type="number" id="${prefix}BorderGradAngle" value="0" style="width:40px;"></div></div>
+                <div class="pro-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}BorderInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}BorderImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
+                <div class="pro-row"><label>Dày/Bo</label><div class="pro-inputs"><span>Dày:</span><input type="number" id="${prefix}BorderW" value="2"><span>Bo(R):</span><input type="number" id="${prefix}Radius" value="8"><select id="${prefix}BorderStyle"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div></div>
+                <div class="pro-box" style="border: 1px solid #d35400;"><div class="pro-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG NỀN Ô</div><div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}BoxShadow"> Bật bóng Nền</label><span>X:</span><input type="number" id="${prefix}BoxShadowX" value="5"><span>Y:</span><input type="number" id="${prefix}BoxShadowY" value="5"><span>Mờ:</span><input type="number" id="${prefix}BoxShadowBlur" value="10"><input type="color" id="${prefix}BoxShadowColor" value="#000000"></div></div></div>
+                <div class="pro-box" style="border: 1px solid #e67e22;"><div class="pro-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div><div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}BorderShadow"> Bật bóng Viền</label><span>X:</span><input type="number" id="${prefix}BorderShadowX" value="2"><span>Y:</span><input type="number" id="${prefix}BorderShadowY" value="2"><span>Mờ:</span><input type="number" id="${prefix}BorderShadowBlur" value="4"><input type="color" id="${prefix}BorderShadowColor" value="#000000"></div></div></div>
+            </div>
+        </div>`;
+        return html;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        let layoutHtml = `<div id="tab-layout" class="tab-content active"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-luoi-chung', this)">Lưới Chung</button><button class="sub-tab-btn" onclick="switchSubTab('sub-num', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-price', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-menh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-mang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data2', this)">DL 2</button></div>`;
+        
+layoutHtml += `<div id="sub-luoi-chung" class="sub-tab-content active"><div class="pro-box"><div class="pro-title">📐 Kích Thước Lưới</div><div class="pro-row"><label>Cột hiển thị</label><div class="pro-inputs"><label><input type="checkbox" id="chkNum" checked onchange="updateUI()">Số</label><label><input type="checkbox" id="chkPrice" checked onchange="updateUI()">Giá</label><label><input type="checkbox" id="chkMenh" checked onchange="updateUI()">Mệnh</label><label><input type="checkbox" id="chkMang" checked onchange="updateUI()">Mạng</label><label><input type="checkbox" id="chkData1" checked onchange="updateUI()">DL1</label><label><input type="checkbox" id="chkData2" checked onchange="updateUI()">DL2</label></div></div><div class="pro-row"><label>Ô Lưới</label><div class="pro-inputs"><span>W:</span><input type="number" id="cellW" value="380"><span>H:</span><input type="number" id="cellH" value="60"></div></div><div class="pro-row"><label>Số lượng</label><div class="pro-inputs"><span>Cột:</span><input type="number" id="tableCols" value="2"><span>Dòng:</span><input type="number" id="tableRows" value="10"></div></div><div class="pro-row"><label>Cách nhau</label><div class="pro-inputs"><span>Cột:</span><input type="number" id="tableGap" value="15"><span>Dòng:</span><input type="number" id="rowGap" value="10"></div></div></div>`;
+
+layoutHtml += `<div class="pro-box">
+    <div class="pro-title" style="background:#f39c12;">🎨 Nền Ô Lưới & Bóng Cell</div>
+    
+    <div class="pro-row">
+        <label>Nền Ô Lưới</label>
+        <div class="pro-inputs">
+            <select id="cellBgMode" onchange="document.getElementById('cellBgSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('cellBgGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('cellBgImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; updateUI();">
+                <option value="solid" selected>Trơn</option>
+                <option value="gradient">Gradient</option>
+                <option value="image">Ảnh</option>
+            </select>
+            <label><input type="checkbox" id="cellBgTrans" checked>Ẩn</label>
+        </div>
+    </div>
+    
+    <div class="pro-row" id="cellBgSolidGrp"><label>Màu nền</label><div class="pro-inputs"><input type="color" id="cellBg" value="#ffffff"></div></div>
+    <div class="pro-row" id="cellBgGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="cellBgGradient1" value="#ffffff"><span>➔</span><input type="color" id="cellBgGradient2" value="#f0f0f0"><span>Góc:</span><input type="number" id="cellBgGradAngle" value="0" style="width:40px;"></div></div>
+    
+    <div class="pro-row" id="cellBgImgGrp" style="display:none;">
+        <label>Ảnh nền</label>
+        <div class="pro-inputs" style="flex-direction:column; gap:3px;">
+            <div style="display:flex; gap:5px; width:100%;">
+                <input type="file" id="cellBgInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, 'cellBgImage', 'cellBgStatus')">
+                
+                <button type="button" onclick="document.getElementById('cellBgInput').value=''; document.getElementById('cellBgStatus').innerHTML='☁️ Đang dùng ảnh Mây'; openBgCloudModal('cellBgImage');" class="btn-mini" style="background:var(--success); color:white; border:none; padding:0 10px; border-radius:4px; cursor:pointer; height:28px;">☁️ MÂY</button>
+                
+                <button type="button" onclick="removeImage('cellBgImage', 'cellBgInput', 'cellBgStatus')" class="btn-mini" style="background:#e74c3c; padding:0 10px; border:none; border-radius:4px; color:white; cursor:pointer; height:28px;">❌</button>
+            </div>
+            <div id="cellBgStatus" style="font-size:11px; color:#666; font-style:italic;">❌ Chưa có ảnh</div>
         </div>
     </div>
 
-    <div id="tab-mang" class="tab-content">
-        <div class="sub-tabs">
-            <button class="sub-tab-btn active" onclick="switchSubTab('sub-mang-pos', this)">📐 Vị Trí</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-mang-format', this)">📝 Định Dạng</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-mang-bg', this)">🎨 Khối & Nền</button>
+    <div class="pro-row">
+        <label>Viền Lưới</label>
+        <div class="pro-inputs">
+            <select id="cellBorderMode" onchange="document.getElementById('cellBorderSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('cellBorderGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('cellBorderImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; updateUI();">
+                <option value="solid" selected>Trơn</option>
+                <option value="gradient">Gradient</option>
+                <option value="image">Ảnh</option>
+            </select>
+            <label><input type="checkbox" id="cellBorderTrans">Ẩn</label>
         </div>
-        
-        <div id="sub-mang-format" class="sub-tab-content">
-            <div class="setting-box" style="border-top: 3px solid #ff9f43;">
-                <div class="setting-title" style="color:#ff9f43;">📝 ĐỊNH DẠNG CHỮ NHÀ MẠNG</div>
-                <div class="setting-row"><label>Font chữ</label><div class="setting-inputs"><select id="mangFont" class="font-selector flex-1"></select></div></div>
-                <div class="setting-row"><label>Kích cỡ</label><div class="setting-inputs"><span>Tỉ lệ:</span><input type="number" id="mangTextScale" value="70" class="mini"><span>% Màu:</span><input type="color" id="mangColor" value="#ffffff"><span>Giãn Y:</span><input type="number" id="mangScaleY" value="1" step="0.1" class="mini"></div></div>
-                <div class="setting-row"><label>Canh chữ</label><div class="setting-inputs"><select id="mangTextAlign" class="mini"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="mangTextPad" value="5" class="mini"></div></div>
-                <div class="setting-row"><label>Lệch / Xoay</label><div class="setting-inputs"><span>X:</span><input type="number" id="mangTextX" value="0" class="mini"><span>Y:</span><input type="number" id="mangTextY" value="0" class="mini"><label style="color:#ff9f43">Góc xoay:</label><input type="number" id="mangAngle" value="0" class="mini" title="Độ xoay cả khối chữ + hình"></div></div>
-                <div class="setting-row"><label>Hiệu ứng</label><div class="setting-inputs effect-group"><label><input type="checkbox" id="mangBold" checked><b>B</b></label><label><input type="checkbox" id="mangItalic"><i>I</i></label><label><input type="checkbox" id="mangUnderline"><u>U</u></label><label><input type="checkbox" id="mangShadow">Bóng</label><label><input type="checkbox" id="mangStroke">Viền</label><input type="color" id="mangStrokeColor" value="#000000"><input type="number" id="mangStrokeWidth" value="1" style="width:30px;"></div></div>
+    </div>
+    
+    <div class="pro-row" id="cellBorderSolidGrp"><label>Màu viền</label><div class="pro-inputs"><input type="color" id="cellBorderColor" value="#cccccc"></div></div>
+    <div class="pro-row" id="cellBorderGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="cellBorderGradient1" value="#cccccc"><span>➔</span><input type="color" id="cellBorderGradient2" value="#000000"><span>Góc:</span><input type="number" id="cellBorderGradAngle" value="0" style="width:40px;"></div></div>
+    
+    <div class="pro-row" id="cellBorderImgGrp" style="display:none;">
+        <label>Ảnh viền</label>
+        <div class="pro-inputs" style="flex-direction:column; gap:3px;">
+            <div style="display:flex; gap:5px; width:100%;">
+                <input type="file" id="cellBorderInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, 'cellBorderImage', 'cellBorderStatus')">
+                
+                <button type="button" onclick="document.getElementById('cellBorderInput').value=''; document.getElementById('cellBorderStatus').innerHTML='☁️ Đang dùng ảnh Mây'; openBgCloudModal('cellBorderImage');" class="btn-mini" style="background:var(--success); color:white; border:none; padding:0 10px; border-radius:4px; cursor:pointer; height:28px;">☁️ MÂY</button>
+                
+                <button type="button" onclick="removeImage('cellBorderImage', 'cellBorderInput', 'cellBorderStatus')" class="btn-mini" style="background:#e74c3c; padding:0 10px; border:none; border-radius:4px; color:white; cursor:pointer; height:28px;">❌</button>
             </div>
+            <div id="cellBorderStatus" style="font-size:11px; color:#666; font-style:italic;">❌ Chưa có ảnh</div>
+        </div>
+    </div>
+
+    <div class="pro-row"><label>Dày/Bo</label><div class="pro-inputs"><span>Dày:</span><input type="number" id="cellBorderW" value="1"><span>Bo:</span><input type="number" id="cellRadius" value="0"><select id="cellBorderStyle"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div>
+    <div class="pro-row" style="background:#fffcf0;"><label style="color:red;">🔲 Bóng Cell</label><div class="pro-inputs"><label><input type="checkbox" id="cellBoxShadow"> Bật bóng Ô Lưới</label><span>X:</span><input type="number" id="cellBoxShadowX" value="3"><span>Y:</span><input type="number" id="cellBoxShadowY" value="3"><span>Mờ:</span><input type="number" id="cellBoxShadowBlur" value="8"><input type="color" id="cellBoxShadowColor" value="#000000"></div></div>
+    <div class="pro-row" style="background:#e8f4e8;"><label style="color:green;">🦓 Ngựa Vằn</label><div class="pro-inputs"><label><input type="checkbox" id="useZebra"> Bật nền xen kẽ</label></div></div>
+</div></div>`;
+        layoutHtml += generateColTab('num', 'Cột Số', 0, false, 200, '#ffffff') + generateColTab('price', 'Cột Giá', 65, false, 110, '#ffffff') + generateColTab('menh', 'Cột Mệnh', 0, true, 70, '#ffffff') + generateColTab('mang', 'Cột Mạng', -80, true, 70, '#ffffff') + generateColTab('data1', 'Cột DL 1', 0, false, 100, '#ffffff') + generateColTab('data2', 'Cột DL 2', 0, false, 100, '#ffffff') + `</div>`;
+
+        let headHtml = `<div id="tab-colheader" class="tab-content"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-hCommon', this)">Bật/Tắt Tiêu Đề</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hNum', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hPrice', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMenh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData2', this)">DL 2</button></div>`;
+        headHtml += `<div id="sub-hCommon" class="sub-tab-content active"><div class="pro-box"><div class="pro-title">🏷️ Kích Hoạt Tiêu Đề</div><div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="showHeaderRow" checked> Hiện hàng Tiêu Đề</label><span>Cao(H):</span><input type="number" id="headerRowHeight" value="50"></div></div></div></div>`;
+        headHtml += generateHeaderTab('hNum', 'SỐ ĐẸP VIP', 0, 200) + generateHeaderTab('hPrice', 'GIÁ BÁN', 65, 110) + generateHeaderTab('hMenh', 'MỆNH', 0, 70) + generateHeaderTab('hMang', 'MẠNG', -80, 70) + generateHeaderTab('hData1', 'DỮ LIỆU 1', 0, 100) + generateHeaderTab('hData2', 'DỮ LIỆU 2', 0, 100) + `</div>`;
+
+        let globHtml = `<div id="tab-globaltext" class="tab-content"><div class="sub-tabs" id="globalTextTabs" style="flex-wrap: wrap;"></div><div id="dynamic-globals-container">`;
+        let gT = [
+            {id:'header1', t:'Tiêu Đề 1', d:'BẢNG SIM SỐ ĐẸP', w:500, y:-25, ax:'center', ay:'top'}, 
+            {id:'header2', t:'Tiêu Đề 2', d:'Uy Tín - Chất Lượng', w:500, y:25, ax:'center', ay:'top'}, 
+            {id:'footer1', t:'Chân Trang 1', d:'Giao Sim Tận Nơi', w:500, y:-25, ax:'center', ay:'bottom'}, 
+            {id:'footer2', t:'Chân Trang 2', d:'Hotline: 0909.123.456', w:500, y:25, ax:'center', ay:'bottom'},
+            {id:'ctl', t:'Trái-Trên', d:'Hotline', w:200, y:0, ax:'left', ay:'top'},
+            {id:'ctr', t:'Phải-Trên', d:'Zalo', w:200, y:0, ax:'right', ay:'top'},
+            {id:'cbl', t:'Trái-Dưới', d:'CSKH', w:200, y:0, ax:'left', ay:'bottom'},
+            {id:'cbr', t:'Phải-Dưới', d:'UY TÍN', w:200, y:0, ax:'right', ay:'bottom'},
+            {id:'pageNum', t:'Số Trang', d:'Trang {p}/{t}', w:150, y:0, ax:'center', ay:'bottom'}
+        ];
+        let gTabs = '<button class="sub-tab-btn active" onclick="switchSubTab(\'sub-gt-chung\', this)">Bật/Tắt Cụm</button>';
+        globHtml += `<div id="sub-gt-chung" class="sub-tab-content active"><div class="pro-box"><div class="pro-title">BẬT TẮT CHỮ GÓC</div><div class="pro-row"><div class="pro-inputs" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+            <label><input type="checkbox" id="use_header1" checked onchange="updateUI()">T.Đề 1</label>
+            <label><input type="checkbox" id="use_header2" checked onchange="updateUI()">T.Đề 2</label>
+            <label><input type="checkbox" id="use_ctl" checked onchange="updateUI()">Trái Trên</label>
+            <label><input type="checkbox" id="use_ctr" checked onchange="updateUI()">Phải Trên</label>
+            <label><input type="checkbox" id="use_footer1" checked onchange="updateUI()">C.Trang 1</label>
+            <label><input type="checkbox" id="use_footer2" checked onchange="updateUI()">C.Trang 2</label>
+            <label><input type="checkbox" id="use_cbl" checked onchange="updateUI()">Trái Dưới</label>
+            <label><input type="checkbox" id="use_cbr" checked onchange="updateUI()">Phải Dưới</label>
+            <label style="color:red;"><input type="checkbox" id="use_pageNum" checked onchange="updateUI()">Số Trang</label>
+        </div></div></div></div>`;
+        gT.forEach(g => { 
+            gTabs += `<button class="sub-tab-btn" onclick="switchSubTab('sub-${g.id}', this)">${g.t}</button>`; 
+            globHtml += generateHeaderTab(g.id, g.d, 0, g.w, g.y, g.ax, g.ay); 
+        });
+        globHtml += `</div></div>`;
+
+        let genHtml = `
+<div id="tab-general" class="tab-content">
+    <div class="sub-tabs" style="margin-bottom: 10px;">
+        <button class="sub-tab-btn active" onclick="switchSubTab('sub-general-bg', this)">🌄 Khổ Giấy & Nền</button>
+        <button class="sub-tab-btn" onclick="switchSubTab('sub-general-margin', this)">📏 Lề & Gáy</button>
+        <button class="sub-tab-btn" onclick="switchSubTab('sub-general-export', this)">📦 Xuất File</button>
+    </div>
+
+    <div id="sub-general-bg" class="sub-tab-content active">
+        <div class="pro-box">
+            <div class="pro-title" style="background:#8e44ad;">🌄 KHỔ GIẤY & NỀN TỔNG</div>
             
-            <div class="setting-box" style="background:#fffcf0;">
-                <div class="setting-title" style="color:#ff9f43;">✂️ KIỂU HIỂN THỊ MẠNG</div>
-                <div class="setting-row">
-                    <label>Rút gọn</label>
-                    <div class="setting-inputs">
-                        <select id="mangFormatMode" class="flex-1">
-                            <option value="full" selected>Tên đầy đủ (VD: VIETTEL)</option>
-                            <option value="short">Ngắn gọn (VD: VT, VNM)</option>
-                            <option value="short2">Viết tắt (VD: VTT, VNMB)</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="sub-mang-pos" class="sub-tab-content active">
-            <div class="setting-box">
-                <div class="setting-title">📐 VỊ TRÍ & KHỐI</div>
-                <div class="setting-row"><label>Kích thước</label><div class="setting-inputs"><span>W:</span><input type="number" id="mangW" value="70" class="mini"><span>H:</span><input type="number" id="mangH" value="50" class="mini"></div></div>
-                <div class="setting-row"><label>Lệch khối</label><div class="setting-inputs"><span>X:</span><input type="number" id="mangX" value="-80" class="mini"><span>Y:</span><input type="number" id="mangY" value="0" class="mini"></div></div>
-                <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs"><select id="mangAlignX" class="mini"><option value="left">Trái</option><option value="center">Giữa</option><option value="right" selected>Phải</option></select><select id="mangAlignY" class="mini"><option value="top">Trên</option><option value="middle" selected>Giữa</option><option value="bottom">Dưới</option></select><label style="color:red;"><input type="checkbox" id="mangLocked" onchange="updatePreviewImmediate(); debouncedSave();"> 🔒 Khóa</label></div></div>
-            </div>
-        </div>
-        <div id="sub-mang-bg" class="sub-tab-content">
-            <div class="setting-box">
-                <div class="setting-title">💎 HÌNH DÁNG KHỐI TỰ ĐỘNG</div>
-                <div class="setting-row">
-                    <label>Kiểu khối</label>
-                    <div class="setting-inputs">
-                        <select id="mangShape" class="flex-1" style="font-weight:bold; color:#ff9f43;">
-                            <option value="none">Không khối</option><option value="text_only">Chữ theo màu mạng</option>
-                            <optgroup label="--- Khối 2D Phẳng ---"><option value="rounded_expanded">Bôi bo tròn</option><option value="expanded_straight">Bôi vuông</option><option value="rect_rounded" selected>Chữ nhật bo góc</option><option value="rect_straight">Chữ nhật vuông</option><option value="circle">Hình tròn</option><option value="square">Hình vuông</option><option value="rounded">Vuông bo góc</option><option value="pentagon">Ngũ giác</option><option value="hexagon">Lục giác</option><option value="octagon">Bát giác</option><option value="diamond">Hình Thoi</option><option value="teardrop">Giọt nước</option><option value="star_5">Ngôi sao</option></optgroup>
-                            <optgroup label="--- Khối 3D Nổi Nút Bấm ---"><option value="3d_rounded_expanded">3D Bôi bo tròn</option><option value="3d_expanded_straight">3D Bôi vuông</option><option value="3d_rect_rounded">3D Chữ nhật bo</option><option value="3d_rect_straight">3D Chữ nhật vuông</option><option value="3d_circle">3D Tròn</option><option value="3d_square">3D Vuông</option><option value="3d_rounded">3D Vuông bo</option><option value="3d_pentagon">3D Ngũ giác</option><option value="3d_hexagon">3D Lục giác</option><option value="3d_octagon">3D Bát giác</option><option value="3d_diamond">3D Thoi</option><option value="3d_teardrop">3D Giọt nước</option><option value="3d_star_5">3D Ngôi sao</option></optgroup>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="setting-box">
-                <div class="setting-title">🎨 NỀN KHUNG TỔNG</div>
-                <div class="setting-row" style="background:#fffcf0; border-bottom:1px dashed #ff4757;"><label style="color:#ff4757; font-weight:bold;">⛅ Đổ Bóng</label><div class="setting-inputs" style="flex-wrap:wrap;"><label style="color:red;"><input type="checkbox" id="mangObjShadow" onchange="updatePreviewImmediate(); debouncedSave();"> Bật Bóng Cho Khối Này</label><div style="display:flex; width:100%; gap:5px; align-items:center; margin-top:5px;"><span>X:</span><input type="number" id="mangObjShadowX" value="5" class="mini"><span>Y:</span><input type="number" id="mangObjShadowY" value="5" class="mini"><span>Mờ:</span><input type="number" id="mangObjShadowBlur" value="10" class="mini"><input type="color" id="mangObjShadowColor" value="#000000" style="padding:0; width:24px; height:24px;"></div></div></div>
-                <div class="setting-row"><label>Nền khung</label><div class="setting-inputs"><input type="color" id="mangBg" value="#ffffff"><label><input type="checkbox" id="mangBgTrans" checked> Tr.Suốt</label><span>Bo(R):</span><input type="number" id="mangRadius" value="8" class="mini"></div></div>
-                <div class="setting-row"><label>Viền khung</label><div class="setting-inputs"><input type="color" id="mangBorderColor" value="#007bff"><label><input type="checkbox" id="mangBorderTrans"> Ẩn</label><span>Dày:</span><input type="number" id="mangBorderW" value="2" class="mini"></div></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tab-colheader" class="tab-content">
-        <div class="sub-tabs">
-            <button class="sub-tab-btn active" onclick="switchSubTab('sub-hCommon', this)" style="color:var(--header);">CHUNG</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-hNum', this)">CỘT SỐ</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-hPrice', this)">CỘT GIÁ</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-hMenh', this)">CỘT MỆNH</button>
-            <button class="sub-tab-btn" onclick="switchSubTab('sub-hMang', this)">CỘT MẠNG</button>
-        </div>
-
-        <div id="sub-hCommon" class="sub-tab-content active">
-            <div class="setting-box" style="border-top: 3px solid var(--header);">
-                <div class="setting-title" style="color:var(--header);">CÀI ĐẶT CHUNG TIÊU ĐỀ</div>
-                <div class="setting-row"><label>Bật Tiêu Đề</label><div class="setting-inputs"><input type="checkbox" id="showHeaderRow" checked onchange="updatePreviewImmediate()"><span style="margin-left:10px;">Không gian Cao(H):</span><input type="number" id="headerRowHeight" value="50" class="mini"></div></div>
-            </div>
-            <div class="setting-box" style="background: #fffcf0; border: 1px dashed #ccc; padding: 10px; margin-bottom: 12px; font-size: 11px; color: #555;">
-                💡 <b>Mẹo:</b> Các cài đặt Màu Nền, Viền, Font Chữ... chung đã được chuyển vào từng cột riêng biệt. Vui lòng bấm vào <b>CỘT SỐ, CỘT GIÁ...</b> ở bên trên để chỉnh chi tiết định dạng, vị trí, nền viền cho từng tiêu đề nhé!
-            </div>
-        </div>
-
-        <script src="js/script.js"></script>
-    </div>
-
-    <div id="tab-globaltext" class="tab-content">
-        <script>
-            window.textBlocks = [
-                {id: 'title', title: 'Header 1', def: 'BẢNG SIM SỐ ĐẸP'}, {id: 'h2', title: 'Header 2', def: 'Nội dung Header 2'},
-                {id: 'footer', title: 'Footer 1', def: 'Giao Sim Tận Nơi - Đăng Ký Chính Chủ'}, {id: 'f2', title: 'Footer 2', def: 'Nội dung Footer 2'},
-                {id: 'pageNum', title: 'Số Trang', def: 'Trang {p}/{t}'},
-                {id: 'ctl', title: 'Trái-Trên', def: 'Nội dung Trái-Trên'}, {id: 'ctr', title: 'Phải-Trên', def: 'Nội dung Phải-Trên'},
-                {id: 'cbl', title: 'Trái-Dưới', def: 'Nội dung Trái-Dưới'}, {id: 'cbr', title: 'Phải-Dưới', def: 'Nội dung Phải-Dưới'}
-            ];
-            
-            document.write('<div class="sub-tabs" id="globalTextTabs">');
-            document.write('<button class="sub-tab-btn active" onclick="switchSubTab(\'sub-gtChung\', this)" style="color:var(--purple);">CHUNG</button>');
-            window.textBlocks.forEach(b => {
-                let display = (b.id==='title'||b.id==='footer') ? '' : 'none';
-                document.write(`<button id="btn-sub-${b.id}" class="sub-tab-btn" onclick="switchSubTab('sub-${b.id}', this)" style="display:${display}">${b.title}</button>`);
-            });
-            document.write('</div>');
-
-            document.write(`
-            <div id="sub-gtChung" class="sub-tab-content active">
-                <div class="setting-box" style="border-top: 3px solid var(--purple);">
-                    <div class="setting-title" style="color:var(--purple);">BẬT / TẮT CÁC KHỐI CHỮ GÓC</div>
-                    <div class="setting-row"><label>Tiêu Đề</label><div class="setting-inputs" style="gap:15px;"><label><input type="checkbox" id="use_title" onchange="updateUI(); updatePreviewImmediate(); debouncedSave();" checked> <b>Header 1</b></label><label><input type="checkbox" id="use_h2" onchange="updateUI(); updatePreviewImmediate(); debouncedSave();"> <b>Header 2</b></label></div></div>
-                    <div class="setting-row"><label>Chân Trang</label><div class="setting-inputs" style="gap:15px;"><label><input type="checkbox" id="use_footer" onchange="updateUI(); updatePreviewImmediate(); debouncedSave();" checked> <b>Footer 1</b></label><label><input type="checkbox" id="use_f2" onchange="updateUI(); updatePreviewImmediate(); debouncedSave();"> <b>Footer 2</b></label></div></div>
-                    <div class="setting-row" style="background:#fff4f4;"><label style="color:var(--danger)">Số Trang</label><div class="setting-inputs" style="gap:15px;"><label><input type="checkbox" id="use_pageNum" onchange="updateUI(); updatePreviewImmediate(); debouncedSave();"> <b style="color:var(--danger)">Bật Đánh Số Trang</b></label></div></div>
-                    <div class="setting-row"><label>Các Góc</label><div class="setting-inputs" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%;"><label><input type="checkbox" id="use_ctl" onchange="updateUI(); updatePreviewImmediate(); debouncedSave();"> <b>Trái-Trên</b></label><label><input type="checkbox" id="use_ctr" onchange="updateUI(); updatePreviewImmediate(); debouncedSave();"> <b>Phải-Trên</b></label><label><input type="checkbox" id="use_cbl" onchange="updateUI(); updatePreviewImmediate(); debouncedSave();"> <b>Trái-Dưới</b></label><label><input type="checkbox" id="use_cbr" onchange="updateUI(); updatePreviewImmediate(); debouncedSave();"> <b>Phải-Dưới</b></label></div></div>
-                </div>
-            </div>`);
-
-            window.textBlocks.forEach(b => {
-                let note = b.id === 'pageNum' ? '<span style="display:block; color:#888; font-size:10px; margin-top:4px;">Gõ <b>{p}</b>: Trang hiện tại, <b>{t}</b>: Tổng trang</span>' : '';
-                let alignOptions = `<option value="left" ${b.id==='ctl'||b.id==='cbl'?'selected':''}>Trái</option><option value="center" ${b.id==='title'||b.id==='h2'||b.id==='footer'||b.id==='f2'?'selected':''}>Giữa</option><option value="right" ${b.id==='ctr'||b.id==='cbr'?'selected':''}>Phải</option>`;
-                if(b.id === 'pageNum') alignOptions = `<option value="auto" selected>Tự động nhảy (Lẻ Phải / Chẵn Trái)</option><option value="center">Giữa</option><option value="left">Cố định Trái</option><option value="right">Cố định Phải</option>`;
-
-                document.write(`
-                <div id="sub-${b.id}" class="sub-tab-content">
-                    <div class="sub-sub-tabs">
-                        <button class="sub-sub-tab-btn active" onclick="switchSubSubTab('ssub-${b.id}-pos', this)">Nội Dung & Vị Trí</button>
-                        <button class="sub-sub-tab-btn" onclick="switchSubSubTab('ssub-${b.id}-font', this)">Font & Hiệu Ứng</button>
-                        <button class="sub-sub-tab-btn" onclick="switchSubSubTab('ssub-${b.id}-bg', this)">Nền & Viền</button>
-                    </div>
-
-                    <div id="ssub-${b.id}-pos" class="sub-sub-tab-content active">
-                        <div class="setting-box" style="border-top: 3px solid var(--primary);">
-                            <div class="setting-title">📝 NỘI DUNG & VỊ TRÍ (CÓ THỂ XOAY)</div>
-                            <div class="setting-row" style="align-items:flex-start;"><label style="margin-top:6px;">Nội dung</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start;"><input type="text" id="${b.id}Text" value="${b.def}" style="width:100%; font-weight:bold; box-sizing:border-box;">${note}</div></div>
-                            <div class="setting-row"><label>Canh lề</label><div class="setting-inputs"><select id="${b.id}Align" class="flex-1">${alignOptions}</select></div></div>
-                            <div class="setting-row"><label>Tọa độ</label><div class="setting-inputs"><span>Lệch X:</span><input type="number" id="${b.id}_X" value="0" class="mini"><span>Lệch Y:</span><input type="number" id="${b.id}_Y" value="${b.id==='title'?20:0}" class="mini"></div></div>
-                            <div class="setting-row" style="background:#fffcf0;"><label style="color:var(--danger);">Góc xoay</label><div class="setting-inputs"><span>Độ (0-360):</span><input type="number" id="${b.id}Angle" value="0" class="mini"><label style="color:red; margin-left:10px;"><input type="checkbox" id="${b.id}Locked" onchange="updatePreviewImmediate(); debouncedSave();"> 🔒 Khóa</label></div></div>
-                            <div class="setting-row"><label>Khung chứa</label><div class="setting-inputs"><span>W:</span><input type="number" id="${b.id}_W" value="0" class="mini" title="Để 0 là Auto"><span>H:</span><input type="number" id="${b.id}_H" value="0" class="mini"><span>Pad:</span><input type="number" id="${b.id}Pad" value="10" class="mini"></div></div>
-                        </div>
-                    </div>
-
-                    <div id="ssub-${b.id}-font" class="sub-sub-tab-content">
-                        <div class="setting-box">
-                            <div class="setting-title">🔠 CHỮ & HIỆU ỨNG</div>
-                            <div class="setting-row"><label>Font chữ</label><div class="setting-inputs"><select id="${b.id}Font" class="font-selector flex-1"></select></div></div>
-                            <div class="setting-row"><label>Kích cỡ</label><div class="setting-inputs"><span>Size:</span><input type="number" id="${b.id}Size" value="${b.id==='title'?36:20}" class="mini"><span>Màu:</span><input type="color" id="${b.id}Color" value="#000000"><span>Giãn Y:</span><input type="number" id="${b.id}ScaleY" value="1" step="0.1" class="mini"></div></div>
-                            <div class="setting-row"><label>Lệch chữ</label><div class="setting-inputs"><span>X:</span><input type="number" id="${b.id}TextX" value="0" class="mini"><span>Y:</span><input type="number" id="${b.id}TextY" value="0" class="mini"></div></div>
-                            <div class="setting-row"><label>Hiệu ứng</label><div class="setting-inputs effect-group"><label><input type="checkbox" id="${b.id}Bold" checked><b>B</b></label><label><input type="checkbox" id="${b.id}Italic"><i>I</i></label><label><input type="checkbox" id="${b.id}Underline"><u>U</u></label><label><input type="checkbox" id="${b.id}Shadow">Bóng</label></div></div>
-                            <div class="setting-row"><label>Viền chữ</label><div class="setting-inputs"><label><input type="checkbox" id="${b.id}Stroke"> Bật</label><input type="color" id="${b.id}StrokeColor" value="#000000"><span>Dày:</span><input type="number" id="${b.id}StrokeWidth" value="1" class="mini"></div></div>
-                        </div>
-                    </div>
-
-                    <div id="ssub-${b.id}-bg" class="sub-sub-tab-content">
-                        <div class="setting-box">
-                            <div class="setting-title">🎨 NỀN & VIỀN</div>
-                            <div class="setting-row" style="background:#fffcf0; border-bottom:1px dashed #ff4757;"><label style="color:#ff4757; font-weight:bold;">⛅ Đổ Bóng</label><div class="setting-inputs" style="flex-wrap:wrap;"><label style="color:red;"><input type="checkbox" id="${b.id}ObjShadow" onchange="updatePreviewImmediate(); debouncedSave();"> Bật Bóng Cho Khối Này</label><div style="display:flex; width:100%; gap:5px; align-items:center; margin-top:5px;"><span>X:</span><input type="number" id="${b.id}ObjShadowX" value="5" class="mini"><span>Y:</span><input type="number" id="${b.id}ObjShadowY" value="5" class="mini"><span>Mờ:</span><input type="number" id="${b.id}ObjShadowBlur" value="10" class="mini"><input type="color" id="${b.id}ObjShadowColor" value="#000000" style="padding:0; width:24px; height:24px;"></div></div></div>
-                            <div class="setting-row"><label>Nền khối</label><div class="setting-inputs"><input type="color" id="${b.id}BgColor" value="#ffffff"><label><input type="checkbox" id="${b.id}BgTrans" checked> Ẩn</label><span>Bo(R):</span><input type="number" id="${b.id}Radius" value="4" class="mini"></div></div>
-                            <div class="setting-row"><label>Viền khối</label><div class="setting-inputs"><input type="color" id="${b.id}BorderColor" value="#cccccc"><label><input type="checkbox" id="${b.id}BorderTrans" checked> Ẩn</label><span>Dày:</span><input type="number" id="${b.id}BorderW" value="1" class="mini"></div></div>
-                        </div>
-                    </div>
-                </div>`);
-            });
-        </script>
-    </div>
-
-    <div id="tab-general" class="tab-content">
-        <div class="setting-box" style="border-top: 3px solid var(--purple);">
-            <div class="setting-title" style="color:var(--purple);">📏 CÀI ĐẶT LỀ & GÁY IN TOÀN ẢNH</div>
-            <div class="setting-row"><label>Lề Dọc</label><div class="setting-inputs"><span>Trán:</span><input type="number" id="tZoneH" value="100" class="mini"><span>Chân:</span><input type="number" id="fZoneH" value="80" class="mini"></div></div>
-            <div class="setting-row" style="background:#fff4f4;"><label style="color:var(--danger)">Đóng gáy in</label><div class="setting-inputs"><select id="bindingMode" class="flex-1" onchange="updateUI(); updatePreviewImmediate(); debouncedSave();"><option value="none">1. Không đóng gáy</option><option value="single">2. Đóng gáy 1 mặt</option><option value="double">3. Đóng gáy 2 mặt (Lẻ/Chẵn)</option></select></div></div>
-            <div id="grpMarginNormal" class="setting-row"><label>Lề Ngang</label><div class="setting-inputs"><span>Trái:</span><input type="number" id="mLeft" value="30" class="mini"><span>Phải:</span><input type="number" id="mRight" value="30" class="mini"></div></div>
-            <div id="grpMarginBinding" class="setting-row" style="display:none; background:#fff4f4;"><label style="color:var(--danger)">Lề Đóng Gáy</label><div class="setting-inputs"><span>Bên Gáy:</span><input type="number" id="marginBinding" value="80" class="mini"><span>Còn Lại:</span><input type="number" id="marginNonBinding" value="30" class="mini"></div></div>
-            <div class="setting-row" style="background:#e8f4ff; border-top:1px dashed #3498db; margin-top:5px;">
-                <label style="color:#0984e3; font-weight:bold;">Kích Thước Cố Định</label>
-                <div class="setting-inputs" style="flex-wrap:wrap;">
-                    <label style="width:100%;"><input type="checkbox" id="useFixedSize" onchange="updatePreviewImmediate(); debouncedSave();"> Khóa Khung Hình (px)</label>
-                    <select id="fixedSizePreset" style="width:100%; margin-top:5px; font-size:12px;" onchange="if(this.value){let [w,h]=this.value.split('x'); document.getElementById('fixedW').value=w; document.getElementById('fixedH').value=h; updatePreviewImmediate(); debouncedSave();}">
-                        <option value="">-- Tùy chỉnh (Tự nhập) --</option>
-                        <option value="600x800">600 x 800 (Dọc)</option>
-                        <option value="800x600">800 x 600 (Ngang)</option>
-                        <option value="800x800">800 x 800 (Vuông)</option>
-                        <option value="826x1169">826 x 1169 (A4 Dọc)</option>
-                        <option value="1169x826">1169 x 826 (A4 Ngang)</option>
-                        <option value="1080x1080">1080 x 1080 (Vuông chuẩn)</option>
-                        <option value="1080x1920">1080 x 1920 (Story)</option>
+            <div class="pro-row" style="background:#f4f9ff; align-items: flex-start; padding-top: 10px;">
+                <label>Khổ Giấy</label>
+                <div class="pro-inputs" style="flex-wrap: wrap; gap: 8px;">
+                    <select id="canvasSizeMode" onchange="
+                        let wrap = document.getElementById('customCanvasSizeWrapper');
+                        let pre = document.getElementById('fixedSizePreset');
+                        let hBox = document.getElementById('wrapCustomH');
+                        let wLbl = document.getElementById('lblCustomW');
+                        if(this.value === 'fixed') {
+                            wrap.style.display='flex'; pre.style.display='block'; hBox.style.display='flex'; wLbl.innerText='W:';
+                        } else if(this.value === 'ratio') {
+                            wrap.style.display='flex'; pre.style.display='none'; hBox.style.display='none'; wLbl.innerText='Cạnh ngang (px):';
+                        } else {
+                            wrap.style.display='none';
+                        }
+                        if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();
+                    " style="width: 100%; font-weight: bold; color: var(--primary);">
+                        <option value="auto" selected>✨ Tự động (Theo Lưới SIM)</option>
+                        <option value="fixed">🔒 Khóa cứng (Tùy chỉnh Size)</option>
+                        <option value="ratio">🖼️ Chạy theo tỷ lệ Ảnh Nền</option>
                     </select>
-                    <div style="display:flex; gap:5px; margin-top:5px; width:100%;">
-                        <span>W:</span><input type="number" id="fixedW" value="1080" class="mini">
-                        <span>H:</span><input type="number" id="fixedH" value="1920" class="mini">
+                    
+                    <div id="customCanvasSizeWrapper" style="display: none; width: 100%; gap: 10px; margin-top: 5px; flex-direction: column; align-items: flex-start; background: #fff; padding: 8px; border-radius: 6px; border: 1px dashed #ccc;">
+                        <select id="fixedSizePreset" style="width:100%; font-size:12px; padding: 6px; border-radius: 4px; border: 1px solid #ccc; outline: none;" onchange="if(this.value){ let sz=this.value.split('x'); document.getElementById('customCanvasW').value=sz[0]; document.getElementById('customCanvasH').value=sz[1]; if(typeof updatePreviewImmediate==='function') updatePreviewImmediate(); }">
+                            <option value="">-- Tự nhập tay --</option>
+                            <option value="1080x1920">📱 Story (1080x1920)</option>
+                            <option value="1080x1080">🟦 Vuông (1080x1080)</option>
+                            <option value="826x1169">📄 A4 Dọc (In ấn)</option>
+                            <option value="1169x826">📄 A4 Ngang (In ấn)</option>
+                        </select>
+                        <div style="display: flex; gap: 10px; align-items: center; width: 100%; margin-top:5px;">
+                            <div style="display:flex; align-items:center; gap:5px;"><span id="lblCustomW">W:</span><input type="number" id="customCanvasW" value="1080" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();" style="width: 70px;"></div>
+                            <div id="wrapCustomH" style="display:flex; align-items:center; gap:5px;"><span>H:</span><input type="number" id="customCanvasH" value="1920" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();" style="width: 70px;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="setting-box">
-            <div class="setting-title">🌄 BACKGROUND (NỀN TOÀN ẢNH)</div>
-            <div class="setting-row"><label>Chế độ nền</label><div class="setting-inputs"><select id="bgMode" class="flex-1" onchange="updateUI()"><option value="solid">1. Màu trơn</option><option value="gradient" selected>2. Chuyển màu</option> <option value="image">3. Ảnh tải lên</option></select></div></div>
-            <div id="bgSolidGroup" class="setting-row" style="display:none;"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="bgColor" value="#ffffff"></div></div>
-            <div id="bgGradientGroup" class="setting-row" style="display:none;"><label>Màu Gradient</label><div class="setting-inputs"><input type="color" id="bgGradient1" value="#ffffff"><span>-></span><input type="color" id="bgGradient2" value="#006680"></div></div>
-            <div id="bgImageGroup" class="setting-row" style="display:none; align-items: flex-start;">
+
+            <div class="pro-row">
+                <label>Loại Nền</label>
+                <div class="pro-inputs">
+                    <select id="bgMode" onchange="document.getElementById('bgSolidGrp').style.display = (this.value === 'solid' ? 'flex' : 'none'); document.getElementById('bgGradGrp').style.display = (this.value === 'gradient' ? 'flex' : 'none'); document.getElementById('bgImgGrp').style.display = (this.value === 'image' ? 'flex' : 'none'); if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();">
+                        <option value="solid">Màu trơn</option>
+                        <option value="gradient" selected>Chuyển màu</option> 
+                        <option value="image">Ảnh Nền</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="pro-row" id="bgSolidGrp" style="display:none;"><label>Màu trơn</label><div class="pro-inputs"><input type="color" id="bgColor" value="#ffffff" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
+            <div class="pro-row" id="bgGradGrp"><label>Màu 1 ➔ 2</label><div class="pro-inputs"><input type="color" id="bgGradient1" value="#ffffff" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>➔</span><input type="color" id="bgGradient2" value="#006680" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Góc:</span><input type="number" id="bgGradAngle" value="0" style="width:45px;" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
+            
+            <div class="pro-row" id="bgImgGrp" style="display:none; align-items: flex-start;">
                 <label style="margin-top: 8px;">Úp Ảnh Nền</label>
-                <div class="setting-inputs" style="flex-direction: column; align-items: flex-start; width: 100%; min-width: 0;">
-                    <div style="display:flex; gap:5px; width:100%; overflow: hidden;">
-                        <input type="file" id="bgInput" accept="image/*" style="flex: 1; width: 50px; padding: 6px; font-size: 11px; overflow: hidden;">
-                        <button onclick="openBgCloudModal('global')" style="background:var(--success); color:#fff; border:none; border-radius:4px; padding:0 10px; flex-shrink: 0; font-size: 11px; white-space: nowrap;">☁️ KHO NỀN</button>
+                <div class="pro-inputs" style="flex-direction: column; align-items: flex-start; width: 100%; gap: 8px;">
+                    <select id="bgFitMode" style="width: 100%; padding: 6px; font-weight: bold; border: 2px solid #f1c40f; border-radius: 4px; outline: none;" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();">
+                        <option value="cover">✂️ Cắt xén lấp đầy (Cover)</option>
+                        <option value="stretch" selected>↔️ Kéo giãn (Stretch)</option>
+                        <option value="contain">🖼️ Vừa vặn (Có lót màu)</option>
+                    </select>
+                    <div style="display:flex; gap:5px; width:100%;">
+                        <input type="file" id="bgInput" accept="image/*" class="mini" style="flex:1;" onchange="if(typeof setLocalImage==='function') setLocalImage(this, 'globalBgImage', 'mainBgStatus');">
+                        <button type="button" onclick="document.getElementById('bgInput').value=''; document.getElementById('mainBgStatus').innerHTML='☁️ Mây'; if(typeof openBgCloudModal==='function') openBgCloudModal('global');" class="btn-mini" style="background:var(--success); color:white; border:none; padding:0 10px; border-radius:4px;">☁️ MÂY</button>
+                        <button type="button" onclick="if(typeof removeImage==='function') removeImage('globalBgImage', 'bgInput', 'mainBgStatus');" class="btn-mini" style="background:#e74c3c; color:white; border:none; padding:0 10px; border-radius:4px;">❌</button>
                     </div>
-                    <input type="text" id="bgDriveLink" placeholder="Hoặc dán Link Ảnh Drive..." style="width:100%; border-color: var(--primary);">
+                    <div id="mainBgStatus" style="font-size:11px; color:#666; font-style:italic;">❌ Chưa có ảnh</div>
+                    <input type="text" id="bgDriveLink" placeholder="Dán Link Drive..." style="width:100%; padding:6px; border-radius: 4px;" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();">
                 </div>
             </div>
-        </div>
-        
-        <div class="setting-box" style="border-top: 3px solid var(--success);">
-            <div class="setting-title" style="color:var(--success);">📦 CÀI ĐẶT XUẤT FILE</div>
-            <div class="setting-row"><label>Độ nét</label><div class="setting-inputs"><select id="exportScale" class="flex-1"><option value="1">1x (Chuẩn Web)</option><option value="2" selected>2x (Nét HD)</option><option value="3">3x (In Ấn)</option></select></div></div>
-            <div class="setting-row"><label>Định dạng</label><div class="setting-inputs"><select id="exportFormat" class="flex-1"><option value="image/png">PNG (Khuyên dùng)</option><option value="image/jpeg">JPG</option></select></div></div>
         </div>
     </div>
-</div> <div id="printArea"></div>
+
+    <div id="sub-general-margin" class="sub-tab-content"><div class="pro-box"><div class="pro-title" style="background:#8e44ad;">📏 CĂN LỀ & ĐÓNG GÁY</div><div class="pro-row"><label>Lề Dọc</label><div class="pro-inputs"><span>Trán:</span><input type="number" id="tZoneH" value="100" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Chân:</span><input type="number" id="fZoneH" value="80" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div><div class="pro-row" style="background:#fff4f4;"><label style="color:var(--danger)">Đóng gáy in</label><div class="pro-inputs"><select id="bindingMode" class="flex-1" onchange="document.getElementById('grpMarginNormal').style.display = (this.value === 'none' ? 'flex' : 'none'); document.getElementById('grpMarginBinding').style.display = (this.value === 'none' ? 'none' : 'flex'); if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><option value="none">1. Không đóng gáy</option><option value="single">2. Đóng gáy 1 mặt</option><option value="double">3. Đóng gáy 2 mặt (Lẻ/Chẵn)</option></select></div></div><div class="pro-row" id="grpMarginNormal"><label>Lề Ngang</label><div class="pro-inputs"><span>Trái:</span><input type="number" id="mLeft" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Phải:</span><input type="number" id="mRight" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div><div class="pro-row" id="grpMarginBinding" style="display:none; background:#fff4f4;"><label style="color:var(--danger)">Lề Đóng Gáy</label><div class="pro-inputs"><span>Gáy:</span><input type="number" id="marginBinding" value="80" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Lề:</span><input type="number" id="marginNonBinding" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div></div></div>
+    <div id="sub-general-export" class="sub-tab-content"><div class="pro-box"><div class="pro-title" style="background:#27ae60;">📦 CHẤT LƯỢNG XUẤT FILE</div><div class="pro-row"><label>Độ nét</label><div class="pro-inputs"><select id="exportScale" class="flex-1" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><option value="1">1x (Web)</option><option value="2" selected>2x (HD)</option><option value="3">3x (In Ấn)</option></select></div></div><div class="pro-row"><label>Định dạng</label><div class="pro-inputs"><select id="exportFormat" class="flex-1"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option></select></div></div></div></div>
+</div>
+`;
+
+document.getElementById('dynamic-tabs-container').innerHTML = layoutHtml + headHtml + globHtml + genHtml;
+document.getElementById('globalTextTabs').innerHTML = gTabs;
+
+        // --- BẮT ĐẦU: ĐOẠN NỐI DÂY ĐIỆN VÀO CÁC NÚT ---
+        setTimeout(() => {
+            // 1. Quét toàn bộ input, select vừa sinh ra và ép chúng gọi hàm drawCanvas() khi thay đổi
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.addEventListener('input', () => { 
+                    if(typeof window.drawCanvas === 'function') window.drawCanvas(); 
+                });
+                if (el.tagName === 'SELECT' || el.type === 'checkbox') {
+                    el.addEventListener('change', () => { 
+                        if(typeof window.updateUI === 'function') window.updateUI(); 
+                        if(typeof window.drawCanvas === 'function') window.drawCanvas(); 
+                    });
+                }
+            });
+            
+            // 2. Kích hoạt vẽ bản xem trước ngay khi vừa vào web
+            if(typeof window.updateUI === 'function') window.updateUI();
+            if(typeof window.drawCanvas === 'function') window.drawCanvas();
+        }, 200);
+        // --- KẾT THÚC: ĐOẠN NỐI DÂY ĐIỆN ---
+
+    });
+</script>
+
+<div id="mobileSettingModal" onclick="if(event.target===this)window.closeMobileModal()">
+  <div class="mobile-modal-content">
+    <!-- HANDLE BAR + HEADER -->
+    <div class="mobile-modal-header-area">
+      <div class="mobile-modal-drag-handle"></div>
+      <div class="mobile-modal-top-row">
+        <span id="mobileModalTitle" class="mobile-modal-title">Cài Đặt</span>
+        <button class="mobile-modal-close-btn" onclick="window.closeMobileModal()" title="Đóng">✕</button>
+      </div>
+      <!-- Tab navigation -->
+      <div id="mobileTabMenu">
+        <button class="m-tab-lvl1" id="mTab-tab-layout" onclick="openMobileModal('layout')">&#128202; Lưới</button>
+        <button class="m-tab-lvl1" id="mTab-tab-colheader" onclick="openMobileModal('header')">&#127991; Tiêu Đề</button>
+        <button class="m-tab-lvl1" id="mTab-tab-globaltext" onclick="openMobileModal('globaltext')">&#128221; Chữ Góc</button>
+        <button class="m-tab-lvl1" id="mTab-tab-general" onclick="openMobileModal('general')">&#128444; Nền</button>
+      </div>
+    </div>
+    <div class="mobile-modal-body" id="mobileModalBody"></div>
+  </div>
+</div>
+<div id="drmOverlay"><div class="drm-box"><h2>⚠ PHẦN MỀM ĐÃ BỊ KHÓA</h2><div class="drm-mac" id="displayMac">ĐANG TẠO MÃ...</div><button onclick="copyMac()" class="drm-btn" style="background:#007bff; margin-bottom:20px;">📋 COPY MÃ MÁY NÀY</button><input type="text" id="licenseKeyInput" class="drm-input" placeholder="Nhập Key..."><button class="drm-btn" onclick="activateLicense()">🔓 KÍCH HOẠT NGAY</button><div id="drmMessage"></div></div></div>
+<div id="printArea"></div>
+
 <script src="https://stuk.github.io/jszip/dist/jszip.min.js"></script>
-<div id="bgCloudModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center; animation: fadeIn 0.2s; box-sizing: border-box; padding: 15px;">
-    <div style="background: #fff; padding: 15px; border-radius: 12px; width: 100%; max-width: 400px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.3); box-sizing: border-box;">
-        <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: var(--success); border-bottom: 1px dashed #ccc; padding-bottom: 10px; font-size: 15px; flex-shrink: 0;">
-            <span>🌄 KHO NỀN ĐÁM MÂY</span>
-            <span style="cursor: pointer; color: #999; font-size: 24px; line-height: 1; padding: 0 5px;" onclick="document.getElementById('bgCloudModalOverlay').style.display='none'">✖</span>
+<script src="js/script.js"></script>
+<script src="js/main.js"></script>
+
+<div id="modal-bg-cloud" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000000; justify-content:center; align-items:center; padding: 15px; box-sizing: border-box; backdrop-filter: blur(3px);">
+    <div style="background:#fff; width:100%; max-width:600px; border-radius:15px; padding:20px; box-shadow:0 15px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; position: relative;">
+        
+        <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:15px; border-bottom:2px solid #007bff; padding-bottom:10px;">
+            <h3 style="margin:0; color:#007bff; font-size: 18px;">☁️ KHO ẢNH DRIVE (HASHTAG)</h3>
+            <button onclick="document.getElementById('modal-bg-cloud').style.display='none'" style="border:none; background:#ff4757; color:white; width: 30px; height: 30px; border-radius: 50%; cursor:pointer; font-weight: bold; line-height: 1;">✕</button>
         </div>
-        <div id="bgCloudList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; padding: 15px 5px; margin-top: 5px; flex-grow: 1;">
+
+        <div style="position: relative; margin-bottom: 15px;">
+            <input type="text" 
+                id="cloudSearchBox" 
+                onkeyup="liveSearch('cloudSearchBox', 'bgCloudList')" 
+                placeholder="🔍 Gõ hashtag tìm nhanh (VD: #Tet, #Vang)..." 
+                style="width:100%; padding:12px 15px; border:2px solid #007bff; border-radius:25px; font-weight:bold; box-sizing:border-box; outline: none; transition: 0.3s; font-size: 14px;">
+        </div>
+
+        <div id="bgCloudList" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:12px; max-height:450px; overflow-y:auto; padding:5px; scroll-behavior: smooth;">
+            </div>
+        
+        <div style="text-align: center; margin-top: 10px; font-size: 11px; color: #888;">
+            💡 Mẹo: Gõ hashtag có dấu # để tìm chính xác hơn
         </div>
     </div>
 </div>
-<script src="js/main.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // 1. VÁ LỖI KÍCH THƯỚC CANVAS VÀ BƠM FONT
+    window.getVal = function(id, def = 0) {
+        let el = document.getElementById(id);
+        if (!el) return def;
+        let val = parseFloat(el.value);
+        return isNaN(val) ? def : val; 
+    };
+
+    const sysFonts = ['Arial','Verdana','Tahoma','Times New Roman','Courier New','Segoe UI','Impact','Roboto','Montserrat','Oswald','Dancing Script','Pattaya'];
+    document.querySelectorAll('.font-selector').forEach(sel => {
+        sysFonts.forEach(f => {
+            let opt = document.createElement('option');
+            opt.value = f; opt.innerText = f;
+            sel.appendChild(opt);
+        });
+    });
+
+    // ==========================================
+    // 2. ĐỘNG CƠ UPLOAD ẢNH TỪ MÁY (Local)
+    // ==========================================
+    window.setupAdvancedUploader = function(inputId, globalVarName) {
+        let inputEl = document.getElementById(inputId);
+        if (!inputEl) return;
+        
+        let newEl = inputEl.cloneNode(true);
+        inputEl.parentNode.replaceChild(newEl, inputEl);
+        
+        newEl.addEventListener('change', function(e) {
+            let file = e.target.files[0];
+            if (!file) return;
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                let img = new Image();
+                img.onload = function() {
+                    window[globalVarName] = img; 
+                    
+                    // UX Tự động chuyển Select Mode sang chế độ "Ảnh lót"
+                    let modeSelectId = inputId.replace('Input', 'Mode');
+                    let modeSelect = document.getElementById(modeSelectId);
+                    if(modeSelect) modeSelect.value = 'image';
+
+                    if (typeof window.updateUI === 'function') window.updateUI();
+                    if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        });
+    };
+
+    // Kích hoạt tự động cho TẤT CẢ các nút Input File trên giao diện
+    setTimeout(function() {
+        document.querySelectorAll('input[type="file"]').forEach(el => {
+            if(el.id && el.id.includes('Input')) {
+                let varName = el.id.replace('Input', 'Image'); // VD: bgInput -> bgImage
+                setupAdvancedUploader(el.id, varName);
+            }
+        });
+        
+        // Mồi động cơ vẽ lần đầu
+        if (typeof window.updateUI === 'function') window.updateUI();
+        if (typeof window.drawCanvas === 'function') window.drawCanvas();
+    }, 500);
+
+    // ==========================================
+    // 3. XỬ LÝ LỆNH VẼ KHI THAY ĐỔI CÁC THÔNG SỐ KHÁC
+    // ==========================================
+    document.body.addEventListener('input', function(e) {
+        if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) && e.target.type !== 'file') {
+            if(typeof window.drawCanvas === 'function') window.drawCanvas();
+            if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        }
+    });
+    document.body.addEventListener('change', function(e) {
+        if (['SELECT', 'INPUT'].includes(e.target.tagName) && e.target.type !== 'file') {
+            if(typeof window.updateUI === 'function') window.updateUI();
+            if(typeof window.drawCanvas === 'function') window.drawCanvas();
+            if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        }
+    });
+});
+
+
+// ==========================================
+// 9. HỆ THỐNG ĐÁM MÂY V16 - FIX LỖI TÌM KIẾM
+// ==========================================
+const CLOUD_JSON_URL = "https://script.google.com/macros/s/AKfycbxowiVuOyMhN-ua15GgfARcYUvD-Gf8iqFNdT88oTjzKV74OwJwxTD3EXAlsTzhsLDp/exec";
+
+// BIẾN LƯU TRỮ TOÀN CỤC (Để hàm Search tìm thấy)
+window.allTemplates = []; 
+window.cloudBgData = [];
+window.currentBgTarget = 'global';
+
+// --- A. KHO MẪU (TEMPLATES) ---
+window.openThemeModal = function() {
+    const modal = document.getElementById('themeModalOverlay') || document.getElementById('modal-cloud-template');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadCloudTemplates();
+    } else {
+        alert("❌ Lỗi: Không tìm thấy ID Modal mẫu!");
+    }
+};
+
+// Hàm bật/tắt Loading thông minh
+function toggleLoading(show, actionText = "Đang xử lý", mainText = "Vui lòng chờ") {
+    const loader = document.getElementById('globalLoading');
+    const act = document.getElementById('loadingAction');
+    const txt = document.getElementById('loadingText');
+    if (loader) {
+        if (show) {
+            loader.style.display = 'flex';
+            act.innerText = actionText;
+            txt.innerText = mainText; // Chỗ này sẽ hiện "Tên Mẫu" hoặc "Ảnh nền"
+        } else {
+            // Hiệu ứng mờ dần trước khi tắt (tùy chọn)
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                loader.style.opacity = '1';
+            }, 300);
+        }
+    }
+}
+
+// 1. Khi tải danh sách mẫu
+async function loadCloudTemplates() {
+    const listContainer = document.getElementById('cloudTemplatesList');
+    if (!listContainer) return;
+    try {
+        toggleLoading(true, "Đang kết nối kho mẫu..."); // HIỆN
+        const resp = await fetch(CLOUD_JSON_URL + "?type=template");
+        window.allTemplates = await resp.json();
+        renderTemplates(window.allTemplates);
+    } catch (err) {
+        alert("Lỗi kết nối Server!");
+    } finally {
+        toggleLoading(false); // ẨN
+    }
+}
+
+// Hàm vẽ danh sách (Đóng vai trò quan trọng để Search hoạt động)
+function renderTemplates(data) {
+    const listContainer = document.getElementById('cloudTemplatesList');
+    if (!listContainer) return;
+    listContainer.innerHTML = data.map(pt => {
+        let thumb = pt.thumb || "";
+        if (thumb.includes('drive.google.com')) {
+            let m = thumb.match(/[-\w]{25,}/);
+            if (m) thumb = `https://drive.google.com/thumbnail?id=${m[0]}&sz=w400`;
+        }
+        return `
+            <div class="cloud-template-item" onclick="importFromCloudID('${pt.id}', '${pt.name.replace(/'/g, "\\")}')"
+                 style="background:#fff; border:1px solid #ddd; border-radius:8px; cursor:pointer; overflow:hidden; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                <img src="${thumb}" style="width:100%; height:80px; object-fit:cover;" onerror="this.src='https://placehold.co/200x100?text=No+Image'">
+                <div style="padding:5px; text-align:center;">
+                    <b style="font-size:10px; color:var(--primary); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pt.name}</b>
+                    <div style="font-size:9px; color:#007bff; font-style:italic;">${pt.tags || '#NoTag'}</div>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// HÀM SEARCH VẠN NĂNG (Dùng cho cả Mẫu và Ảnh Drive)
+window.liveSearch = function(inputId, listId) {
+    let input = document.getElementById(inputId);
+    if (!input) return;
+    
+    let keyword = input.value.toLowerCase().trim();
+
+    // 1. Nếu đang search ở KHO MẪU
+    if (listId === 'cloudTemplatesList') {
+        if (!window.allTemplates) return; // Chống lỗi nếu mảng chưa tải xong
+        const filtered = window.allTemplates.filter(item => 
+            (item.name || "").toLowerCase().includes(keyword) || 
+            (item.tags || "").toLowerCase().includes(keyword)
+        );
+        renderTemplates(filtered);
+    } 
+    
+    // 2. Nếu đang search ở KHO ẢNH (BỔ SUNG PHẦN NÀY)
+    else if (listId === 'bgCloudList') {
+        if (!window.cloudBgData) return; // Chống lỗi nếu mảng ảnh chưa có
+        const filtered = window.cloudBgData.filter(item => 
+            (item.name || "").toLowerCase().includes(keyword) || 
+            (item.tags || "").toLowerCase().includes(keyword)
+        );
+        renderBackgrounds(filtered); // Vẽ lại danh sách ảnh nền
+    }
+};
+
+// --- B. KHO ẢNH NỀN ---
+window.openBgCloudModal = function(target) {
+    window.currentBgTarget = target; 
+    const modal = document.getElementById('bgCloudModalOverlay') || document.getElementById('modal-bg-cloud');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadCloudBackgrounds();
+    }
+};
+
+async function loadCloudBackgrounds() {
+    const gallery = document.getElementById('bgCloudList') || document.getElementById('cloudGalleryArea');
+    if (!gallery) return;
+    try {
+        gallery.innerHTML = "<div style='grid-column:1/-1; text-align:center;'>⏳ Đang tải...</div>";
+        const resp = await fetch(CLOUD_JSON_URL + "?type=bg");
+        window.cloudBgData = await resp.json();
+        renderBackgrounds(window.cloudBgData);
+    } catch (err) { gallery.innerHTML = "Lỗi tải kho nền."; }
+}
+
+function renderBackgrounds(data) {
+    // Ưu tiên lấy ID mới 'bgCloudList' để khớp với Modal bạn vừa gửi
+    const gallery = document.getElementById('bgCloudList') || document.getElementById('cloudGalleryArea');
+    if (!gallery) return;
+
+    if (!data || data.length === 0) {
+        gallery.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:20px; color:#888;'>Chưa có ảnh nào phù hợp 😅</div>";
+        return;
+    }
+
+    gallery.innerHTML = data.map(bg => {
+        let thumb = `https://drive.google.com/thumbnail?id=${bg.id}&sz=w300`;
+        // Xử lý tên và tags để tránh lỗi dấu nháy đơn làm hỏng HTML
+        let safeName = (bg.name || "Không tên").replace(/'/g, "\\'");
+        let safeTags = (bg.tags || "").replace(/'/g, "\\'");
+
+        return `
+            <div class="cloud-bg-item" 
+                 onclick="applyCloudBackground('${bg.id}', '${safeName}')"
+                 style="background:#fff; border:1px solid #ddd; border-radius:10px; cursor:pointer; overflow:hidden; text-align:center; transition:0.3s; box-shadow:0 2px 5px rgba(0,0,0,0.05); display:flex; flex-direction:column;">
+                
+                <img src="${thumb}" style="width:100%; height:90px; object-fit:cover; display:block;" onerror="this.src='https://placehold.co/200x100?text=Lỗi+Ảnh'">
+                
+                <div style="padding: 6px; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px;">
+                    <b style="font-size:11px; color:var(--success); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${safeName}">
+                        ${bg.name}
+                    </b>
+                    <span style="font-size:9px; color:#007bff; font-style:italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${bg.tags || ''}
+                    </span>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// 3. Khi áp dụng ảnh nền từ đám mây
+// --- HÀM NẠP ẢNH NỀN: HIỆN LOADING ĐÈ LÊN MODAL ---
+// Cập nhật hàm applyCloudBackground để ẩn Loading khi xong
+async function applyCloudBackground(fileId, loaderOverlay, galleryElement) {
+    try {
+        let response = await fetch(CLOUD_JSON_URL + "?action=get_image&id=" + fileId);
+        let dataUrl = await response.text();
+        
+        let img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = dataUrl;
+        img.onload = () => {
+            const target = window.currentBgTarget;
+            if (target === 'global') window.bgImage = img;
+            else if (target === 'cellBgImage') window.cellBgImage = img;
+            else if (target === 'cellBorderImage') window.cellBorderImage = img;
+            else window[target] = img;
+
+            drawCanvas();
+
+            // XONG: Ẩn Loading và mở lại Click cho gallery
+            if (loaderOverlay) loaderOverlay.style.display = 'none';
+            if (galleryElement) galleryElement.style.pointerEvents = 'auto';
+            
+            // Đóng Modal
+            document.querySelectorAll('#bgCloudModalOverlay, #modal-bg-cloud').forEach(m => m.style.display = 'none');
+        };
+    } catch (err) { 
+        if (loaderOverlay) loaderOverlay.style.display = 'none';
+        if (galleryElement) galleryElement.style.pointerEvents = 'auto';
+        alert("Lỗi tải ảnh!"); 
+    }
+}
+
+// 2. Khi chọn nạp một mẫu cụ thể
+// --- HÀM NẠP MẪU: HIỆN LOADING ĐÈ LÊN MODAL ---
+async function importFromCloudID(fileId, name) {
+    try {
+        // Hiện Loading ngay lập tức với tên mẫu
+        toggleLoading(true, "ĐANG NẠP THIẾT KẾ", name); 
+        
+        const response = await fetch(CLOUD_JSON_URL + "?action=get_lite&id=" + fileId);
+        let rawData = await response.text();
+        
+        const binaryString = atob(rawData.trim());
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+        let cfg = JSON.parse(new TextDecoder().decode(bytes));
+        
+        applyConfigToUI(cfg, false);
+        
+        // Nạp xong mới đóng Modal và ẩn Loading
+        document.querySelectorAll('#themeModalOverlay, #modal-cloud-template').forEach(m => m.style.display = 'none');
+    } catch (err) { 
+        alert("❌ Lỗi nạp mẫu!"); 
+    } finally {
+        setTimeout(() => toggleLoading(false), 500); // Ẩn sau 0.5s cho mượt
+    }
+}
+// ==========================================
+// ==========================================
+    // XỬ LÝ NÚT BẢNG MÀU (🎨) - THEME MODAL
+    // Phân biệt rõ giữa "Kéo thả" và "Click"
+    // ==========================================
+    window.openThemeModal = function() { 
+        let modal = document.getElementById('themeModalOverlay');
+        if(modal) modal.style.display = 'flex'; 
+        
+        // Gọi hàm tải kho mẫu đám mây (nếu bạn đã định nghĩa hàm này)
+        if (typeof window.loadCloudTemplates === 'function') {
+            window.loadCloudTemplates(); 
+        }
+    };
+    
+    window.closeThemeModal = function() { 
+        let modal = document.getElementById('themeModalOverlay');
+        if(modal) modal.style.display = 'none'; 
+    }; 
+    
+    // Đóng Modal khi click ra vùng tối bên ngoài
+    let themeOverlay = document.getElementById('themeModalOverlay');
+    if(themeOverlay) {
+        themeOverlay.addEventListener('click', function(e) { 
+            if(e.target === this) window.closeThemeModal(); 
+        });
+    }
+
+    // Xử lý Click nút 🎨
+    let btnFab = document.getElementById('fabBtn');
+    if (btnFab) {
+        btnFab.addEventListener('click', (e) => { 
+            // checkFab1Moved là hàm do hệ thống kéo thả sinh ra (trong script.js)
+            // Nếu kéo thì isMoved = true, nếu chỉ click thì isMoved = false
+            let isMoved = typeof checkFab1Moved === 'function' ? checkFab1Moved() : false;
+            
+            if (!isMoved) {
+                window.openThemeModal(); 
+            }
+        });
+    }
+
+
+    // ============================================================================
+    // 7. HỆ THỐNG QUẢN LÝ MẪU (XUẤT / NẠP / TẠO MỚI / RESET)
+    // ============================================================================
+
+    // --- 1. XUẤT FILE MẪU (.lite) ---
+    window.exportConfig = function() {
+        let config = {};
+        // Quét toàn bộ input, select trong cột Cài đặt để lưu trạng thái
+        let inputs = document.querySelectorAll('.col-settings input, .col-settings select');
+        
+        inputs.forEach(el => {
+            // Bỏ qua các ô nhập file, ô tìm kiếm hoặc ô không có ID
+            if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+            
+            // Lưu giá trị tùy theo loại input
+            if (el.type === 'checkbox') {
+                config[el.id] = el.checked;
+            } else {
+                config[el.id] = el.value;
+            }
+        });
+
+        // Tạo file JSON ẩn và kích hoạt tải về
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config));
+        let dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute("href", dataStr);
+        
+        // Đặt tên file có ngày tháng
+        let date = new Date();
+        let dateStr = `${date.getDate()}_${date.getMonth()+1}_${date.getFullYear()}`;
+        dlAnchorElem.setAttribute("download", `Mau_Thiet_Ke_VIP_${dateStr}.lite`);
+        
+        document.body.appendChild(dlAnchorElem);
+        dlAnchorElem.click();
+        document.body.removeChild(dlAnchorElem);
+    };
+
+    // --- 2. NẠP FILE MẪU TỪ MÁY TÍNH ---
+    window.handleImport = function(event) {
+        let file = event.target.files[0];
+        if (!file) return;
+        
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                let config = JSON.parse(e.target.result);
+                window.applyConfigToUI(config);
+                alert('✅ Nạp mẫu thành công!');
+            } catch(err) {
+                alert('❌ Lỗi: File không đúng định dạng thiết kế!');
+            }
+            event.target.value = ''; // Reset lại ô input file để có thể nạp lại file cũ nếu cần
+        };
+        reader.readAsText(file);
+    };
+
+    // --- 3. HÀM CỐT LÕI: ÁP DỤNG DATA VÀO GIAO DIỆN ---
+    // (Hàm này cũng được dùng chung khi nạp mẫu từ Kho Đám Mây)
+    window.applyConfigToUI = function(config) {
+        for (let key in config) {
+            let el = document.getElementById(key);
+            if (el) {
+                if (el.type === 'checkbox') {
+                    el.checked = config[key];
+                } else {
+                    el.value = config[key];
+                }
+            }
+        }
+        
+        // Ép giao diện và Canvas cập nhật theo data mới
+        if(typeof window.updateUI === 'function') window.updateUI();
+        if(typeof window.drawCanvas === 'function') window.drawCanvas();
+        if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+    };
+
+    // --- 4. TẠO BẢN THIẾT KẾ MỚI (XÓA TRẮNG) ---
+    window.createNewLite = function() {
+        if(confirm('Tạo mới sẽ xóa toàn bộ cài đặt hiện tại trên màn hình. Bạn có chắc không?')) {
+            // Tắt các check box hiển thị
+            document.querySelectorAll('.col-settings input[type="checkbox"]').forEach(el => el.checked = false);
+            
+            // Đặt màu về trắng/đen cơ bản
+            document.querySelectorAll('.col-settings input[type="color"]').forEach(el => {
+                if(el.id.includes('Bg') || el.id.includes('ColorGradient1')) el.value = '#ffffff';
+                else el.value = '#000000';
+            });
+            
+            // Đặt text về rỗng
+            document.querySelectorAll('.col-settings input[type="text"]').forEach(el => el.value = '');
+            
+            // Bật lại Cột Số và Giá cho đỡ trống
+            if(document.getElementById('chkNum')) document.getElementById('chkNum').checked = true;
+            if(document.getElementById('chkPrice')) document.getElementById('chkPrice').checked = true;
+            if(document.getElementById('cellBgTrans')) document.getElementById('cellBgTrans').checked = true;
+
+            if(typeof window.updateUI === 'function') window.updateUI();
+            if(typeof window.drawCanvas === 'function') window.drawCanvas();
+            
+            if(typeof window.closeThemeModal === 'function') window.closeThemeModal();
+            else document.getElementById('themeModalOverlay').style.display = 'none';
+        }
+    };
+
+    // --- 5. KHÔI PHỤC VỀ GỐC ---
+    window.resetToDefault = function() {
+        if(confirm('Khôi phục về trạng thái gốc mặc định của phần mềm?')) {
+            location.reload(); // Tải lại trang là cách "Về gốc" chuẩn và sạch nhất
+        }
+    };
+
+    // --- 6. XỬ LÝ NÚT CHỌN MẪU CÓ SẴN (Dropdown) ---
+    window.loadBuiltinTemplate = function(val) {
+        if(!val) return;
+        // Tương lai bạn có thể gọi API tải mẫu VIP 1, VIP 2 ở đây
+        alert('Tính năng nạp mẫu hệ thống "' + val + '" đang được liên kết!');
+    };
+
+    // ==========================================
+    // 8. QUICK SLIDER & KHỞI TẠO BẮT ĐẦU (ĐỒNG BỘ 2 CHIỀU)
+    // ==========================================
+    let originalValue = 0; let currentEditingInput = null; let longPressTimer = null;
+
+    // Hàm đóng thanh trượt và trả về vị trí gốc
+    function closeQuickSlider() {
+        const qsContainer = document.getElementById('quickSliderContainer');
+        if(qsContainer) {
+            qsContainer.style.display = 'none';
+            currentEditingInput = null;
+            sliderMoved = false; 
+            qsContainer.style.top = ''; qsContainer.style.left = '50%'; qsContainer.style.bottom = '20px'; qsContainer.style.transform = 'translateX(-50%)';
+        }
+    }
+
+    // ĐỒNG BỘ NGƯỢC: Gõ số ở bảng tùy chỉnh -> Thanh trượt & Ô số trượt chạy theo
+    document.addEventListener('input', function(e) {
+        if (currentEditingInput && e.target === currentEditingInput) {
+            let v = parseFloat(e.target.value) || 0;
+            let slider = document.getElementById('quickSlider');
+            let sliderInput = document.getElementById('quickSliderValueInput');
+            if(slider) slider.value = v;
+            if(sliderInput) sliderInput.value = v;
+        }
+    });
+
+    // BẮT SỰ KIỆN KHI BẤM VÀO Ô NHẬP SỐ ĐỂ MỞ THANH TRƯỢT
+    document.addEventListener('focusin', function(e) {
+        if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+            const input = e.target;
+            if(input.id === 'quickSliderValueInput' || input.id === 'pageInput') return;
+            
+            currentEditingInput = input;
+            originalValue = parseFloat(input.value) || 0;
+            
+            const sliderContainer = document.getElementById('quickSliderContainer');
+            const slider = document.getElementById('quickSlider');
+            const sliderInput = document.getElementById('quickSliderValueInput');
+            const sliderLabel = document.getElementById('quickSliderLabel');
+            
+            let labelText = "Chỉnh thông số";
+            const row = input.closest('.setting-row');
+            if (row) { const label = row.querySelector('label'); if (label) labelText = label.innerText; } 
+            else { const span = input.previousElementSibling; if (span && span.tagName === 'SPAN') labelText = span.innerText; }
+            sliderLabel.innerText = labelText;
+            
+            let currentVal = parseFloat(input.value) || 0;
+            let min = 0, max = 100, step = 1;
+            if (input.id.includes('ScaleY')) { min = 0.1; max = 3; step = 0.1; }
+            else if (input.id.includes('Angle')) { min = -360; max = 360; step = 1; }
+            else if (input.id.includes('Pad')) { min = 0; max = 100; step = 1; }
+            else if (input.id.includes('Size') || input.id.includes('TextScale')) { min = 8; max = 150; step = 1; }
+            else if (input.id.includes('W') || input.id.includes('H') || input.id.includes('Width') || input.id.includes('Height')) { min = 0; max = 800; step = 1; }
+            else if (input.id.includes('X') || input.id.includes('Y')) { min = -500; max = 500; step = 1; }
+            else if (input.id.includes('Gap') || input.id.includes('Radius')) { min = 0; max = 100; step = 1; }
+            
+            slider.min = min; slider.max = max; slider.step = step;
+            slider.value = currentVal; 
+            if(sliderInput) sliderInput.value = currentVal;
+            
+            sliderContainer.style.display = 'block';
+            
+            // HÀM CẬP NHẬT TẤT CẢ (ĐỒNG BỘ XUÔI)
+            const updateAll = (newVal) => {
+                let v = parseFloat(newVal); if (isNaN(v)) v = 0;
+                if(input.value != v) input.value = v; 
+                if(slider.value != v) slider.value = v; 
+                if(sliderInput && sliderInput.value != v) sliderInput.value = v;
+                
+                if(typeof updatePreviewImmediate === 'function') updatePreviewImmediate();
+                if(typeof debouncedSave === 'function') debouncedSave();
+                if(typeof showApplyButton === 'function') showApplyButton();
+            };
+
+            slider.oninput = function() { updateAll(this.value); };
+            if(sliderInput) {
+                sliderInput.oninput = function() { updateAll(this.value); };
+                sliderInput.onkeydown = function(ev) { if(ev.key === 'Enter') { ev.preventDefault(); updateAll(this.value); } };
+            }
+            
+            const setupBtn = (btnId, delta) => {
+                const btn = document.getElementById(btnId); if(!btn) return;
+                const startAction = (ev) => { ev.preventDefault(); let currentVal = parseFloat(input.value); updateAll((currentVal + delta).toFixed(step < 1 ? 1 : 0)); longPressTimer = setInterval(() => { let v = parseFloat(input.value); updateAll((v + delta).toFixed(step < 1 ? 1 : 0)); }, 80); };
+                const stopAction = () => clearInterval(longPressTimer);
+                btn.ontouchstart = startAction; btn.ontouchend = stopAction; btn.onmousedown = startAction; btn.onmouseup = stopAction; btn.onmouseleave = stopAction;
+            };
+            setupBtn('btnSliderMinus', -step); setupBtn('btnSliderPlus', step);
+            document.getElementById('btnSliderReset').onclick = (ev) => { ev.preventDefault(); updateAll(originalValue); };
+        }
+    });
+
+    // ĐÓNG THANH TRƯỢT KHI CLICK RA NGOÀI
+    const closeEvents = ['touchstart', 'mousedown'];
+    closeEvents.forEach(evt => {
+        document.addEventListener(evt, function(e) {
+            const container = document.getElementById('quickSliderContainer');
+            if (container && container.style.display === 'block') { 
+                if (!container.contains(e.target) && e.target !== currentEditingInput) { closeQuickSlider(); } 
+            }
+        }, {passive: true});
+    });
+
+    // LOGIC KÉO THẢ THANH TRƯỢT THÔNG SỐ BẰNG TIÊU ĐỀ
+    let isSliderDragging = false; let sliderMoved = false; let sliderStartX, sliderStartY, sliderInitX, sliderInitY;
+    const qsHeader = document.getElementById('quickSliderHeader');
+    const qsContainer = document.getElementById('quickSliderContainer');
+
+    function startQsDrag(e) {
+        if (!qsHeader || !qsContainer) return;
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+        
+        isSliderDragging = true;
+        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+        sliderStartX = clientX; sliderStartY = clientY;
+        
+        let rect = qsContainer.getBoundingClientRect();
+        sliderInitX = rect.left; sliderInitY = rect.top;
+        
+        if(!sliderMoved) { qsContainer.style.bottom = 'auto'; qsContainer.style.transform = 'none'; }
+        qsContainer.style.left = sliderInitX + 'px'; qsContainer.style.top = sliderInitY + 'px';
+        qsHeader.style.cursor = 'grabbing';
+    }
+
+    function doQsDrag(e) {
+        if (!isSliderDragging || !qsContainer) return;
+        e.preventDefault();
+        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+        let dx = clientX - sliderStartX; let dy = clientY - sliderStartY;
+        
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) sliderMoved = true;
+        if (sliderMoved) {
+            let maxX = window.innerWidth - qsContainer.offsetWidth; let maxY = window.innerHeight - qsContainer.offsetHeight;
+            qsContainer.style.left = Math.max(0, Math.min(sliderInitX + dx, maxX)) + 'px';
+            qsContainer.style.top = Math.max(0, Math.min(sliderInitY + dy, maxY)) + 'px';
+        }
+    }
+
+    function stopQsDrag() { isSliderDragging = false; if (qsHeader) qsHeader.style.cursor = 'grab'; }
+
+    if (qsHeader) { qsHeader.addEventListener('mousedown', startQsDrag); qsHeader.addEventListener('touchstart', startQsDrag, {passive: false}); }
+    window.addEventListener('mousemove', doQsDrag, {passive: false}); window.addEventListener('touchmove', doQsDrag, {passive: false});
+    window.addEventListener('mouseup', stopQsDrag); window.addEventListener('touchend', stopQsDrag);
+
+    // ============================================================================
+    // 7. HỆ THỐNG QUẢN LÝ MẪU (XUẤT / NẠP / TẠO MỚI / RESET)
+    // ============================================================================
+
+    // --- 1. XUẤT FILE MẪU (.lite) ---
+    window.exportConfig = function() {
+        let config = {};
+        // Quét toàn bộ input, select trong cột Cài đặt để lưu trạng thái
+        let inputs = document.querySelectorAll('.col-settings input, .col-settings select');
+        
+        inputs.forEach(el => {
+            // Bỏ qua các ô nhập file, ô tìm kiếm hoặc ô không có ID
+            if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+            
+            // Lưu giá trị tùy theo loại input
+            if (el.type === 'checkbox') {
+                config[el.id] = el.checked;
+            } else {
+                config[el.id] = el.value;
+            }
+        });
+
+        // Tạo file JSON ẩn và kích hoạt tải về
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config));
+        let dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute("href", dataStr);
+        
+        // Đặt tên file có ngày tháng
+        let date = new Date();
+        let dateStr = `${date.getDate()}_${date.getMonth()+1}_${date.getFullYear()}`;
+        dlAnchorElem.setAttribute("download", `Mau_Thiet_Ke_VIP_${dateStr}.lite`);
+        
+        document.body.appendChild(dlAnchorElem);
+        dlAnchorElem.click();
+        document.body.removeChild(dlAnchorElem);
+    };
+
+    // --- 2. NẠP FILE MẪU TỪ MÁY TÍNH ---
+    window.handleImport = function(event) {
+        let file = event.target.files[0];
+        if (!file) return;
+        
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                let config = JSON.parse(e.target.result);
+                window.applyConfigToUI(config);
+                alert('✅ Nạp mẫu thành công!');
+            } catch(err) {
+                alert('❌ Lỗi: File không đúng định dạng thiết kế!');
+            }
+            event.target.value = ''; // Reset lại ô input file để có thể nạp lại file cũ nếu cần
+        };
+        reader.readAsText(file);
+    };
+
+    // --- 3. HÀM CỐT LÕI: ÁP DỤNG DATA VÀO GIAO DIỆN ---
+    // (Hàm này cũng được dùng chung khi nạp mẫu từ Kho Đám Mây)
+    window.applyConfigToUI = function(config) {
+        for (let key in config) {
+            let el = document.getElementById(key);
+            if (el) {
+                if (el.type === 'checkbox') {
+                    el.checked = config[key];
+                } else {
+                    el.value = config[key];
+                }
+            }
+        }
+        
+        // Ép giao diện và Canvas cập nhật theo data mới
+        if(typeof window.updateUI === 'function') window.updateUI();
+        if(typeof window.drawCanvas === 'function') window.drawCanvas();
+        if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+    };
+
+    // --- 4. TẠO BẢN THIẾT KẾ MỚI (XÓA TRẮNG) ---
+    window.createNewLite = function() {
+        if(confirm('Tạo mới sẽ xóa toàn bộ cài đặt hiện tại trên màn hình. Bạn có chắc không?')) {
+            // Tắt các check box hiển thị
+            document.querySelectorAll('.col-settings input[type="checkbox"]').forEach(el => el.checked = false);
+            
+            // Đặt màu về trắng/đen cơ bản
+            document.querySelectorAll('.col-settings input[type="color"]').forEach(el => {
+                if(el.id.includes('Bg') || el.id.includes('ColorGradient1')) el.value = '#ffffff';
+                else el.value = '#000000';
+            });
+            
+            // Đặt text về rỗng
+            document.querySelectorAll('.col-settings input[type="text"]').forEach(el => el.value = '');
+            
+            // Bật lại Cột Số và Giá cho đỡ trống
+            if(document.getElementById('chkNum')) document.getElementById('chkNum').checked = true;
+            if(document.getElementById('chkPrice')) document.getElementById('chkPrice').checked = true;
+            if(document.getElementById('cellBgTrans')) document.getElementById('cellBgTrans').checked = true;
+
+            if(typeof window.updateUI === 'function') window.updateUI();
+            if(typeof window.drawCanvas === 'function') window.drawCanvas();
+            
+            if(typeof window.closeThemeModal === 'function') window.closeThemeModal();
+            else document.getElementById('themeModalOverlay').style.display = 'none';
+        }
+    };
+
+    // --- 5. KHÔI PHỤC VỀ GỐC ---
+    window.resetToDefault = function() {
+        if(confirm('Khôi phục về trạng thái gốc mặc định của phần mềm?')) {
+            location.reload(); // Tải lại trang là cách "Về gốc" chuẩn và sạch nhất
+        }
+    };
+
+    // --- 6. XỬ LÝ NÚT CHỌN MẪU CÓ SẴN (Dropdown) ---
+    window.loadBuiltinTemplate = function(val) {
+        if(!val) return;
+        // Tương lai bạn có thể gọi API tải mẫu VIP 1, VIP 2 ở đây
+        alert('Tính năng nạp mẫu hệ thống "' + val + '" đang được liên kết!');
+    };
+    
+</script>
+<div id="globalLoading" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999999; flex-direction: column; align-items: center; justify-content: center; font-family: 'Segoe UI', Arial, sans-serif;">
+    <div class="loading-box">
+        <div class="loader-double"></div>
+        
+        <div class="loading-content">
+            <div id="loadingAction" style="font-size: 13px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Hệ thống đang</div>
+            <div id="loadingText" style="font-size: 18px; color: #fff; font-weight: bold; min-height: 24px;">Xử lý dữ liệu</div>
+            <div class="progress-dots">
+                <span>.</span><span>.</span><span>.</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Khung chứa trung tâm */
+.loading-box {
+    text-align: center;
+    background: rgba(20, 20, 20, 0.9);
+    padding: 40px 60px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+/* Vòng xoay kép mượt mà */
+.loader-double {
+    width: 60px;
+    height: 60px;
+    border: 3px solid transparent;
+    border-top-color: #007bff;
+    border-bottom-color: #007bff;
+    border-radius: 50%;
+    position: relative;
+    animation: spin-v16 2s linear infinite;
+    margin: 0 auto 25px;
+}
+.loader-double::before {
+    content: "";
+    position: absolute;
+    top: 8px; left: 8px; right: 8px; bottom: 8px;
+    border: 3px solid transparent;
+    border-left-color: #2ecc71; /* Màu xanh lá cho dịu mắt */
+    border-right-color: #2ecc71;
+    border-radius: 50%;
+    animation: spin-reverse 1.5s linear infinite;
+}
+
+@keyframes spin-v16 { to { transform: rotate(360deg); } }
+@keyframes spin-reverse { to { transform: rotate(-360deg); } }
+
+/* Hiệu ứng 3 dấu chấm nhảy lần lượt */
+.progress-dots span {
+    font-size: 30px;
+    color: #007bff;
+    display: inline-block;
+    animation: dots-jump 1.4s infinite;
+}
+.progress-dots span:nth-child(2) { animation-delay: 0.2s; }
+.progress-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dots-jump {
+    0%, 20% { transform: translateY(0); opacity: 0.2; }
+    50% { transform: translateY(-10px); opacity: 1; }
+    100% { transform: translateY(0); opacity: 0.2; }
+}
+
+#globalLoading {
+    display: none; 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.85); /* Tối hơn để nổi bật */
+    backdrop-filter: blur(7px); /* Làm mờ toàn bộ bảng mẫu/ảnh bên dưới */
+    -webkit-backdrop-filter: blur(7px);
+    z-index: 2147483647; /* Con số lớn nhất trình duyệt cho phép */
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+}
+
+
+/* 1. Khung chứa mỗi tấm ảnh (Mẫu hoặc Ảnh Drive) */
+.cloud-item-wrapper {
+    position: relative; /* Làm gốc tọa độ cho loading */
+    display: inline-block;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    transition: 0.3s;
+    cursor: pointer;
+    background: #fff;
+    width: 100%; /* Hoặc kích thước cố định tùy Phi */
+}
+
+.cloud-item-wrapper:hover {
+    border-color: #007bff;
+    box-shadow: 0 5px 15px rgba(0,123,255,0.2);
+}
+
+/* 2. Lớp phủ Loading tại chỗ (Mặc định ẩn) */
+.local-loading-overlay {
+    display: none; /* Chỉ hiện khi được yêu cầu */
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Nền tối mờ */
+    color: white;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* 3. Vòng xoay nhỏ xinh tại chỗ */
+.local-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: local-spin 1s linear infinite;
+    margin-bottom: 5px;
+}
+
+@keyframes local-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 4. Chữ Loading nhỏ */
+.local-loading-text {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+
+</style>
+<script>
+
+function renderBackgrounds(data) {
+    const gallery = document.getElementById('bgCloudList');
+    if (!gallery) return;
+
+    gallery.innerHTML = data.map(bg => {
+        let thumb = `https://drive.google.com/thumbnail?id=${bg.id}&sz=w300`;
+        
+        // Bọc cả tấm ảnh và lớp Loading vào trong .cloud-item-wrapper
+        return `
+            <div class="cloud-item-wrapper" onclick="handleCloudItemClick(this, '${bg.id}', 'image')">
+                <div class="local-loading-overlay">
+                    <div class="local-spinner"></div>
+                    <div class="local-loading-text">Loading<span class="dots">...</span></div>
+                </div>
+
+                <img src="${thumb}" style="width:100%; height:95px; object-fit:cover; display:block;">
+                <div style="padding:5px; text-align:center;">
+                    <b style="font-size:11px; color:var(--success); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        ${bg.name}
+                    </b>
+                    <span style="font-size:9px; color:#007bff; font-style:italic;">
+                        ${bg.tags || ''}
+                    </span>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// Cần thêm CSS cho 3 dấu chấm nháy nhảy
+const styleDots = document.createElement('style');
+styleDots.innerHTML = `
+    .dots::after {
+        content: '';
+        animation: local-dots 1.5s steps(4, end) infinite;
+    }
+    @keyframes local-dots {
+        0%, 20% { content: ''; }
+        40% { content: '.'; }
+        60% { content: '..'; }
+        80%, 100% { content: '...'; }
+    }
+`;
+document.head.appendChild(styleDots);
+
+// Hàm xử lý chung khi click vào ảnh/mẫu trên đám mây
+function handleCloudItemClick(element, fileId, type) {
+    // 1. Tìm và hiện lớp Loading bên trong phần tử được click
+    const overlay = element.querySelector('.local-loading-overlay');
+    if (overlay) overlay.style.display = 'flex';
+
+    // 2. Chặn không cho người dùng bấm vào các ảnh khác trong lúc đang load
+    const gallery = element.parentElement;
+    if (gallery) gallery.style.pointerEvents = 'none';
+
+    // 3. Gọi hàm xử lý logic nạp dữ liệu thực tế
+    if (type === 'image') {
+        applyCloudBackground(fileId, overlay, gallery); // Truyền thêm overlay và gallery để ẩn sau khi xong
+    } else {
+        importFromCloudID(fileId, overlay, gallery);
+    }
+}
+
+window.toggleShapeOptions = function(prefix) {
+    let typeEl = document.getElementById(prefix + 'ShapeType');
+    let optionsDiv = document.getElementById(prefix + 'ShapeOptions');
+    if (typeEl && optionsDiv) {
+        if (typeEl.value === 'none' || typeEl.value === 'text_only') {
+            optionsDiv.style.display = 'none';
+        } else {
+            optionsDiv.style.display = 'block';
+        }
+    }
+};
+
+</script>
+
+
+
 </body>
 </html>
