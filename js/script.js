@@ -134,8 +134,8 @@ window.updateUI = function() {
     toggleAdv('bg'); 
     
     let checkCol = (id, chkId) => { let btn = document.querySelector(`.sub-tabs button[onclick*="${id}"]`); let chk = document.getElementById(chkId); if(btn && chk) btn.style.display = chk.checked ? '' : 'none'; };
-    checkCol('sub-num', 'chkSo'); checkCol('sub-price', 'chkGia'); checkCol('sub-menh', 'chkMenh'); checkCol('sub-mang', 'chkMang'); checkCol('sub-data1', 'chkData1'); checkCol('sub-data2', 'chkData2');
-    checkCol('sub-hNum', 'chkSo'); checkCol('sub-hPrice', 'chkGia'); checkCol('sub-hMenh', 'chkMenh'); checkCol('sub-hMang', 'chkMang'); checkCol('sub-hData1', 'chkData1'); checkCol('sub-hData2', 'chkData2');
+    checkCol('sub-num', 'chkNum'); checkCol('sub-price', 'chkPrice'); checkCol('sub-menh', 'chkMenh'); checkCol('sub-mang', 'chkMang'); checkCol('sub-data1', 'chkData1'); checkCol('sub-data2', 'chkData2');
+    checkCol('sub-hNum', 'chkNum'); checkCol('sub-hPrice', 'chkPrice'); checkCol('sub-hMenh', 'chkMenh'); checkCol('sub-hMang', 'chkMang'); checkCol('sub-hData1', 'chkData1'); checkCol('sub-hData2', 'chkData2');
     checkCol('sub-header1', 'use_header1'); checkCol('sub-header2', 'use_header2'); 
     checkCol('sub-footer1', 'use_footer1'); checkCol('sub-footer2', 'use_footer2');
     checkCol('sub-ctl', 'use_ctl'); checkCol('sub-ctr', 'use_ctr');

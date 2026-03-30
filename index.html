@@ -21,33 +21,46 @@
     .pro-inputs label { display: flex; align-items: center; gap: 4px; cursor: pointer; margin:0; font-weight:bold; }
     .btn-mini { background: #007bff; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
     .column.fullscreen { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: #fff !important; margin: 0 !important; padding: 20px !important; box-sizing: border-box; overflow-y: auto; }
+    
     /* Khung chứa preview */
     #canvasWrapper {
         width: 100%;
-        height: 85vh; /* Chiều cao cố định vùng review */
+        height: 85vh; 
         background: #e9ecef;
-        overflow: auto;      /* Cho phép hiện thanh cuộn tự nhiên */
-        
+        overflow: auto;      
         display: flex;
-        justify-content: center; /* CĂN GIỮA NGANG */
-        align-items: flex-start; /* DÍNH MÉP TRÊN */
-        
-        padding: 20px;       /* Khoảng hở nhỏ cho đẹp */
+        justify-content: center; 
+        align-items: flex-start; 
+        padding: 20px;       
         box-sizing: border-box;
-        cursor: grab;        /* Biểu tượng bàn tay để kéo cuộn */
+        cursor: grab;        
     }
-
-    #canvasWrapper:active {
-        cursor: grabbing;    /* Khi đang bấm chuột trái để kéo */
-    }
-
+    #canvasWrapper:active { cursor: grabbing; }
     #preview {
         display: block;
         flex-shrink: 0; 
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        /* Tuyệt đối không để margin: auto; */
     }
 
+    /* CSS Đám Mây - Vòng Xoay & Item */
+    .loading-box { text-align: center; background: rgba(20, 20, 20, 0.9); padding: 40px 60px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+    .loader-double { width: 60px; height: 60px; border: 3px solid transparent; border-top-color: #007bff; border-bottom-color: #007bff; border-radius: 50%; position: relative; animation: spin-v16 2s linear infinite; margin: 0 auto 25px; }
+    .loader-double::before { content: ""; position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px; border: 3px solid transparent; border-left-color: #2ecc71; border-right-color: #2ecc71; border-radius: 50%; animation: spin-reverse 1.5s linear infinite; }
+    @keyframes spin-v16 { to { transform: rotate(360deg); } }
+    @keyframes spin-reverse { to { transform: rotate(-360deg); } }
+    .progress-dots span { font-size: 30px; color: #007bff; display: inline-block; animation: dots-jump 1.4s infinite; }
+    .progress-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .progress-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dots-jump { 0%, 20% { transform: translateY(0); opacity: 0.2; } 50% { transform: translateY(-10px); opacity: 1; } 100% { transform: translateY(0); opacity: 0.2; } }
+    #globalLoading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(7px); z-index: 2147483647; flex-direction: column; align-items: center; justify-content: center; }
+    .cloud-item-wrapper { position: relative; display: inline-block; overflow: hidden; border-radius: 10px; border: 1px solid #ddd; transition: 0.3s; cursor: pointer; background: #fff; width: 100%; }
+    .cloud-item-wrapper:hover { border-color: #007bff; box-shadow: 0 5px 15px rgba(0,123,255,0.2); }
+    .local-loading-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); color: white; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+    .local-spinner { width: 20px; height: 20px; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: #fff; animation: local-spin 1s linear infinite; margin-bottom: 5px; }
+    @keyframes local-spin { to { transform: rotate(360deg); } }
+    .local-loading-text { font-size: 11px; font-weight: bold; letter-spacing: 1px; }
+    .dots::after { content: ''; animation: local-dots 1.5s steps(4, end) infinite; }
+    @keyframes local-dots { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } }
 </style>
 </head>
 <body>
@@ -76,6 +89,7 @@
 
 <div id="exportMenu" style="display: none; position: fixed; z-index: 999998; flex-direction: column; gap: 10px; align-items: flex-end;">
     <button onclick="openHelpModal()" class="btn-primary" style="background:#f39c12; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📖 Hướng Dẫn Nhập</button>
+    <button onclick="toggleBlueprintMode()" class="btn-primary" style="background:#8e44ad; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📐 Hiện/Ẩn Khung</button>
     <button onclick="undo()" class="btn-danger" style="background:#636e72; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);" id="btnUndo">↩ Hoàn tác (0)</button>
     <button onclick="copyCanvas()" class="btn-primary" style="border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📋 Copy Màn Hình</button>
     <button onclick="downloadSingleImage()" class="btn-primary" style="background:#17a2b8; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">💾 Lưu 1 Ảnh</button>
@@ -99,14 +113,14 @@
             <option value="mau_vip_4">⭐ Mẫu 3x8 - 1</option>
             <option value="mau_vip_5">⚡ Mẫu 3x25 -1</option>
         </select>
-        <input type="file" id="importConfig" accept=".json,.lite" style="display:none" onchange="if(typeof handleImport==='function') handleImport(event); document.getElementById('themeModalOverlay').style.display='none';">
+        <input type="file" id="importConfig" accept=".json,.lite" style="display:none" onchange="handleImport(event); document.getElementById('themeModalOverlay').style.display='none';">
         
         <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
             <label style="font-size: 11px; font-weight: bold; color: var(--primary); display: block; margin-bottom: 8px;">☁️ KHO MẪU ĐÁM MÂY TỰ ĐỘNG</label>
             <div style="padding-bottom: 10px;">
                 <div style="position: relative;">
                     <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
-                    <input type="text" id="searchTemplateInput" onkeyup="if(typeof liveSearch==='function') liveSearch('searchTemplateInput', 'cloudTemplatesList')" placeholder="Tìm mẫu (VD: vip, 3x8...)" style="width: 100%; padding: 8px 10px 8px 32px; border: 1px solid #ddd; border-radius: 20px; font-size: 12px; outline: none; box-sizing: border-box; transition: 0.3s;">
+                    <input type="text" id="searchTemplateInput" onkeyup="liveSearch('searchTemplateInput', 'cloudTemplatesList')" placeholder="Tìm mẫu (VD: vip, 3x8...)" style="width: 100%; padding: 8px 10px 8px 32px; border: 1px solid #ddd; border-radius: 20px; font-size: 12px; outline: none; box-sizing: border-box; transition: 0.3s;">
                 </div>
             </div>
             <div id="cloudTemplatesList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 250px; overflow-y: auto; padding: 5px;">
@@ -115,10 +129,10 @@
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-top: 15px;">
-            <button onclick="if(typeof createNewLite==='function') createNewLite()" style="background:#007bff; border:1px solid #0056b3; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🆕 TẠO MỚI</button>
+            <button onclick="createNewLite()" style="background:#007bff; border:1px solid #0056b3; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🆕 TẠO MỚI</button>
             <button onclick="document.getElementById('importConfig').click()" style="background:#f4f7f6; border:1px solid #ccc; color:#333; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">📂 NẠP MẪU</button>
-            <button onclick="if(typeof exportConfig==='function') exportConfig(); document.getElementById('themeModalOverlay').style.display='none';" style="background:#e74c3c; border:1px solid #c0392b; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">💾 XUẤT LITE</button>
-            <button onclick="if(typeof resetToDefault==='function') resetToDefault(); document.getElementById('themeModalOverlay').style.display='none';" style="background:#ffc107; border:1px solid #d39e00; color:#000; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🔄 VỀ GỐC</button>
+            <button onclick="exportConfig(); document.getElementById('themeModalOverlay').style.display='none';" style="background:#e74c3c; border:1px solid #c0392b; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">💾 XUẤT LITE</button>
+            <button onclick="resetToDefault(); document.getElementById('themeModalOverlay').style.display='none';" style="background:#ffc107; border:1px solid #d39e00; color:#000; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🔄 VỀ GỐC</button>
         </div>
     </div>
 </div>
@@ -132,7 +146,7 @@
         <option value="KIM">🤍 Chỉ hiện Mệnh KIM</option> <option value="MỘC">💚 Chỉ hiện Mệnh MỘC</option>
         <option value="THỦY">💙 Chỉ hiện Mệnh THỦY</option> <option value="HỎA">❤ Chỉ hiện Mệnh HỎA</option> <option value="THỔ">🤎 Chỉ hiện Mệnh THỔ</option>
     </select>
-    <textarea id="list">0909.123.456 1000000000 | VIP | Mới&#10;0988.88.88.88 50000000 | Thường | Xả hàng</textarea>
+    <textarea id="list">0909.123.456|1000000000|VIP|Mới&#10;0988.88.88.88|50000000|Thường|Xả hàng</textarea>
     <div style="display: flex; margin-top: 10px; gap: 8px;">
         <button onclick="pasteList()" class="btn-success" style="flex:1; padding:12px;">📋 Dán SIM</button>
         <button onclick="document.getElementById('list').value=''; if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();" class="btn-danger" style="flex:1; padding:12px;">🗑️ Xóa hết</button>
@@ -257,7 +271,12 @@
         ${hasShape ? `
         <div id="ssub-${prefix}-shape" class="sub-sub-tab-content">
             <div class="pro-box" style="border: 2px solid #e74c3c;">
-                <div class="pro-title" style="background:#fff0f0; color:#e74c3c;">💎 THIẾT KẾ KHỐI ĐỘC LẬP (LỚP 3)</div>
+                <div class="pro-title" style="background:#fff0f0; color:#e74c3c; display: flex; justify-content: space-between; align-items: center;">
+                    <span>💎 THIẾT KẾ KHỐI ĐỘC LẬP</span>
+                    <label style="font-size: 11px; cursor: pointer; color: #e74c3c; display: flex; align-items: center; gap: 4px;">
+                        <input type="checkbox" id="${prefix}Shape3D" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> BẬT BÓNG 3D
+                    </label>
+                </div>
                 
                 <div class="pro-row">
                     <label>1. Chọn dáng</label>
@@ -265,7 +284,12 @@
                         <select id="${prefix}ShapeType" onchange="toggleShapeOptions('${prefix}'); typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="font-weight:bold; color:#e74c3c;">
                             <option value="none" selected>Không dùng khối</option>
                             <option value="text_only">Chữ theo màu mạng</option>
-                            <option disabled>--- Các Loại Khối ---</option>
+                            <option disabled>--- Nền Bo/Vuông Mới ---</option>
+                            <option value="rect_round_expand">Bôi vuông bo tròn (Giãn nở)</option>
+                            <option value="rect_expand">Bôi vuông (Giãn nở)</option>
+                            <option value="rect_round_tight">Vuông bo tròn (Gần khít)</option>
+                            <option value="rect_tight">Vuông góc cạnh (Gần khít)</option>
+                            <option disabled>--- Các Loại Khối Cũ ---</option>
                             <option value="circle">Hình tròn</option>
                             <option value="diamond">Hình Thoi</option>
                             <option value="pentagon">Ngũ giác (5)</option>
@@ -279,7 +303,7 @@
 
                 <div id="${prefix}ShapeOptions" style="display: none; border-top: 1px dashed #e74c3c; padding-top: 10px; margin-top: 8px;">
                     
-                    <div class="pro-row">
+                    <div class="pro-row" id="${prefix}ShapeSizeRow">
                         <label>5. Kích thước</label>
                         <div class="pro-inputs">
                             <span>W:</span><input type="number" id="${prefix}ShapeW" value="45" style="width:45px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
@@ -331,7 +355,9 @@
                             <label>Dày/Bo</label>
                             <div class="pro-inputs">
                                 <span>Dày:</span><input type="number" id="${prefix}ShapeBorderW" value="2" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
-                                <span>Bo(R):</span><input type="number" id="${prefix}ShapeRadius" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span id="${prefix}ShapeRadiusGrp" style="display:none;">
+                                    <span>Bo(R):</span><input type="number" id="${prefix}ShapeRadius" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                </span>
                                 <select id="${prefix}ShapeBorderStyle" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
                                     <option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option>
                                 </select>
@@ -374,11 +400,37 @@
 
         ${prefix === 'price' ? `
         <div class="pro-box" style="background:#fafffa; border: 1px solid #2ecc71; margin-top: 15px;">
-            <div class="pro-title" style="background:#2ecc71;">✂️ CÀI ĐẶT HIỂN THỊ GIÁ</div>
-            <div class="pro-row"><label>Hiển thị</label><div class="pro-inputs"><label><input type="checkbox" id="showPrice" checked> Hiện giá tiền</label></div></div>
-            <div class="pro-row"><label>Kèm chữ</label><div class="pro-inputs"><span>Đầu:</span><input type="text" id="pricePrefix" value="" style="width:50px;"><span>Cuối:</span><input type="text" id="priceSuffix" value="đ" style="width:50px;"></div></div>
-            <div class="pro-row"><label>Rút gọn</label><div class="pro-inputs"><select id="priceFormatMode" style="flex:1;"><option value="auto">Tự động (5 Tr, 1 Tỷ)</option><option value="div1m">Chia 1 Triệu</option><option value="div1k">Chia 1 Ngàn</option><option value="comma">Thêm phẩy</option><option value="raw" selected>Giữ nguyên</option></select></div></div>
+    <div class="pro-title" style="background:#2ecc71;">✂️ CÀI ĐẶT HIỂN THỊ GIÁ</div>
+    
+    <div class="pro-row">
+        <label>Hiển thị</label>
+        <div class="pro-inputs">
+            <label><input type="checkbox" id="showPrice" checked onchange="drawCanvas()"> Hiện giá tiền</label>
         </div>
+    </div>
+    
+    <div class="pro-row">
+        <label>Kèm chữ</label>
+        <div class="pro-inputs">
+            <span>Đầu:</span><input type="text" id="pricePrefix" value="" style="width:50px;" oninput="drawCanvas()">
+            <span>Cuối:</span><input type="text" id="priceSuffix" value="đ" style="width:50px;" oninput="drawCanvas()">
+        </div>
+    </div>
+    
+    <div class="pro-row">
+        <label>Rút gọn</label>
+        <div class="pro-inputs">
+            <select id="priceFormatMode" style="flex:1;" onchange="window.drawCanvas()">
+                <option value="auto_compact">Rút gọn: Viết liền (VD: 5.5Tr, 500K)</option>
+                <option value="auto_slang">Rút gọn: Tiếng lóng (VD: 5Tr5, 1Tr1)</option>
+                <option value="auto_k">Rút gọn: Quy ra K (VD: 6.868K, 500K)</option>
+                <option value="auto">Cơ bản: Có khoảng trắng (VD: 5.5 Tr, 500 K)</option>
+                <option value="dot">Truyền thống: Dấu chấm (VD: 5.000.000)</option>
+                <option value="comma">Truyền thống: Dấu phẩy (VD: 5,000,000)</option>
+            </select>
+        </div>
+    </div>
+</div>
         ` : ''}
     </div>`;
     return html;
@@ -602,7 +654,7 @@ layoutHtml += `<div class="pro-box">
                 </div>
             </div>
 
-            <div class="pro-row" id="bgSolidGrp" style="display:none;"><label>Màu trơn</label><div class="pro-inputs"><input type="color" id="bgColor" value="#ffffff" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
+            <div class="pro-row" id="bgSolidGrp" style="display:none;"><label>Màu trơn</label><div class="pro-inputs"><input type="color" id="bgColor" value="#000000" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
             <div class="pro-row" id="bgGradGrp"><label>Màu 1 ➔ 2</label><div class="pro-inputs"><input type="color" id="bgGradient1" value="#ffffff" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>➔</span><input type="color" id="bgGradient2" value="#006680" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Góc:</span><input type="number" id="bgGradAngle" value="0" style="width:45px;" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
             
             <div class="pro-row" id="bgImgGrp" style="display:none; align-items: flex-start;">
@@ -630,43 +682,56 @@ layoutHtml += `<div class="pro-box">
 </div>
 `;
 
-document.getElementById('dynamic-tabs-container').innerHTML = layoutHtml + headHtml + globHtml + genHtml;
-document.getElementById('globalTextTabs').innerHTML = gTabs;
-
-        // --- BẮT ĐẦU: ĐOẠN NỐI DÂY ĐIỆN VÀO CÁC NÚT ---
-        setTimeout(() => {
-            // 1. Quét toàn bộ input, select vừa sinh ra và ép chúng gọi hàm drawCanvas() khi thay đổi
-            document.querySelectorAll('input, select, textarea').forEach(el => {
-                el.addEventListener('input', () => { 
-                    if(typeof window.drawCanvas === 'function') window.drawCanvas(); 
-                });
-                if (el.tagName === 'SELECT' || el.type === 'checkbox') {
-                    el.addEventListener('change', () => { 
-                        if(typeof window.updateUI === 'function') window.updateUI(); 
-                        if(typeof window.drawCanvas === 'function') window.drawCanvas(); 
-                    });
-                }
-            });
-            
-            // 2. Kích hoạt vẽ bản xem trước ngay khi vừa vào web
-            if(typeof window.updateUI === 'function') window.updateUI();
-            if(typeof window.drawCanvas === 'function') window.drawCanvas();
-        }, 200);
-        // --- KẾT THÚC: ĐOẠN NỐI DÂY ĐIỆN ---
-
+        document.getElementById('dynamic-tabs-container').innerHTML = layoutHtml + headHtml + globHtml + genHtml;
+        document.getElementById('globalTextTabs').innerHTML = gTabs;
     });
 </script>
 
+<div id="helpModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; animation: fadeIn 0.2s; backdrop-filter: blur(3px);">
+    <div style="background: #fff; padding: 20px; border-radius: 15px; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; box-shadow: 0 15px 50px rgba(0,0,0,0.4); position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 15px;">
+            <h3 style="margin: 0; color: #d35400; font-size: 16px; text-transform: uppercase;">📖 HƯỚNG DẪN NHẬP DỮ LIỆU</h3>
+            <span style="cursor: pointer; font-size: 24px; color: #999; line-height: 1; padding: 0 5px;" onclick="closeHelpModal()">✖</span>
+        </div>
+        <div style="font-size: 13px; color: #333; line-height: 1.6;">
+            <p>Hệ thống tự động nhận diện dữ liệu theo từng dòng. Bạn có thể nhập theo các định dạng sau:</p>
+            
+            <b style="color: var(--primary);">1. Nhập Cơ Bản (Chỉ hiện Số và Giá):</b>
+            <p style="margin: 4px 0; color: #666; font-size: 12px;">Phân cách Số và Giá bằng Khoảng trắng, Dấu chấm, hoặc Dấu gạch ngang.</p>
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; margin: 5px 0 15px 0; border-left: 3px solid var(--primary);">
+                0909.123.456 500k<br>
+                0988-888-888 1.500.000<br>
+                090.999.9999 = 2 Triệu
+            </div>
+            
+            <b style="color: #e84393;">2. Nhập Nâng Cao (Thêm Dữ Liệu 1 & Dữ Liệu 2):</b>
+            <p style="margin: 4px 0; color: #666; font-size: 12px;">Sử dụng dấu gạch đứng <code style="color:red; font-weight:bold;">|</code> để phân cách các cột.</p>
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; margin: 5px 0 15px 0; border-left: 3px solid #e84393;">
+                <b>Cú pháp:</b> Số | Giá | Dữ liệu 1 | Dữ liệu 2<br><br>
+                0909.123.456 | 500k | Sim Vip | Mới về<br>
+                0988.88.88.88 | 50 Tr | Trả sau | Khuyến mãi lớn<br>
+                0912.345.678 | Liên hệ | | Số độc
+            </div>
+            
+            <ul style="padding-left: 20px; margin-bottom: 0; color: var(--danger); font-weight: bold;">
+                <li>Nếu không nhập DL1 hoặc DL2, ô tương ứng sẽ tự động tàng hình!</li>
+                <li>Cột Mệnh và Nhà Mạng sẽ tự động được AI phân tích từ Số SIM.</li>
+            </ul>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="closeHelpModal()" style="background: #f39c12; color: #fff; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);">Đã Hiểu</button>
+        </div>
+    </div>
+</div>
+
 <div id="mobileSettingModal" onclick="if(event.target===this)window.closeMobileModal()">
   <div class="mobile-modal-content">
-    <!-- HANDLE BAR + HEADER -->
     <div class="mobile-modal-header-area">
       <div class="mobile-modal-drag-handle"></div>
       <div class="mobile-modal-top-row">
         <span id="mobileModalTitle" class="mobile-modal-title">Cài Đặt</span>
         <button class="mobile-modal-close-btn" onclick="window.closeMobileModal()" title="Đóng">✕</button>
       </div>
-      <!-- Tab navigation -->
       <div id="mobileTabMenu">
         <button class="m-tab-lvl1" id="mTab-tab-layout" onclick="openMobileModal('layout')">&#128202; Lưới</button>
         <button class="m-tab-lvl1" id="mTab-tab-colheader" onclick="openMobileModal('header')">&#127991; Tiêu Đề</button>
@@ -677,6 +742,7 @@ document.getElementById('globalTextTabs').innerHTML = gTabs;
     <div class="mobile-modal-body" id="mobileModalBody"></div>
   </div>
 </div>
+
 <div id="drmOverlay"><div class="drm-box"><h2>⚠ PHẦN MỀM ĐÃ BỊ KHÓA</h2><div class="drm-mac" id="displayMac">ĐANG TẠO MÃ...</div><button onclick="copyMac()" class="drm-btn" style="background:#007bff; margin-bottom:20px;">📋 COPY MÃ MÁY NÀY</button><input type="text" id="licenseKeyInput" class="drm-input" placeholder="Nhập Key..."><button class="drm-btn" onclick="activateLicense()">🔓 KÍCH HOẠT NGAY</button><div id="drmMessage"></div></div></div>
 <div id="printArea"></div>
 
@@ -709,10 +775,72 @@ document.getElementById('globalTextTabs').innerHTML = gTabs;
     </div>
 </div>
 
+<div id="globalLoading">
+    <div class="loading-box">
+        <div class="loader-double"></div>
+        <div class="loading-content">
+            <div id="loadingAction" style="font-size: 13px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Hệ thống đang</div>
+            <div id="loadingText" style="font-size: 18px; color: #fff; font-weight: bold; min-height: 24px;">Xử lý dữ liệu</div>
+            <div class="progress-dots">
+                <span>.</span><span>.</span><span>.</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+// ==========================================
+// A0. HÀM TIỆN ÍCH TOÀN CỤC (V24: Fix thiếu hàm)
+// ==========================================
+window.setLocalImage = function(inputEl, globalVarName, statusId) {
+    let file = inputEl.files[0];
+    if (!file) return;
+    let reader = new FileReader();
+    reader.onload = function(e) {
+        let img = new Image();
+        img.onload = function() {
+            window[globalVarName] = img;
+            // Nếu là ảnh nền tổng, gán cả 2 biến để drawCanvas nhận
+            if (globalVarName === 'globalBgImage') window.bgImage = img;
+            let statusEl = document.getElementById(statusId);
+            if (statusEl) statusEl.innerHTML = '✅ Đã nạp ảnh';
+            if (typeof window.updateUI === 'function') window.updateUI();
+            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+};
+
+window.removeImage = function(globalVarName, inputId, statusId) {
+    window[globalVarName] = null;
+    if (globalVarName === 'globalBgImage') window.bgImage = null;
+    let inputEl = document.getElementById(inputId);
+    if (inputEl) inputEl.value = '';
+    let statusEl = document.getElementById(statusId);
+    if (statusEl) statusEl.innerHTML = '❌ Chưa có ảnh';
+    if (typeof window.drawCanvas === 'function') window.drawCanvas();
+    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+};
+
+window.pasteList = async function() {
+    try {
+        let text = await navigator.clipboard.readText();
+        let listEl = document.getElementById('list');
+        if (listEl && text) {
+            listEl.value = text;
+            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        }
+    } catch (e) {
+        alert('❌ Không thể đọc clipboard! Hãy dán (Ctrl+V) trực tiếp vào ô nhập liệu.');
+    }
+};
+
+// ==========================================
+// A. KHỞI TẠO DOM & SỰ KIỆN CƠ BẢN
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // 1. VÁ LỖI KÍCH THƯỚC CANVAS VÀ BƠM FONT
     window.getVal = function(id, def = 0) {
         let el = document.getElementById(id);
         if (!el) return def;
@@ -729,9 +857,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ==========================================
-    // 2. ĐỘNG CƠ UPLOAD ẢNH TỪ MÁY (Local)
-    // ==========================================
     window.setupAdvancedUploader = function(inputId, globalVarName) {
         let inputEl = document.getElementById(inputId);
         if (!inputEl) return;
@@ -748,10 +873,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.onload = function() {
                     window[globalVarName] = img; 
                     
-                    // UX Tự động chuyển Select Mode sang chế độ "Ảnh lót"
                     let modeSelectId = inputId.replace('Input', 'Mode');
                     let modeSelect = document.getElementById(modeSelectId);
-                    if(modeSelect) modeSelect.value = 'image';
+                    if(modeSelect) {
+                        modeSelect.value = 'image';
+                        modeSelect.dispatchEvent(new Event('change'));
+                    }
+
+                    let statusId = "";
+                    if (globalVarName === 'bgImage') statusId = 'mainBgStatus';
+                    else if (globalVarName === 'cellBgImage') statusId = 'cellBgStatus';
+                    else if (globalVarName === 'cellBorderImage') statusId = 'cellBorderStatus';
+                    
+                    let statusEl = document.getElementById(statusId);
+                    if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh";
 
                     if (typeof window.updateUI === 'function') window.updateUI();
                     if (typeof window.drawCanvas === 'function') window.drawCanvas();
@@ -763,23 +898,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Kích hoạt tự động cho TẤT CẢ các nút Input File trên giao diện
     setTimeout(function() {
         document.querySelectorAll('input[type="file"]').forEach(el => {
             if(el.id && el.id.includes('Input')) {
-                let varName = el.id.replace('Input', 'Image'); // VD: bgInput -> bgImage
+                let varName = el.id.replace('Input', 'Image'); 
                 setupAdvancedUploader(el.id, varName);
             }
         });
         
-        // Mồi động cơ vẽ lần đầu
         if (typeof window.updateUI === 'function') window.updateUI();
         if (typeof window.drawCanvas === 'function') window.drawCanvas();
     }, 500);
 
-    // ==========================================
-    // 3. XỬ LÝ LỆNH VẼ KHI THAY ĐỔI CÁC THÔNG SỐ KHÁC
-    // ==========================================
     document.body.addEventListener('input', function(e) {
         if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) && e.target.type !== 'file') {
             if(typeof window.drawCanvas === 'function') window.drawCanvas();
@@ -795,66 +925,193 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// ==========================================
+// B. QUICK SLIDER
+// ==========================================
+let originalValue = 0; let currentEditingInput = null; let longPressTimer = null;
+function closeQuickSlider() {
+    const qsContainer = document.getElementById('quickSliderContainer');
+    if(qsContainer) {
+        qsContainer.style.display = 'none';
+        currentEditingInput = null;
+        sliderMoved = false; 
+        qsContainer.style.top = ''; qsContainer.style.left = '50%'; qsContainer.style.bottom = '20px'; qsContainer.style.transform = 'translateX(-50%)';
+    }
+}
+document.addEventListener('input', function(e) {
+    if (currentEditingInput && e.target === currentEditingInput) {
+        let v = parseFloat(e.target.value) || 0;
+        let slider = document.getElementById('quickSlider');
+        let sliderInput = document.getElementById('quickSliderValueInput');
+        if(slider) slider.value = v;
+        if(sliderInput) sliderInput.value = v;
+    }
+});
+document.addEventListener('focusin', function(e) {
+    if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+        const input = e.target;
+        if(input.id === 'quickSliderValueInput' || input.id === 'pageInput') return;
+        
+        currentEditingInput = input;
+        originalValue = parseFloat(input.value) || 0;
+        
+        const sliderContainer = document.getElementById('quickSliderContainer');
+        const slider = document.getElementById('quickSlider');
+        const sliderInput = document.getElementById('quickSliderValueInput');
+        const sliderLabel = document.getElementById('quickSliderLabel');
+        
+        let labelText = "Chỉnh thông số";
+        const row = input.closest('.setting-row');
+        if (row) { const label = row.querySelector('label'); if (label) labelText = label.innerText; } 
+        else { const span = input.previousElementSibling; if (span && span.tagName === 'SPAN') labelText = span.innerText; }
+        sliderLabel.innerText = labelText;
+        
+        let currentVal = parseFloat(input.value) || 0;
+        let min = 0, max = 100, step = 1;
+        if (input.id.includes('ScaleY')) { min = 0.1; max = 3; step = 0.1; }
+        else if (input.id.includes('Angle')) { min = -360; max = 360; step = 1; }
+        else if (input.id.includes('Pad')) { min = 0; max = 100; step = 1; }
+        else if (input.id.includes('Size') || input.id.includes('TextScale')) { min = 8; max = 150; step = 1; }
+        else if (input.id.includes('W') || input.id.includes('H') || input.id.includes('Width') || input.id.includes('Height')) { min = 0; max = 800; step = 1; }
+        else if (input.id.includes('X') || input.id.includes('Y')) { min = -500; max = 500; step = 1; }
+        else if (input.id.includes('Gap') || input.id.includes('Radius')) { min = 0; max = 100; step = 1; }
+        
+        slider.min = min; slider.max = max; slider.step = step;
+        slider.value = currentVal; 
+        if(sliderInput) sliderInput.value = currentVal;
+        
+        sliderContainer.style.display = 'block';
+        
+        const updateAll = (newVal) => {
+            let v = parseFloat(newVal); if (isNaN(v)) v = 0;
+            if(input.value != v) input.value = v; 
+            if(slider.value != v) slider.value = v; 
+            if(sliderInput && sliderInput.value != v) sliderInput.value = v;
+            
+            if(typeof updatePreviewImmediate === 'function') updatePreviewImmediate();
+            if(typeof debouncedSave === 'function') debouncedSave();
+            if(typeof showApplyButton === 'function') showApplyButton();
+        };
+
+        slider.oninput = function() { updateAll(this.value); };
+        if(sliderInput) {
+            sliderInput.oninput = function() { updateAll(this.value); };
+            sliderInput.onkeydown = function(ev) { if(ev.key === 'Enter') { ev.preventDefault(); updateAll(this.value); } };
+        }
+        
+        const setupBtn = (btnId, delta) => {
+            const btn = document.getElementById(btnId); if(!btn) return;
+            const startAction = (ev) => { ev.preventDefault(); let currentVal = parseFloat(input.value); updateAll((currentVal + delta).toFixed(step < 1 ? 1 : 0)); longPressTimer = setInterval(() => { let v = parseFloat(input.value); updateAll((v + delta).toFixed(step < 1 ? 1 : 0)); }, 80); };
+            const stopAction = () => clearInterval(longPressTimer);
+            btn.ontouchstart = startAction; btn.ontouchend = stopAction; btn.onmousedown = startAction; btn.onmouseup = stopAction; btn.onmouseleave = stopAction;
+        };
+        setupBtn('btnSliderMinus', -step); setupBtn('btnSliderPlus', step);
+        document.getElementById('btnSliderReset').onclick = (ev) => { ev.preventDefault(); updateAll(originalValue); };
+    }
+});
+
+const closeEvents = ['touchstart', 'mousedown'];
+closeEvents.forEach(evt => {
+    document.addEventListener(evt, function(e) {
+        const container = document.getElementById('quickSliderContainer');
+        if (container && container.style.display === 'block') { 
+            if (!container.contains(e.target) && e.target !== currentEditingInput) { closeQuickSlider(); } 
+        }
+    }, {passive: true});
+});
+
+let isSliderDragging = false; let sliderMoved = false; let sliderStartX, sliderStartY, sliderInitX, sliderInitY;
+const qsHeader = document.getElementById('quickSliderHeader');
+const qsContainer = document.getElementById('quickSliderContainer');
+
+function startQsDrag(e) {
+    if (!qsHeader || !qsContainer) return;
+    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+    isSliderDragging = true;
+    let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+    let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+    sliderStartX = clientX; sliderStartY = clientY;
+    let rect = qsContainer.getBoundingClientRect();
+    sliderInitX = rect.left; sliderInitY = rect.top;
+    if(!sliderMoved) { qsContainer.style.bottom = 'auto'; qsContainer.style.transform = 'none'; }
+    qsContainer.style.left = sliderInitX + 'px'; qsContainer.style.top = sliderInitY + 'px';
+    qsHeader.style.cursor = 'grabbing';
+}
+
+function doQsDrag(e) {
+    if (!isSliderDragging || !qsContainer) return;
+    e.preventDefault();
+    let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+    let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+    let dx = clientX - sliderStartX; let dy = clientY - sliderStartY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) sliderMoved = true;
+    if (sliderMoved) {
+        let maxX = window.innerWidth - qsContainer.offsetWidth; let maxY = window.innerHeight - qsContainer.offsetHeight;
+        qsContainer.style.left = Math.max(0, Math.min(sliderInitX + dx, maxX)) + 'px';
+        qsContainer.style.top = Math.max(0, Math.min(sliderInitY + dy, maxY)) + 'px';
+    }
+}
+function stopQsDrag() { isSliderDragging = false; if (qsHeader) qsHeader.style.cursor = 'grab'; }
+
+if (qsHeader) { qsHeader.addEventListener('mousedown', startQsDrag); qsHeader.addEventListener('touchstart', startQsDrag, {passive: false}); }
+window.addEventListener('mousemove', doQsDrag, {passive: false}); window.addEventListener('touchmove', doQsDrag, {passive: false});
+window.addEventListener('mouseup', stopQsDrag); window.addEventListener('touchend', stopQsDrag);
+
 
 // ==========================================
-// 9. HỆ THỐNG ĐÁM MÂY V16 - FIX LỖI TÌM KIẾM
+// C. HỆ THỐNG ĐÁM MÂY V16
 // ==========================================
 const CLOUD_JSON_URL = "https://script.google.com/macros/s/AKfycbxowiVuOyMhN-ua15GgfARcYUvD-Gf8iqFNdT88oTjzKV74OwJwxTD3EXAlsTzhsLDp/exec";
-
-// BIẾN LƯU TRỮ TOÀN CỤC (Để hàm Search tìm thấy)
 window.allTemplates = []; 
 window.cloudBgData = [];
 window.currentBgTarget = 'global';
 
-// --- A. KHO MẪU (TEMPLATES) ---
 window.openThemeModal = function() {
-    const modal = document.getElementById('themeModalOverlay') || document.getElementById('modal-cloud-template');
-    if (modal) {
-        modal.style.display = 'flex';
-        loadCloudTemplates();
-    } else {
-        alert("❌ Lỗi: Không tìm thấy ID Modal mẫu!");
-    }
+    const modal = document.getElementById('themeModalOverlay');
+    if (modal) { modal.style.display = 'flex'; loadCloudTemplates(); }
 };
+window.closeThemeModal = function() { 
+    let modal = document.getElementById('themeModalOverlay');
+    if(modal) modal.style.display = 'none'; 
+}; 
+let themeOverlay = document.getElementById('themeModalOverlay');
+if(themeOverlay) { themeOverlay.addEventListener('click', function(e) { if(e.target === this) window.closeThemeModal(); }); }
 
-// Hàm bật/tắt Loading thông minh
+let btnFab = document.getElementById('fabBtn');
+if (btnFab) {
+    btnFab.addEventListener('click', (e) => { 
+        let isMoved = typeof checkFab1Moved === 'function' ? checkFab1Moved() : false;
+        if (!isMoved) window.openThemeModal(); 
+    });
+}
+
 function toggleLoading(show, actionText = "Đang xử lý", mainText = "Vui lòng chờ") {
     const loader = document.getElementById('globalLoading');
     const act = document.getElementById('loadingAction');
     const txt = document.getElementById('loadingText');
     if (loader) {
         if (show) {
-            loader.style.display = 'flex';
-            act.innerText = actionText;
-            txt.innerText = mainText; // Chỗ này sẽ hiện "Tên Mẫu" hoặc "Ảnh nền"
+            loader.style.display = 'flex'; act.innerText = actionText; txt.innerText = mainText;
         } else {
-            // Hiệu ứng mờ dần trước khi tắt (tùy chọn)
             loader.style.opacity = '0';
-            setTimeout(() => {
-                loader.style.display = 'none';
-                loader.style.opacity = '1';
-            }, 300);
+            setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 300);
         }
     }
 }
 
-// 1. Khi tải danh sách mẫu
 async function loadCloudTemplates() {
     const listContainer = document.getElementById('cloudTemplatesList');
     if (!listContainer) return;
     try {
-        toggleLoading(true, "Đang kết nối kho mẫu..."); // HIỆN
+        listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px 0; font-size: 12px; color: #888;">⏳ Đang đồng bộ Kho mẫu đám mây...</div>';
         const resp = await fetch(CLOUD_JSON_URL + "?type=template");
         window.allTemplates = await resp.json();
         renderTemplates(window.allTemplates);
     } catch (err) {
-        alert("Lỗi kết nối Server!");
-    } finally {
-        toggleLoading(false); // ẨN
+        listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px 0; font-size: 12px; color: #e74c3c;">❌ Lỗi kết nối máy chủ! Vui lòng thử lại.</div>';
     }
 }
 
-// Hàm vẽ danh sách (Đóng vai trò quan trọng để Search hoạt động)
 function renderTemplates(data) {
     const listContainer = document.getElementById('cloudTemplatesList');
     if (!listContainer) return;
@@ -876,46 +1133,30 @@ function renderTemplates(data) {
     }).join('');
 }
 
-// HÀM SEARCH VẠN NĂNG (Dùng cho cả Mẫu và Ảnh Drive)
 window.liveSearch = function(inputId, listId) {
     let input = document.getElementById(inputId);
     if (!input) return;
-    
     let keyword = input.value.toLowerCase().trim();
-
-    // 1. Nếu đang search ở KHO MẪU
     if (listId === 'cloudTemplatesList') {
-        if (!window.allTemplates) return; // Chống lỗi nếu mảng chưa tải xong
-        const filtered = window.allTemplates.filter(item => 
-            (item.name || "").toLowerCase().includes(keyword) || 
-            (item.tags || "").toLowerCase().includes(keyword)
-        );
+        if (!window.allTemplates) return; 
+        const filtered = window.allTemplates.filter(item => (item.name || "").toLowerCase().includes(keyword) || (item.tags || "").toLowerCase().includes(keyword));
         renderTemplates(filtered);
     } 
-    
-    // 2. Nếu đang search ở KHO ẢNH (BỔ SUNG PHẦN NÀY)
     else if (listId === 'bgCloudList') {
-        if (!window.cloudBgData) return; // Chống lỗi nếu mảng ảnh chưa có
-        const filtered = window.cloudBgData.filter(item => 
-            (item.name || "").toLowerCase().includes(keyword) || 
-            (item.tags || "").toLowerCase().includes(keyword)
-        );
-        renderBackgrounds(filtered); // Vẽ lại danh sách ảnh nền
+        if (!window.cloudBgData) return; 
+        const filtered = window.cloudBgData.filter(item => (item.name || "").toLowerCase().includes(keyword) || (item.tags || "").toLowerCase().includes(keyword));
+        renderBackgrounds(filtered); 
     }
 };
 
-// --- B. KHO ẢNH NỀN ---
 window.openBgCloudModal = function(target) {
     window.currentBgTarget = target; 
-    const modal = document.getElementById('bgCloudModalOverlay') || document.getElementById('modal-bg-cloud');
-    if (modal) {
-        modal.style.display = 'flex';
-        loadCloudBackgrounds();
-    }
+    const modal = document.getElementById('modal-bg-cloud');
+    if (modal) { modal.style.display = 'flex'; loadCloudBackgrounds(); }
 };
 
 async function loadCloudBackgrounds() {
-    const gallery = document.getElementById('bgCloudList') || document.getElementById('cloudGalleryArea');
+    const gallery = document.getElementById('bgCloudList');
     if (!gallery) return;
     try {
         gallery.innerHTML = "<div style='grid-column:1/-1; text-align:center;'>⏳ Đang tải...</div>";
@@ -926,43 +1167,44 @@ async function loadCloudBackgrounds() {
 }
 
 function renderBackgrounds(data) {
-    // Ưu tiên lấy ID mới 'bgCloudList' để khớp với Modal bạn vừa gửi
-    const gallery = document.getElementById('bgCloudList') || document.getElementById('cloudGalleryArea');
+    const gallery = document.getElementById('bgCloudList');
     if (!gallery) return;
-
     if (!data || data.length === 0) {
         gallery.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:20px; color:#888;'>Chưa có ảnh nào phù hợp 😅</div>";
         return;
     }
-
     gallery.innerHTML = data.map(bg => {
         let thumb = `https://drive.google.com/thumbnail?id=${bg.id}&sz=w300`;
-        // Xử lý tên và tags để tránh lỗi dấu nháy đơn làm hỏng HTML
         let safeName = (bg.name || "Không tên").replace(/'/g, "\\'");
         let safeTags = (bg.tags || "").replace(/'/g, "\\'");
-
         return `
-            <div class="cloud-bg-item" 
-                 onclick="applyCloudBackground('${bg.id}', '${safeName}')"
-                 style="background:#fff; border:1px solid #ddd; border-radius:10px; cursor:pointer; overflow:hidden; text-align:center; transition:0.3s; box-shadow:0 2px 5px rgba(0,0,0,0.05); display:flex; flex-direction:column;">
-                
-                <img src="${thumb}" style="width:100%; height:90px; object-fit:cover; display:block;" onerror="this.src='https://placehold.co/200x100?text=Lỗi+Ảnh'">
-                
+            <div class="cloud-item-wrapper" onclick="handleCloudItemClick(this, '${bg.id}', 'image')">
+                <div class="local-loading-overlay">
+                    <div class="local-spinner"></div>
+                    <div class="local-loading-text">Loading<span class="dots">...</span></div>
+                </div>
+                <img src="${thumb}" style="width:100%; height:95px; object-fit:cover; display:block;" onerror="this.src='https://placehold.co/200x100?text=Lỗi+Ảnh'">
                 <div style="padding: 6px; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px;">
-                    <b style="font-size:11px; color:var(--success); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${safeName}">
-                        ${bg.name}
-                    </b>
-                    <span style="font-size:9px; color:#007bff; font-style:italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        ${bg.tags || ''}
-                    </span>
+                    <b style="font-size:11px; color:var(--success); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${safeName}">${bg.name}</b>
+                    <span style="font-size:9px; color:#007bff; font-style:italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${bg.tags || ''}</span>
                 </div>
             </div>`;
     }).join('');
 }
 
-// 3. Khi áp dụng ảnh nền từ đám mây
-// --- HÀM NẠP ẢNH NỀN: HIỆN LOADING ĐÈ LÊN MODAL ---
-// Cập nhật hàm applyCloudBackground để ẩn Loading khi xong
+window.handleCloudItemClick = function(element, fileId, type) {
+    const overlay = element.querySelector('.local-loading-overlay');
+    if (overlay) overlay.style.display = 'flex';
+    const gallery = element.parentElement;
+    if (gallery) gallery.style.pointerEvents = 'none';
+
+    if (type === 'image') {
+        applyCloudBackground(fileId, overlay, gallery); 
+    } else {
+        importFromCloudID(fileId, overlay, gallery);
+    }
+};
+
 async function applyCloudBackground(fileId, loaderOverlay, galleryElement) {
     try {
         let response = await fetch(CLOUD_JSON_URL + "?action=get_image&id=" + fileId);
@@ -979,12 +1221,8 @@ async function applyCloudBackground(fileId, loaderOverlay, galleryElement) {
             else window[target] = img;
 
             drawCanvas();
-
-            // XONG: Ẩn Loading và mở lại Click cho gallery
             if (loaderOverlay) loaderOverlay.style.display = 'none';
             if (galleryElement) galleryElement.style.pointerEvents = 'auto';
-            
-            // Đóng Modal
             document.querySelectorAll('#bgCloudModalOverlay, #modal-bg-cloud').forEach(m => m.style.display = 'none');
         };
     } catch (err) { 
@@ -994,674 +1232,326 @@ async function applyCloudBackground(fileId, loaderOverlay, galleryElement) {
     }
 }
 
-// 2. Khi chọn nạp một mẫu cụ thể
-// --- HÀM NẠP MẪU: HIỆN LOADING ĐÈ LÊN MODAL ---
 async function importFromCloudID(fileId, name) {
     try {
-        // Hiện Loading ngay lập tức với tên mẫu
         toggleLoading(true, "ĐANG NẠP THIẾT KẾ", name); 
-        
         const response = await fetch(CLOUD_JSON_URL + "?action=get_lite&id=" + fileId);
         let rawData = await response.text();
-        
         const binaryString = atob(rawData.trim());
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
         let cfg = JSON.parse(new TextDecoder().decode(bytes));
         
         applyConfigToUI(cfg, false);
-        
-        // Nạp xong mới đóng Modal và ẩn Loading
         document.querySelectorAll('#themeModalOverlay, #modal-cloud-template').forEach(m => m.style.display = 'none');
     } catch (err) { 
         alert("❌ Lỗi nạp mẫu!"); 
     } finally {
-        setTimeout(() => toggleLoading(false), 500); // Ẩn sau 0.5s cho mượt
+        setTimeout(() => toggleLoading(false), 500); 
     }
 }
-// ==========================================
-// ==========================================
-    // XỬ LÝ NÚT BẢNG MÀU (🎨) - THEME MODAL
-    // Phân biệt rõ giữa "Kéo thả" và "Click"
-    // ==========================================
-    window.openThemeModal = function() { 
-        let modal = document.getElementById('themeModalOverlay');
-        if(modal) modal.style.display = 'flex'; 
-        
-        // Gọi hàm tải kho mẫu đám mây (nếu bạn đã định nghĩa hàm này)
-        if (typeof window.loadCloudTemplates === 'function') {
-            window.loadCloudTemplates(); 
-        }
-    };
-    
-    window.closeThemeModal = function() { 
-        let modal = document.getElementById('themeModalOverlay');
-        if(modal) modal.style.display = 'none'; 
-    }; 
-    
-    // Đóng Modal khi click ra vùng tối bên ngoài
-    let themeOverlay = document.getElementById('themeModalOverlay');
-    if(themeOverlay) {
-        themeOverlay.addEventListener('click', function(e) { 
-            if(e.target === this) window.closeThemeModal(); 
-        });
-    }
 
-    // Xử lý Click nút 🎨
-    let btnFab = document.getElementById('fabBtn');
-    if (btnFab) {
-        btnFab.addEventListener('click', (e) => { 
-            // checkFab1Moved là hàm do hệ thống kéo thả sinh ra (trong script.js)
-            // Nếu kéo thì isMoved = true, nếu chỉ click thì isMoved = false
-            let isMoved = typeof checkFab1Moved === 'function' ? checkFab1Moved() : false;
+
+// ============================================================================
+// 7. HỆ THỐNG QUẢN LÝ MẪU V24 (XUẤT / NẠP / TẠO MỚI / RESET) - NÉN ẢNH
+// ============================================================================
+
+// --- 7.1 HÀM NÉN ẢNH: Resize + JPEG compression trước khi lưu vào .lite ---
+window.compressImage = function(imgElement, maxWidth = 800, quality = 0.7) {
+    return new Promise((resolve) => {
+        try {
+            if (!imgElement || !imgElement.naturalWidth) { resolve(null); return; }
+            let tempCanvas = document.createElement('canvas');
+            let tempCtx = tempCanvas.getContext('2d');
+            let origW = imgElement.naturalWidth || imgElement.width;
+            let origH = imgElement.naturalHeight || imgElement.height;
             
-            if (!isMoved) {
-                window.openThemeModal(); 
-            }
-        });
-    }
-
-
-    // ============================================================================
-    // 7. HỆ THỐNG QUẢN LÝ MẪU (XUẤT / NẠP / TẠO MỚI / RESET)
-    // ============================================================================
-
-    // --- 1. XUẤT FILE MẪU (.lite) ---
-    window.exportConfig = function() {
-        let config = {};
-        // Quét toàn bộ input, select trong cột Cài đặt để lưu trạng thái
-        let inputs = document.querySelectorAll('.col-settings input, .col-settings select');
-        
-        inputs.forEach(el => {
-            // Bỏ qua các ô nhập file, ô tìm kiếm hoặc ô không có ID
-            if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+            // Tính tỷ lệ resize
+            let scale = 1;
+            if (origW > maxWidth) scale = maxWidth / origW;
+            tempCanvas.width = Math.round(origW * scale);
+            tempCanvas.height = Math.round(origH * scale);
             
-            // Lưu giá trị tùy theo loại input
-            if (el.type === 'checkbox') {
-                config[el.id] = el.checked;
+            tempCtx.drawImage(imgElement, 0, 0, tempCanvas.width, tempCanvas.height);
+            let dataUrl = tempCanvas.toDataURL('image/jpeg', quality);
+            resolve(dataUrl);
+        } catch (err) {
+            // Nếu lỗi CORS hoặc lỗi khác, thử trả về src gốc nếu là data:image
+            if (imgElement.src && imgElement.src.startsWith('data:image')) {
+                resolve(imgElement.src);
             } else {
-                config[el.id] = el.value;
-            }
-        });
-
-        // Tạo file JSON ẩn và kích hoạt tải về
-        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config));
-        let dlAnchorElem = document.createElement('a');
-        dlAnchorElem.setAttribute("href", dataStr);
-        
-        // Đặt tên file có ngày tháng
-        let date = new Date();
-        let dateStr = `${date.getDate()}_${date.getMonth()+1}_${date.getFullYear()}`;
-        dlAnchorElem.setAttribute("download", `Mau_Thiet_Ke_VIP_${dateStr}.lite`);
-        
-        document.body.appendChild(dlAnchorElem);
-        dlAnchorElem.click();
-        document.body.removeChild(dlAnchorElem);
-    };
-
-    // --- 2. NẠP FILE MẪU TỪ MÁY TÍNH ---
-    window.handleImport = function(event) {
-        let file = event.target.files[0];
-        if (!file) return;
-        
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                let config = JSON.parse(e.target.result);
-                window.applyConfigToUI(config);
-                alert('✅ Nạp mẫu thành công!');
-            } catch(err) {
-                alert('❌ Lỗi: File không đúng định dạng thiết kế!');
-            }
-            event.target.value = ''; // Reset lại ô input file để có thể nạp lại file cũ nếu cần
-        };
-        reader.readAsText(file);
-    };
-
-    // --- 3. HÀM CỐT LÕI: ÁP DỤNG DATA VÀO GIAO DIỆN ---
-    // (Hàm này cũng được dùng chung khi nạp mẫu từ Kho Đám Mây)
-    window.applyConfigToUI = function(config) {
-        for (let key in config) {
-            let el = document.getElementById(key);
-            if (el) {
-                if (el.type === 'checkbox') {
-                    el.checked = config[key];
-                } else {
-                    el.value = config[key];
-                }
+                resolve(null);
             }
         }
-        
-        // Ép giao diện và Canvas cập nhật theo data mới
-        if(typeof window.updateUI === 'function') window.updateUI();
-        if(typeof window.drawCanvas === 'function') window.drawCanvas();
-        if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-    };
+    });
+};
 
-    // --- 4. TẠO BẢN THIẾT KẾ MỚI (XÓA TRẮNG) ---
-    window.createNewLite = function() {
-        if(confirm('Tạo mới sẽ xóa toàn bộ cài đặt hiện tại trên màn hình. Bạn có chắc không?')) {
-            // Tắt các check box hiển thị
-            document.querySelectorAll('.col-settings input[type="checkbox"]').forEach(el => el.checked = false);
-            
-            // Đặt màu về trắng/đen cơ bản
-            document.querySelectorAll('.col-settings input[type="color"]').forEach(el => {
-                if(el.id.includes('Bg') || el.id.includes('ColorGradient1')) el.value = '#ffffff';
-                else el.value = '#000000';
-            });
-            
-            // Đặt text về rỗng
-            document.querySelectorAll('.col-settings input[type="text"]').forEach(el => el.value = '');
-            
-            // Bật lại Cột Số và Giá cho đỡ trống
-            if(document.getElementById('chkNum')) document.getElementById('chkNum').checked = true;
-            if(document.getElementById('chkPrice')) document.getElementById('chkPrice').checked = true;
-            if(document.getElementById('cellBgTrans')) document.getElementById('cellBgTrans').checked = true;
-
-            if(typeof window.updateUI === 'function') window.updateUI();
-            if(typeof window.drawCanvas === 'function') window.drawCanvas();
-            
-            if(typeof window.closeThemeModal === 'function') window.closeThemeModal();
-            else document.getElementById('themeModalOverlay').style.display = 'none';
-        }
-    };
-
-    // --- 5. KHÔI PHỤC VỀ GỐC ---
-    window.resetToDefault = function() {
-        if(confirm('Khôi phục về trạng thái gốc mặc định của phần mềm?')) {
-            location.reload(); // Tải lại trang là cách "Về gốc" chuẩn và sạch nhất
-        }
-    };
-
-    // --- 6. XỬ LÝ NÚT CHỌN MẪU CÓ SẴN (Dropdown) ---
-    window.loadBuiltinTemplate = function(val) {
-        if(!val) return;
-        // Tương lai bạn có thể gọi API tải mẫu VIP 1, VIP 2 ở đây
-        alert('Tính năng nạp mẫu hệ thống "' + val + '" đang được liên kết!');
-    };
-
-    // ==========================================
-    // 8. QUICK SLIDER & KHỞI TẠO BẮT ĐẦU (ĐỒNG BỘ 2 CHIỀU)
-    // ==========================================
-    let originalValue = 0; let currentEditingInput = null; let longPressTimer = null;
-
-    // Hàm đóng thanh trượt và trả về vị trí gốc
-    function closeQuickSlider() {
-        const qsContainer = document.getElementById('quickSliderContainer');
-        if(qsContainer) {
-            qsContainer.style.display = 'none';
-            currentEditingInput = null;
-            sliderMoved = false; 
-            qsContainer.style.top = ''; qsContainer.style.left = '50%'; qsContainer.style.bottom = '20px'; qsContainer.style.transform = 'translateX(-50%)';
-        }
-    }
-
-    // ĐỒNG BỘ NGƯỢC: Gõ số ở bảng tùy chỉnh -> Thanh trượt & Ô số trượt chạy theo
-    document.addEventListener('input', function(e) {
-        if (currentEditingInput && e.target === currentEditingInput) {
-            let v = parseFloat(e.target.value) || 0;
-            let slider = document.getElementById('quickSlider');
-            let sliderInput = document.getElementById('quickSliderValueInput');
-            if(slider) slider.value = v;
-            if(sliderInput) sliderInput.value = v;
+// --- 7.2 XUẤT FILE .lite (V24: Nén ảnh + Lưu tất cả) ---
+window.exportConfig = async function() {
+    let config = {};
+    // Quét TẤT CẢ input/select trên trang (không chỉ .col-settings)
+    let inputs = document.querySelectorAll('.col-settings input, .col-settings select');
+    
+    inputs.forEach(el => {
+        if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+        if (el.type === 'checkbox') {
+            config[el.id] = el.checked;
+        } else {
+            config[el.id] = el.value;
         }
     });
 
-    // BẮT SỰ KIỆN KHI BẤM VÀO Ô NHẬP SỐ ĐỂ MỞ THANH TRƯỢT
-    document.addEventListener('focusin', function(e) {
-        if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
-            const input = e.target;
-            if(input.id === 'quickSliderValueInput' || input.id === 'pageInput') return;
-            
-            currentEditingInput = input;
-            originalValue = parseFloat(input.value) || 0;
-            
-            const sliderContainer = document.getElementById('quickSliderContainer');
-            const slider = document.getElementById('quickSlider');
-            const sliderInput = document.getElementById('quickSliderValueInput');
-            const sliderLabel = document.getElementById('quickSliderLabel');
-            
-            let labelText = "Chỉnh thông số";
-            const row = input.closest('.setting-row');
-            if (row) { const label = row.querySelector('label'); if (label) labelText = label.innerText; } 
-            else { const span = input.previousElementSibling; if (span && span.tagName === 'SPAN') labelText = span.innerText; }
-            sliderLabel.innerText = labelText;
-            
-            let currentVal = parseFloat(input.value) || 0;
-            let min = 0, max = 100, step = 1;
-            if (input.id.includes('ScaleY')) { min = 0.1; max = 3; step = 0.1; }
-            else if (input.id.includes('Angle')) { min = -360; max = 360; step = 1; }
-            else if (input.id.includes('Pad')) { min = 0; max = 100; step = 1; }
-            else if (input.id.includes('Size') || input.id.includes('TextScale')) { min = 8; max = 150; step = 1; }
-            else if (input.id.includes('W') || input.id.includes('H') || input.id.includes('Width') || input.id.includes('Height')) { min = 0; max = 800; step = 1; }
-            else if (input.id.includes('X') || input.id.includes('Y')) { min = -500; max = 500; step = 1; }
-            else if (input.id.includes('Gap') || input.id.includes('Radius')) { min = 0; max = 100; step = 1; }
-            
-            slider.min = min; slider.max = max; slider.step = step;
-            slider.value = currentVal; 
-            if(sliderInput) sliderInput.value = currentVal;
-            
-            sliderContainer.style.display = 'block';
-            
-            // HÀM CẬP NHẬT TẤT CẢ (ĐỒNG BỘ XUÔI)
-            const updateAll = (newVal) => {
-                let v = parseFloat(newVal); if (isNaN(v)) v = 0;
-                if(input.value != v) input.value = v; 
-                if(slider.value != v) slider.value = v; 
-                if(sliderInput && sliderInput.value != v) sliderInput.value = v;
+    // Xây dựng danh sách TẤT CẢ image keys cần lưu
+    config.savedImages = {};
+    // globalBgImage là biến thực tế khi upload local, bgImage là khi load từ cloud
+    const imgKeys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
+    
+    const prefixes = [
+        'num', 'price', 'menh', 'mang', 'data1', 'data2',
+        'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2',
+        'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum'
+    ];
+    
+    prefixes.forEach(p => {
+        imgKeys.push(p + 'ColorImage', p + 'BgImage', p + 'BorderImage', p + 'ShapeBorderImage');
+    });
+
+    // Hiện loading
+    if (typeof toggleLoading === 'function') toggleLoading(true, "ĐANG NÉN ẢNH", "Chuẩn bị xuất file .lite...");
+
+    // Nén tất cả ảnh (bao gồm cả ảnh từ cloud đã load vào RAM)
+    let imgCount = 0;
+    for (let key of imgKeys) {
+        if (window[key] && window[key] instanceof Image && window[key].complete && window[key].naturalWidth > 0) {
+            let compressed = await window.compressImage(window[key], 800, 0.7);
+            if (compressed) {
+                // Chuẩn hóa key: globalBgImage → bgImage trong file .lite
+                let saveKey = (key === 'globalBgImage') ? 'bgImage' : key;
+                config.savedImages[saveKey] = compressed;
+                imgCount++;
+            }
+        }
+    }
+
+    // Tắt loading
+    if (typeof toggleLoading === 'function') toggleLoading(false);
+
+    // Tạo file download
+    let jsonStr = JSON.stringify(config);
+    let blob = new Blob([jsonStr], { type: 'application/json' });
+    let sizeMB = (blob.size / 1024 / 1024).toFixed(2);
+    
+    let dlAnchorElem = document.createElement('a');
+    dlAnchorElem.href = URL.createObjectURL(blob);
+    let date = new Date();
+    let dateStr = `${date.getDate()}_${date.getMonth()+1}_${date.getFullYear()}`;
+    dlAnchorElem.download = `Mau_Thiet_Ke_VIP_${dateStr}.lite`;
+    document.body.appendChild(dlAnchorElem);
+    dlAnchorElem.click();
+    setTimeout(() => { document.body.removeChild(dlAnchorElem); URL.revokeObjectURL(dlAnchorElem.href); }, 500);
+
+    alert(`✅ Đã xuất file .lite thành công!\n📦 Kích thước: ${sizeMB} MB\n🖼️ Đã nén ${imgCount} hình ảnh`);
+};
+
+
+// --- 7.3 NẠP FILE .lite (V24: Hỗ trợ cả JSON lẫn base64) ---
+window.handleImport = function(event) {
+    let file = event.target.files[0];
+    if (!file) return;
+    let reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            let raw = e.target.result.trim();
+            let config;
+            try {
+                // Thử parse JSON thuần trước (file .lite local)
+                config = JSON.parse(raw);
+            } catch(jsonErr) {
+                // Thử decode base64 (file .lite từ cloud)
+                try {
+                    const binaryString = atob(raw);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                    config = JSON.parse(new TextDecoder().decode(bytes));
+                } catch(b64Err) {
+                    throw new Error('Invalid format');
+                }
+            }
+            window.applyConfigToUI(config);
+        } catch(err) {
+            alert('❌ Lỗi: File không đúng định dạng thiết kế!');
+        }
+        event.target.value = ''; 
+    };
+    reader.readAsText(file);
+};
+
+// --- 7.4 ÁP DỤNG CONFIG VÀO GIAO DIỆN (V24: Backward Compatible) ---
+window.applyConfigToUI = function(config) {
+    let inputs = document.querySelectorAll('.col-settings input, .col-settings select');
+    inputs.forEach(el => {
+        if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+        
+        if (config.hasOwnProperty(el.id)) {
+            if (el.type === 'checkbox') el.checked = config[el.id];
+            else el.value = config[el.id];
+        } else {
+            // V24: File .lite cũ thiếu key → UNCHECK checkbox (kể cả cột, chữ góc)
+            // Chỉ giữ showHeaderRow mặc định ON (vì nó là core behavior)
+            if (el.type === 'checkbox') {
+                el.checked = (el.id === 'showHeaderRow');
+            } else if (el.tagName === 'SELECT') {
+                if (el.id.includes('ShapeType')) el.value = 'none';
+            }
+        }
+    });
+
+    // Xóa tất cả ảnh cũ trước khi nạp mới
+    window.globalBgImage = null; window.bgImage = null; 
+    window.cellBgImage = null; window.cellBorderImage = null;
+
+    if (config.savedImages && Object.keys(config.savedImages).length > 0) {
+        let imagesToLoad = Object.keys(config.savedImages).length;
+        let imagesLoaded = 0;
+
+        if (typeof toggleLoading === 'function') toggleLoading(true, "ĐANG KHÔI PHỤC", `Nạp ${imagesToLoad} hình ảnh...`);
+
+        for (let key in config.savedImages) {
+            let img = new Image();
+            img.onload = () => {
+                // V24: bgImage từ file .lite → gán vào CẢ 2 biến để drawCanvas nhận được
+                if (key === 'bgImage') {
+                    window.bgImage = img;
+                    window.globalBgImage = img;
+                } else {
+                    window[key] = img;
+                }
+                imagesLoaded++;
                 
-                if(typeof updatePreviewImmediate === 'function') updatePreviewImmediate();
-                if(typeof debouncedSave === 'function') debouncedSave();
-                if(typeof showApplyButton === 'function') showApplyButton();
-            };
+                // V24: Cập nhật status text cho các ảnh đã nạp thành công
+                let statusId = "";
+                if (key === 'bgImage') statusId = 'mainBgStatus';
+                else if (key === 'cellBgImage') statusId = 'cellBgStatus';
+                else if (key === 'cellBorderImage') statusId = 'cellBorderStatus';
+                
+                let statusEl = document.getElementById(statusId);
+                if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh từ file Lite";
 
-            slider.oninput = function() { updateAll(this.value); };
-            if(sliderInput) {
-                sliderInput.oninput = function() { updateAll(this.value); };
-                sliderInput.onkeydown = function(ev) { if(ev.key === 'Enter') { ev.preventDefault(); updateAll(this.value); } };
-            }
-            
-            const setupBtn = (btnId, delta) => {
-                const btn = document.getElementById(btnId); if(!btn) return;
-                const startAction = (ev) => { ev.preventDefault(); let currentVal = parseFloat(input.value); updateAll((currentVal + delta).toFixed(step < 1 ? 1 : 0)); longPressTimer = setInterval(() => { let v = parseFloat(input.value); updateAll((v + delta).toFixed(step < 1 ? 1 : 0)); }, 80); };
-                const stopAction = () => clearInterval(longPressTimer);
-                btn.ontouchstart = startAction; btn.ontouchend = stopAction; btn.onmousedown = startAction; btn.onmouseup = stopAction; btn.onmouseleave = stopAction;
-            };
-            setupBtn('btnSliderMinus', -step); setupBtn('btnSliderPlus', step);
-            document.getElementById('btnSliderReset').onclick = (ev) => { ev.preventDefault(); updateAll(originalValue); };
-        }
-    });
-
-    // ĐÓNG THANH TRƯỢT KHI CLICK RA NGOÀI
-    const closeEvents = ['touchstart', 'mousedown'];
-    closeEvents.forEach(evt => {
-        document.addEventListener(evt, function(e) {
-            const container = document.getElementById('quickSliderContainer');
-            if (container && container.style.display === 'block') { 
-                if (!container.contains(e.target) && e.target !== currentEditingInput) { closeQuickSlider(); } 
-            }
-        }, {passive: true});
-    });
-
-    // LOGIC KÉO THẢ THANH TRƯỢT THÔNG SỐ BẰNG TIÊU ĐỀ
-    let isSliderDragging = false; let sliderMoved = false; let sliderStartX, sliderStartY, sliderInitX, sliderInitY;
-    const qsHeader = document.getElementById('quickSliderHeader');
-    const qsContainer = document.getElementById('quickSliderContainer');
-
-    function startQsDrag(e) {
-        if (!qsHeader || !qsContainer) return;
-        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
-        
-        isSliderDragging = true;
-        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-        sliderStartX = clientX; sliderStartY = clientY;
-        
-        let rect = qsContainer.getBoundingClientRect();
-        sliderInitX = rect.left; sliderInitY = rect.top;
-        
-        if(!sliderMoved) { qsContainer.style.bottom = 'auto'; qsContainer.style.transform = 'none'; }
-        qsContainer.style.left = sliderInitX + 'px'; qsContainer.style.top = sliderInitY + 'px';
-        qsHeader.style.cursor = 'grabbing';
-    }
-
-    function doQsDrag(e) {
-        if (!isSliderDragging || !qsContainer) return;
-        e.preventDefault();
-        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-        let dx = clientX - sliderStartX; let dy = clientY - sliderStartY;
-        
-        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) sliderMoved = true;
-        if (sliderMoved) {
-            let maxX = window.innerWidth - qsContainer.offsetWidth; let maxY = window.innerHeight - qsContainer.offsetHeight;
-            qsContainer.style.left = Math.max(0, Math.min(sliderInitX + dx, maxX)) + 'px';
-            qsContainer.style.top = Math.max(0, Math.min(sliderInitY + dy, maxY)) + 'px';
-        }
-    }
-
-    function stopQsDrag() { isSliderDragging = false; if (qsHeader) qsHeader.style.cursor = 'grab'; }
-
-    if (qsHeader) { qsHeader.addEventListener('mousedown', startQsDrag); qsHeader.addEventListener('touchstart', startQsDrag, {passive: false}); }
-    window.addEventListener('mousemove', doQsDrag, {passive: false}); window.addEventListener('touchmove', doQsDrag, {passive: false});
-    window.addEventListener('mouseup', stopQsDrag); window.addEventListener('touchend', stopQsDrag);
-
-    // ============================================================================
-    // 7. HỆ THỐNG QUẢN LÝ MẪU (XUẤT / NẠP / TẠO MỚI / RESET)
-    // ============================================================================
-
-    // --- 1. XUẤT FILE MẪU (.lite) ---
-    window.exportConfig = function() {
-        let config = {};
-        // Quét toàn bộ input, select trong cột Cài đặt để lưu trạng thái
-        let inputs = document.querySelectorAll('.col-settings input, .col-settings select');
-        
-        inputs.forEach(el => {
-            // Bỏ qua các ô nhập file, ô tìm kiếm hoặc ô không có ID
-            if (!el.id || el.type === 'file' || el.id.includes('search')) return;
-            
-            // Lưu giá trị tùy theo loại input
-            if (el.type === 'checkbox') {
-                config[el.id] = el.checked;
-            } else {
-                config[el.id] = el.value;
-            }
-        });
-
-        // Tạo file JSON ẩn và kích hoạt tải về
-        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config));
-        let dlAnchorElem = document.createElement('a');
-        dlAnchorElem.setAttribute("href", dataStr);
-        
-        // Đặt tên file có ngày tháng
-        let date = new Date();
-        let dateStr = `${date.getDate()}_${date.getMonth()+1}_${date.getFullYear()}`;
-        dlAnchorElem.setAttribute("download", `Mau_Thiet_Ke_VIP_${dateStr}.lite`);
-        
-        document.body.appendChild(dlAnchorElem);
-        dlAnchorElem.click();
-        document.body.removeChild(dlAnchorElem);
-    };
-
-    // --- 2. NẠP FILE MẪU TỪ MÁY TÍNH ---
-    window.handleImport = function(event) {
-        let file = event.target.files[0];
-        if (!file) return;
-        
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                let config = JSON.parse(e.target.result);
-                window.applyConfigToUI(config);
-                alert('✅ Nạp mẫu thành công!');
-            } catch(err) {
-                alert('❌ Lỗi: File không đúng định dạng thiết kế!');
-            }
-            event.target.value = ''; // Reset lại ô input file để có thể nạp lại file cũ nếu cần
-        };
-        reader.readAsText(file);
-    };
-
-    // --- 3. HÀM CỐT LÕI: ÁP DỤNG DATA VÀO GIAO DIỆN ---
-    // (Hàm này cũng được dùng chung khi nạp mẫu từ Kho Đám Mây)
-    window.applyConfigToUI = function(config) {
-        for (let key in config) {
-            let el = document.getElementById(key);
-            if (el) {
-                if (el.type === 'checkbox') {
-                    el.checked = config[key];
-                } else {
-                    el.value = config[key];
+                if (imagesLoaded === imagesToLoad) {
+                    if (typeof toggleLoading === 'function') setTimeout(() => toggleLoading(false), 300);
+                    if(typeof window.updateUI === 'function') window.updateUI();
+                    if(typeof window.drawCanvas === 'function') window.drawCanvas();
+                    if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
                 }
-            }
+            };
+            img.onerror = () => {
+                imagesLoaded++;
+                if (imagesLoaded === imagesToLoad) {
+                    if (typeof toggleLoading === 'function') setTimeout(() => toggleLoading(false), 300);
+                    if(typeof window.updateUI === 'function') window.updateUI();
+                    if(typeof window.drawCanvas === 'function') window.drawCanvas();
+                }
+            };
+            img.src = config.savedImages[key];
         }
-        
-        // Ép giao diện và Canvas cập nhật theo data mới
+    } else {
         if(typeof window.updateUI === 'function') window.updateUI();
         if(typeof window.drawCanvas === 'function') window.drawCanvas();
         if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-    };
+    }
+};
 
-    // --- 4. TẠO BẢN THIẾT KẾ MỚI (XÓA TRẮNG) ---
-    window.createNewLite = function() {
-        if(confirm('Tạo mới sẽ xóa toàn bộ cài đặt hiện tại trên màn hình. Bạn có chắc không?')) {
-            // Tắt các check box hiển thị
-            document.querySelectorAll('.col-settings input[type="checkbox"]').forEach(el => el.checked = false);
-            
-            // Đặt màu về trắng/đen cơ bản
-            document.querySelectorAll('.col-settings input[type="color"]').forEach(el => {
-                if(el.id.includes('Bg') || el.id.includes('ColorGradient1')) el.value = '#ffffff';
-                else el.value = '#000000';
-            });
-            
-            // Đặt text về rỗng
-            document.querySelectorAll('.col-settings input[type="text"]').forEach(el => el.value = '');
-            
-            // Bật lại Cột Số và Giá cho đỡ trống
-            if(document.getElementById('chkNum')) document.getElementById('chkNum').checked = true;
-            if(document.getElementById('chkPrice')) document.getElementById('chkPrice').checked = true;
-            if(document.getElementById('cellBgTrans')) document.getElementById('cellBgTrans').checked = true;
-
-            if(typeof window.updateUI === 'function') window.updateUI();
-            if(typeof window.drawCanvas === 'function') window.drawCanvas();
-            
-            if(typeof window.closeThemeModal === 'function') window.closeThemeModal();
-            else document.getElementById('themeModalOverlay').style.display = 'none';
-        }
-    };
-
-    // --- 5. KHÔI PHỤC VỀ GỐC ---
-    window.resetToDefault = function() {
-        if(confirm('Khôi phục về trạng thái gốc mặc định của phần mềm?')) {
-            location.reload(); // Tải lại trang là cách "Về gốc" chuẩn và sạch nhất
-        }
-    };
-
-    // --- 6. XỬ LÝ NÚT CHỌN MẪU CÓ SẴN (Dropdown) ---
-    window.loadBuiltinTemplate = function(val) {
-        if(!val) return;
-        // Tương lai bạn có thể gọi API tải mẫu VIP 1, VIP 2 ở đây
-        alert('Tính năng nạp mẫu hệ thống "' + val + '" đang được liên kết!');
-    };
-    
-</script>
-<div id="globalLoading" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999999; flex-direction: column; align-items: center; justify-content: center; font-family: 'Segoe UI', Arial, sans-serif;">
-    <div class="loading-box">
-        <div class="loader-double"></div>
+window.createNewLite = function() {
+    if(confirm('Tạo mới sẽ xóa toàn bộ cài đặt hiện tại trên màn hình. Bạn có chắc không?')) {
+        document.querySelectorAll('.col-settings input[type="checkbox"]').forEach(el => el.checked = false);
+        document.querySelectorAll('.col-settings input[type="color"]').forEach(el => {
+            if(el.id.includes('Bg') || el.id.includes('ColorGradient1')) el.value = '#ffffff';
+            else el.value = '#000000';
+        });
+        document.querySelectorAll('.col-settings input[type="text"]').forEach(el => el.value = '');
         
-        <div class="loading-content">
-            <div id="loadingAction" style="font-size: 13px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Hệ thống đang</div>
-            <div id="loadingText" style="font-size: 18px; color: #fff; font-weight: bold; min-height: 24px;">Xử lý dữ liệu</div>
-            <div class="progress-dots">
-                <span>.</span><span>.</span><span>.</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-/* Khung chứa trung tâm */
-.loading-box {
-    text-align: center;
-    background: rgba(20, 20, 20, 0.9);
-    padding: 40px 60px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-}
-
-/* Vòng xoay kép mượt mà */
-.loader-double {
-    width: 60px;
-    height: 60px;
-    border: 3px solid transparent;
-    border-top-color: #007bff;
-    border-bottom-color: #007bff;
-    border-radius: 50%;
-    position: relative;
-    animation: spin-v16 2s linear infinite;
-    margin: 0 auto 25px;
-}
-.loader-double::before {
-    content: "";
-    position: absolute;
-    top: 8px; left: 8px; right: 8px; bottom: 8px;
-    border: 3px solid transparent;
-    border-left-color: #2ecc71; /* Màu xanh lá cho dịu mắt */
-    border-right-color: #2ecc71;
-    border-radius: 50%;
-    animation: spin-reverse 1.5s linear infinite;
-}
-
-@keyframes spin-v16 { to { transform: rotate(360deg); } }
-@keyframes spin-reverse { to { transform: rotate(-360deg); } }
-
-/* Hiệu ứng 3 dấu chấm nhảy lần lượt */
-.progress-dots span {
-    font-size: 30px;
-    color: #007bff;
-    display: inline-block;
-    animation: dots-jump 1.4s infinite;
-}
-.progress-dots span:nth-child(2) { animation-delay: 0.2s; }
-.progress-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes dots-jump {
-    0%, 20% { transform: translateY(0); opacity: 0.2; }
-    50% { transform: translateY(-10px); opacity: 1; }
-    100% { transform: translateY(0); opacity: 0.2; }
-}
-
-#globalLoading {
-    display: none; 
-    position: fixed; 
-    top: 0; left: 0; 
-    width: 100%; height: 100%; 
-    background: rgba(0,0,0,0.85); /* Tối hơn để nổi bật */
-    backdrop-filter: blur(7px); /* Làm mờ toàn bộ bảng mẫu/ảnh bên dưới */
-    -webkit-backdrop-filter: blur(7px);
-    z-index: 2147483647; /* Con số lớn nhất trình duyệt cho phép */
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center;
-}
-
-
-/* 1. Khung chứa mỗi tấm ảnh (Mẫu hoặc Ảnh Drive) */
-.cloud-item-wrapper {
-    position: relative; /* Làm gốc tọa độ cho loading */
-    display: inline-block;
-    overflow: hidden;
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    transition: 0.3s;
-    cursor: pointer;
-    background: #fff;
-    width: 100%; /* Hoặc kích thước cố định tùy Phi */
-}
-
-.cloud-item-wrapper:hover {
-    border-color: #007bff;
-    box-shadow: 0 5px 15px rgba(0,123,255,0.2);
-}
-
-/* 2. Lớp phủ Loading tại chỗ (Mặc định ẩn) */
-.local-loading-overlay {
-    display: none; /* Chỉ hiện khi được yêu cầu */
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.7); /* Nền tối mờ */
-    color: white;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-}
-
-/* 3. Vòng xoay nhỏ xinh tại chỗ */
-.local-spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: #fff;
-    animation: local-spin 1s linear infinite;
-    margin-bottom: 5px;
-}
-
-@keyframes local-spin {
-    to { transform: rotate(360deg); }
-}
-
-/* 4. Chữ Loading nhỏ */
-.local-loading-text {
-    font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-
-
-</style>
-<script>
-
-function renderBackgrounds(data) {
-    const gallery = document.getElementById('bgCloudList');
-    if (!gallery) return;
-
-    gallery.innerHTML = data.map(bg => {
-        let thumb = `https://drive.google.com/thumbnail?id=${bg.id}&sz=w300`;
+        // Xóa tất cả ảnh toàn cục
+        window.globalBgImage = null; window.bgImage = null;
+        window.cellBgImage = null; window.cellBorderImage = null;
+        let mainBgStatus = document.getElementById('mainBgStatus');
+        if (mainBgStatus) mainBgStatus.innerHTML = '❌ Chưa có ảnh';
+        let cellBgStatus = document.getElementById('cellBgStatus');
+        if (cellBgStatus) cellBgStatus.innerHTML = '❌ Chưa có ảnh';
         
-        // Bọc cả tấm ảnh và lớp Loading vào trong .cloud-item-wrapper
-        return `
-            <div class="cloud-item-wrapper" onclick="handleCloudItemClick(this, '${bg.id}', 'image')">
-                <div class="local-loading-overlay">
-                    <div class="local-spinner"></div>
-                    <div class="local-loading-text">Loading<span class="dots">...</span></div>
-                </div>
+        if(document.getElementById('chkNum')) document.getElementById('chkNum').checked = true;
+        if(document.getElementById('chkPrice')) document.getElementById('chkPrice').checked = true;
+        if(document.getElementById('cellBgTrans')) document.getElementById('cellBgTrans').checked = true;
 
-                <img src="${thumb}" style="width:100%; height:95px; object-fit:cover; display:block;">
-                <div style="padding:5px; text-align:center;">
-                    <b style="font-size:11px; color:var(--success); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        ${bg.name}
-                    </b>
-                    <span style="font-size:9px; color:#007bff; font-style:italic;">
-                        ${bg.tags || ''}
-                    </span>
-                </div>
-            </div>`;
-    }).join('');
-}
-
-// Cần thêm CSS cho 3 dấu chấm nháy nhảy
-const styleDots = document.createElement('style');
-styleDots.innerHTML = `
-    .dots::after {
-        content: '';
-        animation: local-dots 1.5s steps(4, end) infinite;
+        if(typeof window.updateUI === 'function') window.updateUI();
+        if(typeof window.drawCanvas === 'function') window.drawCanvas();
+        
+        if(typeof window.closeThemeModal === 'function') window.closeThemeModal();
+        else document.getElementById('themeModalOverlay').style.display = 'none';
     }
-    @keyframes local-dots {
-        0%, 20% { content: ''; }
-        40% { content: '.'; }
-        60% { content: '..'; }
-        80%, 100% { content: '...'; }
+};
+
+window.resetToDefault = function() {
+    if(confirm('Khôi phục về trạng thái gốc mặc định của phần mềm?')) {
+        location.reload(); 
     }
-`;
-document.head.appendChild(styleDots);
+};
 
-// Hàm xử lý chung khi click vào ảnh/mẫu trên đám mây
-function handleCloudItemClick(element, fileId, type) {
-    // 1. Tìm và hiện lớp Loading bên trong phần tử được click
-    const overlay = element.querySelector('.local-loading-overlay');
-    if (overlay) overlay.style.display = 'flex';
-
-    // 2. Chặn không cho người dùng bấm vào các ảnh khác trong lúc đang load
-    const gallery = element.parentElement;
-    if (gallery) gallery.style.pointerEvents = 'none';
-
-    // 3. Gọi hàm xử lý logic nạp dữ liệu thực tế
-    if (type === 'image') {
-        applyCloudBackground(fileId, overlay, gallery); // Truyền thêm overlay và gallery để ẩn sau khi xong
-    } else {
-        importFromCloudID(fileId, overlay, gallery);
-    }
-}
+window.loadBuiltinTemplate = function(val) {
+    if(!val) return;
+    alert('Tính năng nạp mẫu hệ thống "' + val + '" đang được liên kết!');
+};
 
 window.toggleShapeOptions = function(prefix) {
     let typeEl = document.getElementById(prefix + 'ShapeType');
     let optionsDiv = document.getElementById(prefix + 'ShapeOptions');
+    let radiusGrp = document.getElementById(prefix + 'ShapeRadiusGrp');
+    let sizeRow = document.getElementById(prefix + 'ShapeSizeRow');
     if (typeEl && optionsDiv) {
-        if (typeEl.value === 'none' || typeEl.value === 'text_only') {
+        let val = typeEl.value;
+        if (val === 'none' || val === 'text_only') {
             optionsDiv.style.display = 'none';
         } else {
             optionsDiv.style.display = 'block';
+            
+            // V24: Hiện/Ẩn thông số Bo(R) theo danh sách hỗ trợ rõ ràng
+            if (radiusGrp) {
+                const allowList = ['rect_round_expand', 'rect_round_tight', 'rect_round', 'rect_square'];
+                const isLegacyShape = ['circle', 'diamond', 'pentagon', 'hexagon', 'octagon', 'teardrop', 'star'].includes(val);
+                const isSharpRect = ['rect_expand', 'rect_tight', 'rect_square_sharp'].includes(val);
+                const showRadius = allowList.includes(val) || (!isLegacyShape && !isSharpRect);
+                radiusGrp.style.display = showRadius ? 'inline' : 'none';
+            }
+
+            // V24: Ẩn Kích thước W/H nếu chọn loại tự động (Giãn nở / Gần khít)
+            if (sizeRow) {
+                const isAuto = val.includes('expand') || val.includes('tight');
+                sizeRow.style.display = isAuto ? 'none' : 'flex';
+            }
         }
     }
 };
-
 </script>
-
-
-
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    setInterval(() => {
+        const canvas = document.getElementById('preview');
+        const sizeDisplay = document.getElementById('canvasSizeDisplay');
+        
+        if (canvas && sizeDisplay) {
+            // Lấy kích thước ảnh gốc thực tế được tạo ra
+            const w = canvas.width;
+            const h = canvas.height;
+            
+            // Cập nhật text nếu Canvas đã được vẽ thành công
+            if (w > 0 && h > 0) {
+                const currentText = `Size: ${w} x ${h} px`;
+                if (sizeDisplay.innerText !== currentText) {
+                    sizeDisplay.innerText = currentText;
+                }
+            }
+        }
+    }, 500); // Tự động quét và cập nhật mỗi 0.5 giây
+});
+</script>
 </body>
 </html>

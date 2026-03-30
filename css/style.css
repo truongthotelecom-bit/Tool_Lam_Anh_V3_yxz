@@ -79,7 +79,7 @@
     .tabs::-webkit-scrollbar { display: none; }
     .tab-btn {background: #f4f7f6; border: 1px solid #ddd; border-bottom: none; padding: 10px 12px; font-weight: bold; cursor: pointer; color: #666; font-size: 12px; border-radius: 8px 8px 0 0; flex: 0 0 auto; white-space: nowrap; transition: 0.2s;}
     .tab-btn.active {color: var(--primary); background: #e8f4ff; border-color: var(--primary); border-bottom: 2px solid #e8f4ff; margin-bottom: -2px;}
-    .tab-content {display: none; animation: fadeIn 0.3s;} .tab-content.active {display: block; overflow-y: auto; max-height: calc(100vh - 200px);}
+    .tab-content {display: none; animation: fadeIn 0.3s;} .tab-content.active {display: block; overflow-y: auto; flex: 1 1 0; min-height: 0;}
     /* Thanh cuộn mỏng cho cột settings */
     .col-settings { min-height: 0; }
     .col-settings .tab-content.active::-webkit-scrollbar { width: 4px; }
@@ -138,22 +138,58 @@
     .drm-btn:hover { background: #2ecc71; }
     #drmMessage { color: #e74c3c; font-weight: bold; margin-top: 15px; font-size: 14px; }
     
-    /* --- TRẢ POPUP VỀ ĐÁY BÁN MÀN HÌNH --- */
-    #mobileSettingModal { 
-        display: none; 
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        width: 100vw; 
-        height: 100%; 
-        background: rgba(0,0,0,0.3); /* Phủ một lớp màu đen mờ nhẹ để dễ nhìn popup */
-        z-index: 999998; 
-        flex-direction: column; 
+    /* =========================================================
+    BOTTOM SHEET POPUP (FIX LỖI FULLSCREEN & THANH TRƯỢT)
+    ========================================================= */
+    #mobileSettingModal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        
+        /* 1. XÓA BỎ LỚP NỀN ĐEN VÀ LỚP MỜ ĐỂ NHÌN RÕ BẢN VẼ */
+        background: transparent !important; 
+        backdrop-filter: none !important;
+        
+        /* 2. ÉP NẰM TRÊN MÀN HÌNH FULLSCREEN (999999) NHƯNG PHẢI DƯỚI THANH TRƯỢT */
+        z-index: 9999998 !important; 
+        
+        /* 3. XUYÊN THẤU CLICK: Ngón tay sẽ xuyên qua lớp vô hình này chạm thẳng xuống Canvas */
+        pointer-events: none !important; 
+        
+        flex-direction: column;
         justify-content: flex-end; 
-        animation: fadeIn 0.2s; 
-        pointer-events: auto; /* QUAN TRỌNG NHẤT: Cho phép nhận cú click */
+        animation: fadeInOverlay 0.25s ease;
+        /* ĐẬP VỠ TẤM KÍNH: Cho phép rê chuột và click xuyên qua khoảng không */
+        pointer-events: none !important;
     }
-.mobile-modal-content { pointer-events: auto; background: #f4f7f6; width: 100%; max-height: 50vh; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.4); animation: slideUp 0.3s cubic-bezier(0.1, 0.8, 0.1, 1); padding-bottom: 20px; margin: 0; }
+    .mobile-modal-content {
+        /* 4. KHÔI PHỤC CLICK CHO BẢNG ĐIỀU KHIỂN: Bảng này vẫn nhận click bình thường */
+        pointer-events: auto !important; 
+        
+        background: #f4f7f6;
+        width: 100%;
+        max-height: 85vh;
+        border-radius: 20px 20px 0 0;
+        display: flex;
+        flex-direction: column;
+        
+        /* Tăng độ đậm của bóng đổ lên một chút để phân tách rõ với Canvas (vì đã bỏ nền đen) */
+        box-shadow: 0 -15px 40px rgba(0,0,0,0.3);
+        animation: slideUpSheet 0.3s cubic-bezier(0.1, 0.8, 0.1, 1);
+        
+    }
+
+    /* 5. BƠM SỨC MẠNH CHO THANH TRƯỢT LÊN VỊ TRÍ CAO NHẤT VŨ TRỤ */
+    #quickSliderContainer {
+        z-index: 9999999 !important; 
+    }
+
+    /* Kéo luôn Nút Chốt và Nút In lên cho an toàn */
+    #applyBtnContainer, #exportMenu, #exportFabContainer {
+        z-index: 9999999 !important;
+    }
+
     .mobile-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fff; border-bottom: 1px solid #ddd; border-radius: 20px 20px 0 0; flex-shrink: 0;}
     .mobile-modal-header h3 { margin: 0; font-size: 15px; color: var(--primary); font-weight: 800;}
     .mobile-modal-close { background: #e0e0e0; color: #333; border: none; padding: 6px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px;}
@@ -300,3 +336,94 @@
         #printArea { display: block !important; position: static !important; width: 100% !important; }
         #printArea img.print-page { width: 210mm !important; height: 297mm !important; object-fit: contain !important; margin: 0 auto !important; padding: 0 !important; display: block !important; page-break-after: always !important; }
     }
+/* =========================================================
+   BOTTOM SHEET POPUP (V21) - GIAO DIỆN MOBILE MƯỢT MÀ
+   ========================================================= */
+#mobileSettingModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.4); /* Nền tối vừa đủ nhìn bản vẽ */
+    z-index: 999998;
+    flex-direction: column;
+    justify-content: flex-end; /* Ép nội dung xuống đáy */
+    animation: fadeInOverlay 0.25s ease;
+    backdrop-filter: blur(2px);
+}
+
+.mobile-modal-content {
+    background: #f4f7f6;
+    width: 100%;
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+    animation: slideUpSheet 0.3s cubic-bezier(0.1, 0.8, 0.1, 1);
+    pointer-events: auto; /* Đón mọi thao tác từ người dùng */
+}
+
+/* KHU VỰC TAY CẦM & HEADER CỦA POPUP */
+.mobile-modal-header-area {
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    padding: 12px 15px 0;
+    border-bottom: 1px solid #ddd;
+    flex-shrink: 0;
+}
+
+.mobile-modal-drag-handle {
+    width: 40px; height: 5px; background: #ccc; border-radius: 5px;
+    margin: 0 auto 12px; cursor: grab;
+}
+
+.mobile-modal-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.mobile-modal-title { font-weight: 800; font-size: 16px; color: var(--primary); text-transform: uppercase; }
+.mobile-modal-close-btn { background: #f1f2f6; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; color: #555; cursor: pointer; display: flex; align-items: center; justify-content: center;}
+
+/* THANH MENU CUỘN TRÊN ĐẦU POPUP */
+#mobileTabMenu { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 10px; }
+#mobileTabMenu::-webkit-scrollbar { display: none; }
+
+.m-tab-lvl1 {
+    background: #f0f4f8; border: 1px solid #ccc; color: #555;
+    padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold;
+    cursor: pointer; white-space: nowrap; flex: 0 0 auto; transition: 0.2s;
+}
+.m-tab-lvl1.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3); }
+
+/* KHU VỰC RUỘT BÊN TRONG CỦA POPUP (NƠI CHỨA CODE CỦA BẠN) */
+.mobile-modal-body {
+    padding: 15px;
+    overflow-y: auto; /* Tự sinh thanh cuộn nếu quá dài */
+    flex-grow: 1;
+    margin-bottom: 20px; /* Hở một chút ở đáy cho thoáng */
+}
+
+@keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* =========================================================
+   UX DESKTOP (Biến thành khung điều khiển xịn xò bên phải)
+   ========================================================= */
+@media (min-width: 769px) {
+    #mobileSettingModal {
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        padding-right: 20px;
+        background: transparent !important; /* Xóa nền đen để xuyên thấu Canvas */
+        pointer-events: none; /* Cấm click khoảng đen trên máy tính */
+    }
+    .mobile-modal-content {
+        width: 380px; /* Bề ngang vừa phải */
+        max-height: 80vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+        animation: popUpRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .mobile-modal-header-area { border-radius: 12px 12px 0 0; }
+    .mobile-modal-drag-handle { display: none; } /* Ẩn tay cầm vuốt đi */
+}
+@keyframes popUpRight { from { opacity: 0; transform: translateX(50px) scale(0.9); } to { opacity: 1; transform: translateX(0) scale(1); } }
