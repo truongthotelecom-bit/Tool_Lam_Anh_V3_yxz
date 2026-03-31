@@ -525,8 +525,30 @@ window.drawCanvas = function() {
         if(chkEl && chkEl.checked) {
             let txt = document.getElementById(g+'Text')?.value || '';
             if(g === 'pageNum') txt = txt.replace(/\{p\}/gi, window.currentStep + 1).replace(/\{t\}/gi, Math.max(1, Math.ceil(list.length / (totalCells))));
-            let w = window.getVal(g+'W', 200), h = window.getVal(g+'H', 40), ax = document.getElementById(g+'AlignX')?.value || 'center', ay = document.getElementById(g+'AlignY')?.value || 'top';
-            let gx = (ax==='left') ? mLeft+w/2 : (ax==='right' ? cw-mRight-w/2 : cw/2);
+            
+            let w = window.getVal(g+'W', 200), h = window.getVal(g+'H', 40), 
+                axInput = document.getElementById(g+'AlignX')?.value || 'center', 
+                ay = document.getElementById(g+'AlignY')?.value || 'top';
+            
+            let ax = axInput;
+            if (ax === 'auto') {
+                if (bMode === 'double') {
+                    // Trang lẻ (1, 3... currentStep 0, 2...): Gáy Trái -> Chữ dạt Phải
+                    // Trang chẵn (2, 4... currentStep 1, 3...): Gáy Phải -> Chữ dạt Trái
+                    ax = (window.currentStep % 2 === 0) ? 'right' : 'left';
+                } else {
+                    ax = 'center'; 
+                }
+            }
+
+            let curMLeft = (bMode === 'none') ? mLeft : mBind;
+            let curMRight = (bMode === 'none') ? mRight : mNonBind;
+            if (bMode === 'double') {
+                 if (window.currentStep % 2 === 0) { curMLeft = mBind; curMRight = mNonBind; }
+                 else { curMLeft = mNonBind; curMRight = mBind; }
+            }
+
+            let gx = (ax==='left') ? curMLeft+w/2 : (ax==='right' ? cw-curMRight-w/2 : cw/2);
             let gy = (ay==='bottom') ? (ch - fZoneH/2) : (ay==='middle' ? ch/2 : tZoneH/2);
             window.drawProElement(ctx, g, txt, gx + window.getVal(g+'X', 0), gy + window.getVal(g+'Y', 0), w, h, window.getVal(g+'Radius', 0), window.getVal(g+'Angle', 0));
         }

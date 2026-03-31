@@ -30,8 +30,6 @@
         background: #e9ecef;
         overflow: auto;      
         display: flex;
-        justify-content: center; 
-        align-items: flex-start; 
         padding: 20px;       
         box-sizing: border-box;
         cursor: grab;        
@@ -40,6 +38,7 @@
     #preview {
         display: block;
         flex-shrink: 0; 
+        margin: auto;
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
 
@@ -498,9 +497,14 @@
                 <div class="setting-row"><label>Lệch khối</label><div class="setting-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="${defY}"></div></div>
                 <div class="setting-row"><label>Xoay (Góc)</label><div class="setting-inputs"><span>∠:</span><input type="number" id="${prefix}Angle" value="0" style="width:45px;"> <input type="range" min="-180" max="180" value="0" oninput="document.getElementById('${prefix}Angle').value=this.value; typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="flex:1;"></div></div>
                 <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs">
-                    <select id="${prefix}AlignX"><option value="left" ${ax==='left'?'selected':''}>Trái</option><option value="center" ${ax==='center'?'selected':''}>Giữa</option><option value="right" ${ax==='right'?'selected':''}>Phải</option></select>
-                    <select id="${prefix}AlignY"><option value="top" ${ay==='top'?'selected':''}>Trên</option><option value="middle" ${ay==='middle'?'selected':''}>Giữa</option><option value="bottom" ${ay==='bottom'?'selected':''}>Dưới</option></select>
-                    <label style="color:red;"><input type="checkbox" id="${prefix}Locked">🔒 Khóa</label>
+                    <select id="${prefix}AlignX" onchange="drawCanvas(); updateUI();" style="flex:1; padding:5px; border-radius:6px; border:1px solid #ddd;">
+                        <option value="left" ${ax==='left'?'selected':''}>Ngang: Trái</option>
+                        <option value="center" ${ax==='center'?'selected':''}>Ngang: Giữa</option>
+                        <option value="right" ${ax==='right'?'selected':''}>Ngang: Phải</option>
+                        <option value="auto" ${ax==='auto'?'selected':''}>✨ Auto (Lật gáy)</option>
+                    </select>
+                    <select id="${prefix}AlignY" onchange="drawCanvas(); updateUI();" style="flex:1; padding:5px; border-radius:6px; border:1px solid #ddd;"><option value="top" ${ay==='top'?'selected':''}>Dọc: Trên</option><option value="middle" ${ay==='middle'?'selected':''}>Dọc: Giữa</option><option value="bottom" ${ay==='bottom'?'selected':''}>Dọc: Dưới</option></select>
+                    <label style="color:red; background:#fff; padding:5px 8px; border-radius:6px; border:1px solid #ddd; cursor:pointer;"><input type="checkbox" id="${prefix}Locked"> Khóa</label>
                 </div></div>
                 </div>
             </div>
@@ -623,7 +627,7 @@ layoutHtml += `<div class="setting-box">
             {id:'ctr', t:'Phải-Trên', d:'Zalo', w:200, y:0, ax:'right', ay:'top'},
             {id:'cbl', t:'Trái-Dưới', d:'CSKH', w:200, y:0, ax:'left', ay:'bottom'},
             {id:'cbr', t:'Phải-Dưới', d:'UY TÍN', w:200, y:0, ax:'right', ay:'bottom'},
-            {id:'pageNum', t:'Số Trang', d:'Trang {p}/{t}', w:150, y:0, ax:'center', ay:'bottom'}
+            {id:'pageNum', t:'Số Trang', d:'Trang {p}/{t}', w:150, y:0, ax:'auto', ay:'bottom'}
         ];
         let gTabs = '<button class="sub-tab-btn active" onclick="switchSubTab(\'sub-gt-chung\', this)">Bật/Tắt Cụm</button>';
         globHtml += `<div id="sub-gt-chung" class="sub-tab-content active"><div class="setting-box"><div class="setting-title">BẬT TẮT CHỮ GÓC</div><div class="setting-row"><div class="setting-inputs" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
