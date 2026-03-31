@@ -1677,9 +1677,94 @@ window.toggleShapeOptions = function(prefix) {
         }
     }
 };
+
+// ==========================================
+// AUTO-SAVE & SESSION RECOVERY (V2.5)
+// ==========================================
+window.saveSession = async function() {
+    try {
+        let config = {};
+        let inputs = document.querySelectorAll('.col-settings input, .col-settings select, #list');
+        inputs.forEach(el => {
+            if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+            if (el.type === 'checkbox') config[el.id] = el.checked;
+            else config[el.id] = el.value;
+        });
+
+        // Chỉ lưu thông tin cơ bản trước (Tránh quá tải localStorage)
+        localStorage.setItem('VIP_SIM_TOOL_SESSION_DATA', JSON.stringify(config));
+
+        // Thử lưu các ảnh tùy chỉnh (Background)
+        const imgKeys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
+        for (let key of imgKeys) {
+            if (window[key] && window[key] instanceof Image && window[key].src.startsWith('data:image')) {
+                try {
+                    localStorage.setItem('VIP_SIM_TOOL_IMG_' + key, window[key].src);
+                } catch(e) {
+                    console.warn("Dung lượng bộ nhớ đầy, không thể lưu ảnh: " + key);
+                }
+            }
+        }
+        console.log("💾 Đã tự động sao lưu phiên làm việc.");
+    } catch (err) {
+        console.error("Lỗi Auto-save:", err);
+    }
+};
+
+let saveTimeout = null;
+window.debouncedSave = function() {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(window.saveSession, 1500); // Lưu sau 1.5s không thao tác
+};
+
+window.restoreSession = function() {
+    try {
+        let rawData = localStorage.getItem('VIP_SIM_TOOL_SESSION_DATA');
+        if (!rawData) return;
+        
+        let config = JSON.parse(rawData);
+        if (!config) return;
+
+        // Áp dụng cài đặt UI
+        window.applyConfigToUI(config);
+
+        // Khôi phục ảnh từ localStorage
+        const imgKeys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
+        imgKeys.forEach(key => {
+            let savedImg = localStorage.getItem('VIP_SIM_TOOL_IMG_' + key);
+            if (savedImg) {
+                let img = new Image();
+                img.onload = () => {
+                    if (key === 'globalBgImage' || key === 'bgImage') {
+                        window.globalBgImage = img; window.bgImage = img;
+                    } else {
+                        window[key] = img;
+                    }
+                    if(typeof window.drawCanvas === 'function') window.drawCanvas();
+                };
+                img.src = savedImg;
+            }
+        });
+
+        console.log("📂 Đã khôi phục phiên làm việc cũ.");
+        
+        // Hiện thông báo nhỏ cho người dùng
+        let toast = document.createElement('div');
+        toast.style = "position:fixed; bottom:20px; left:20px; background:rgba(46, 204, 113, 0.9); color:white; padding:10px 20px; border-radius:50px; font-weight:bold; z-index:9999; box-shadow:0 4px 15px rgba(0,0,0,0.2);";
+        toast.innerHTML = "✨ Đã khôi phục phiên làm việc gần nhất!";
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+
+    } catch (err) {
+        console.error("Lỗi khôi phục session:", err);
+    }
+};
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // Khôi phục phiên làm việc cũ ngay khi mở trang
+    setTimeout(window.restoreSession, 300);
+
     setInterval(() => {
         const canvas = document.getElementById('preview');
         const sizeDisplay = document.getElementById('canvasSizeDisplay');

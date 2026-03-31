@@ -161,8 +161,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.updateUI();
     document.querySelectorAll('input, select, textarea').forEach(el => {
-        el.addEventListener('input', () => { if(typeof window.drawCanvas === 'function') window.drawCanvas(); });
-        if (el.tagName === 'SELECT' || el.type === 'checkbox') el.addEventListener('change', () => { window.updateUI(); if(typeof window.drawCanvas === 'function') window.drawCanvas(); });
+        el.addEventListener('input', () => { 
+            if(typeof window.drawCanvas === 'function') window.drawCanvas(); 
+            if(typeof window.debouncedSave === 'function') window.debouncedSave();
+        });
+        if (el.tagName === 'SELECT' || el.type === 'checkbox') el.addEventListener('change', () => { 
+            window.updateUI(); 
+            if(typeof window.drawCanvas === 'function') window.drawCanvas(); 
+            if(typeof window.debouncedSave === 'function') window.debouncedSave();
+        });
     });
 });
 
