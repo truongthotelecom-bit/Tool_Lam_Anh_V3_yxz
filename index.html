@@ -160,7 +160,7 @@
         </div>
         
         <select id="builtinTemplates" onchange="if(typeof loadBuiltinTemplate === 'function') loadBuiltinTemplate(this.value); document.getElementById('themeModalOverlay').style.display='none';" style="width: 100%; padding: 12px; border: 2px solid var(--success); border-radius: 8px; font-size: 14px; font-weight:bold; color: var(--success); cursor:pointer; text-align: center;">
-            <option value="">✨ CHỌN MẪU CÓ SẴN</option>
+            <option value="">🌟 MẪU MẶC ĐỊNH (MẪU 1)</option>
             <option value="mau_vip_1">🔥 Mẫu 1x1 - 1</option>
             <option value="mau_vip_2">💎 Mẫu 2x10 - 1</option>
             <option value="mau_vip_3">🌈 Mẫu 2x10 - 2</option>
@@ -1686,55 +1686,7 @@ window.resetToDefault = function() {
     }
 };
 
-window.loadBuiltinTemplate = function(val) {
-    if(!val) return;
-    alert('Tính năng nạp mẫu hệ thống "' + val + '" đang được liên kết!');
-};
 
-window.toggleShapeOptions = function(prefix) {
-    let typeEl = document.getElementById(prefix + 'ShapeType');
-    let optionsDiv = document.getElementById(prefix + 'ShapeOptions');
-    let radiusGrp = document.getElementById(prefix + 'ShapeRadiusGrp');
-    let sizeRow = document.getElementById(prefix + 'ShapeSizeRow');
-    if (typeEl && optionsDiv) {
-        let val = typeEl.value;
-        if (val === 'none' || val === 'text_only') {
-            optionsDiv.style.display = 'none';
-        } else {
-            optionsDiv.style.display = 'block';
-            
-            // Bo(R) visibility
-            if (radiusGrp) {
-                const allowList = ['rect_round_expand', 'rect_round_tight', 'rect_round', 'rect_square'];
-                const isLegacyShape = ['circle', 'diamond', 'pentagon', 'hexagon', 'octagon', 'teardrop', 'star'].includes(val);
-                const isSharpRect = ['rect_expand', 'rect_tight', 'rect_square_sharp'].includes(val);
-                const showRadius = allowList.includes(val) || (!isLegacyShape && !isSharpRect);
-                radiusGrp.style.display = showRadius ? 'inline-block' : 'none';
-            }
-
-            // SizeRow visibility
-            if (sizeRow) {
-                sizeRow.style.display = 'flex';
-                // Handle Auto Checkboxes
-                let autoW = document.getElementById(prefix + 'ShapeAutoW');
-                let autoH = document.getElementById(prefix + 'ShapeAutoH');
-                let inpW = document.getElementById(prefix + 'ShapeW');
-                let inpH = document.getElementById(prefix + 'ShapeH');
-
-                // V24: Mặc định check Auto nếu là loại "expand"
-                if (val.includes('expand')) {
-                    if (autoW && !autoW.dataset.init) { autoW.checked = true; autoW.dataset.init = "1"; }
-                    if (autoH && !autoH.dataset.init) { autoH.checked = true; autoH.dataset.init = "1"; }
-                }
-
-                if (inpW && autoW) inpW.disabled = autoW.checked;
-                if (inpH && autoH) inpH.disabled = autoH.checked;
-                if (inpW && autoW) inpW.style.opacity = autoW.checked ? '0.5' : '1';
-                if (inpH && autoH) inpH.style.opacity = autoH.checked ? '0.5' : '1';
-            }
-        }
-    }
-};
 
 // ==========================================
 // AUTO-SAVE & SESSION RECOVERY (V2.5)
@@ -1778,10 +1730,10 @@ window.debouncedSave = function() {
 window.restoreSession = function() {
     try {
         let rawData = localStorage.getItem('VIP_SIM_TOOL_SESSION_DATA');
-        if (!rawData) return;
+        if (!rawData) return false;
         
         let config = JSON.parse(rawData);
-        if (!config) return;
+        if (!config) return false;
 
         // Áp dụng cài đặt UI
         window.applyConfigToUI(config);
@@ -1809,19 +1761,28 @@ window.restoreSession = function() {
         // Hiện thông báo nhỏ cho người dùng
         let toast = document.createElement('div');
         toast.style = "position:fixed; bottom:20px; left:20px; background:rgba(46, 204, 113, 0.9); color:white; padding:10px 20px; border-radius:50px; font-weight:bold; z-index:9999; box-shadow:0 4px 15px rgba(0,0,0,0.2);";
-        toast.innerHTML = "✨ Đã khôi phục phiên làm việc gần nhất!";
+        toast.innerHTML = "✨ Đã khôi phục phiên làm việc!";
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 4000);
 
+        return true;
+
     } catch (err) {
         console.error("Lỗi khôi phục session:", err);
+        return false;
     }
 };
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // Khôi phục phiên làm việc cũ ngay khi mở trang
-    setTimeout(window.restoreSession, 300);
+    setTimeout(() => {
+        const restored = window.restoreSession();
+        // Nếu không có dữ liệu cũ (restored === false), tự động nạp mẫu mặc định
+        if (!restored && typeof window.loadDefaultTemplate === 'function') {
+            window.loadDefaultTemplate();
+        }
+    }, 400);
 
     setInterval(() => {
         const canvas = document.getElementById('preview');
