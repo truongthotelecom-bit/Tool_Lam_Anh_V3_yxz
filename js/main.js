@@ -567,16 +567,21 @@ function getPointerPos(canvas, clientX, clientY) {
     return { x: (clientX - rect.left) * ((canvas.width / expScale) / rect.width), y: (clientY - rect.top) * ((canvas.height / expScale) / rect.height) };
 }
 
+let pendingTarget = null;
 function handleInteractStart(clientX, clientY) {
-    isDragMoved = false; let pos = getPointerPos(canvas, clientX, clientY); let clickedOnObject = false;
+    isDragMoved = false; isLongPress = false; isDragging = false; 
+    let pos = getPointerPos(canvas, clientX, clientY);
+    pendingTarget = null;
+    
+    // Lưu vị trí bắt đầu để PAN
+    startX = clientX; startY = clientY;
+    if (wrapper) { scrollLeft = wrapper.scrollLeft; scrollTop = wrapper.scrollTop; }
 
     let currentTime = new Date().getTime();
     lastClickTime = currentTime;
 
     for (let i = hitBoxes.length - 1; i >= 0; i--) {
         let box = hitBoxes[i];
-        
-        // V25: Kiểm tra điểm nằm trong hình chữ nhật xoay (OOBB)
         let isInside = false;
         if (!box.angle || box.angle === 0) {
             isInside = (pos.x >= box.rectX && pos.x <= box.rectX + box.rectW && pos.y >= box.rectY && pos.y <= box.rectY + box.rectH);
@@ -590,55 +595,67 @@ function handleInteractStart(clientX, clientY) {
         }
 
         if (isInside) {
-            clickedOnObject = true; window.isOpeningModal = true;
             let lockCheck = document.getElementById(box.id + 'Locked'); let isLocked = lockCheck && lockCheck.checked;
-            if (typeof window.saveState === 'function') window.saveState();
-            isDragging = true; dragTarget = { ...box, isLocked }; dragStartX = pos.x; dragStartY = pos.y;
-            let elX = document.getElementById(box.inputX); dragStartOffsetX = elX ? parseInt(elX.value)||0 : 0;
-            let elY = document.getElementById(box.inputY); dragStartOffsetY = elY ? parseInt(elY.value)||0 : 0;
-            canvas.style.cursor = isLocked ? 'pointer' : 'grabbing'; 
-
-            // V25: Khởi tạo Long-press (Nhấn giữ 600ms)
-            isLongPress = false;
+            pendingTarget = { ...box, isLocked };
+            
+            // Khởi tạo Long-press (Nhấn giữ 500ms để bắt đầu kéo)
             clearTimeout(longPressTimeout);
             longPressTimeout = setTimeout(() => {
-                if (isDragging && !isDragMoved) {
+                if (!isDragMoved && pendingTarget && !pendingTarget.isLocked) {
                     isLongPress = true;
-                    handleInteractEnd(); // Kích hoạt popup ngay lập tức
+                    isDragging = true;
+                    dragTarget = pendingTarget;
+                    dragStartX = pos.x; dragStartY = pos.y;
+                    let elX = document.getElementById(dragTarget.inputX); dragStartOffsetX = elX ? parseInt(elX.value)||0 : 0;
+                    let elY = document.getElementById(dragTarget.inputY); dragStartOffsetY = elY ? parseInt(elY.value)||0 : 0;
+                    if (typeof window.saveState === 'function') window.saveState();
+                    canvas.style.cursor = 'grabbing';
                 }
-            }, 600);
+            }, 500); 
 
-            break;
+            return true; 
         }
     }
-    return clickedOnObject;
+    return false;
 }
 
 function handleInteractMove(clientX, clientY) {
-    if (isDragging && dragTarget) {
-        let pos = getPointerPos(canvas, clientX, clientY); let dx = pos.x - dragStartX; let dy = pos.y - dragStartY;
-        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) isDragMoved = true;
-        if (!dragTarget.isLocked) {
-            let nx = dragStartOffsetX + dx, ny = dragStartOffsetY + dy;
-
-            let inputXEl = document.getElementById(dragTarget.inputX), inputYEl = document.getElementById(dragTarget.inputY);
-            if (inputXEl) inputXEl.value = Math.round(nx);
-            if (inputYEl) inputYEl.value = Math.round(ny);
+    let dx = clientX - startX; let dy = clientY - startY;
+    
+    // Nếu di chuyển quá 10px thì coi là đã di chuyển (Hủy Long-press)
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+        if (!isLongPress) {
+            isDragMoved = true;
+            clearTimeout(longPressTimeout);
         }
+    }
+
+    if (isDragging && dragTarget && isLongPress) {
+        // --- CHẾ ĐỘ KÉO ĐỐI TƯỢNG (Sau khi Long-press) ---
+        let pos = getPointerPos(canvas, clientX, clientY); 
+        let dX_obj = pos.x - dragStartX; let dY_obj = pos.y - dragStartY;
+        
+        let nx = dragStartOffsetX + dX_obj, ny = dragStartOffsetY + dY_obj;
+        let inputXEl = document.getElementById(dragTarget.inputX), inputYEl = document.getElementById(dragTarget.inputY);
+        if (inputXEl) inputXEl.value = Math.round(nx);
+        if (inputYEl) inputYEl.value = Math.round(ny);
+        
         if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); else drawCanvas();
+    } else if (isDragMoved && wrapper) {
+        // --- CHẾ ĐỘ KÉO MÀN HÌNH (PAN) ---
+        wrapper.scrollLeft = scrollLeft - dx;
+        wrapper.scrollTop = scrollTop - dy;
     } else {
+        // Hover hiệu ứng (Desktop)
         let pos = getPointerPos(canvas, clientX, clientY); let foundIdx = -1;
         for (let i = hitBoxes.length - 1; i >= 0; i--) {
             let box = hitBoxes[i];
             let isInside = false;
-            if (!box.angle || box.angle === 0) {
-                isInside = (pos.x >= box.rectX && pos.x <= box.rectX + box.rectW && pos.y >= box.rectY && pos.y <= box.rectY + box.rectH);
-            } else {
-                let rad = -box.angle * Math.PI / 180;
-                let cos = Math.cos(rad), sin = Math.sin(rad);
-                let dx = pos.x - box.cx, dy = pos.y - box.cy;
-                let rx = dx * cos - dy * sin;
-                let ry = dx * sin + dy * cos;
+            if (!box.angle || box.angle === 0) { isInside = (pos.x >= box.rectX && pos.x <= box.rectX + box.rectW && pos.y >= box.rectY && pos.y <= box.rectY + box.rectH); } 
+            else {
+                let rad = -box.angle * Math.PI / 180; let cos = Math.cos(rad), sin = Math.sin(rad);
+                let dx_h = pos.x - box.cx, dy_h = pos.y - box.cy;
+                let rx = dx_h * cos - dy_h * sin; let ry = dx_h * sin + dy_h * cos;
                 isInside = (Math.abs(rx) <= box.rectW / 2 && Math.abs(ry) <= box.rectH / 2);
             }
             if (isInside) { foundIdx = i; break; }
@@ -654,25 +671,30 @@ function handleInteractMove(clientX, clientY) {
 
 function handleInteractEnd() {
     clearTimeout(longPressTimeout);
-    if (isDragging) {
-        let targetRef = dragTarget; isDragging = false; dragTarget = null;
-        let isFS = window.isFullscreen || document.getElementById('previewColumn')?.classList.contains('fullscreen') || false;
-        canvas.style.cursor = hoveredIndex !== -1 ? 'grab' : 'default';
+    let targetRef = isDragging ? dragTarget : pendingTarget;
+    let wasLongPress = isLongPress;
 
-        if (isDragMoved && !isLongPress) {
-            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); else drawCanvas();
-            if (typeof window.debouncedSave === 'function') window.debouncedSave();
-            setTimeout(() => { window.isOpeningModal = false; }, 100);
-        } else if (targetRef) {
-            window.isOpeningModal = true; 
-            if (isFS || window.innerWidth <= 768 || isLongPress) { 
-                if (typeof window.openMobileModal === 'function') window.openMobileModal(targetRef.id); 
-            } 
-            else { if (typeof window.focusDesktopTab === 'function') window.focusDesktopTab(targetRef.id); }
-            setTimeout(() => { window.isOpeningModal = false; }, 200);
-        }
+    const isFS = window.isFullscreen || document.getElementById('previewColumn')?.classList.contains('fullscreen') || false;
+    canvas.style.cursor = hoveredIndex !== -1 ? 'grab' : 'default';
+
+    if (isDragMoved && wasLongPress) {
+        // Vừa kết thúc kéo đối tượng
+        if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); else drawCanvas();
+        if (typeof window.debouncedSave === 'function') window.debouncedSave();
+        setTimeout(() => { window.isOpeningModal = false; }, 100);
+    } else if (!isDragMoved && !wasLongPress && targetRef) {
+        // Click nhanh -> Mở modal
+        window.isOpeningModal = true; 
+        if (isFS || window.innerWidth <= 768) { 
+            if (typeof window.openMobileModal === 'function') window.openMobileModal(targetRef.id); 
+        } 
+        else { if (typeof window.focusDesktopTab === 'function') window.focusDesktopTab(targetRef.id); }
+        setTimeout(() => { window.isOpeningModal = false; }, 200);
     }
-    isLongPress = false; smartGuides = []; // Reset Smart Guides
+
+    isDragging = false; dragTarget = null; pendingTarget = null;
+    isLongPress = false; isDragMoved = false;
+    smartGuides = [];
 }
 
 if(canvas) {
