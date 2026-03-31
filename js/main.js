@@ -569,6 +569,7 @@ function getPointerPos(canvas, clientX, clientY) {
 
 let pendingTarget = null;
 function handleInteractStart(clientX, clientY) {
+    isPanning = true; 
     isDragMoved = false; isLongPress = false; isDragging = false; 
     let pos = getPointerPos(canvas, clientX, clientY);
     pendingTarget = null;
@@ -623,7 +624,7 @@ function handleInteractMove(clientX, clientY) {
     let dx = clientX - startX; let dy = clientY - startY;
     
     // Nếu di chuyển quá 10px thì coi là đã di chuyển (Hủy Long-press)
-    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+    if (isPanning && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
         if (!isLongPress) {
             isDragMoved = true;
             clearTimeout(longPressTimeout);
@@ -693,7 +694,7 @@ function handleInteractEnd() {
     }
 
     isDragging = false; dragTarget = null; pendingTarget = null;
-    isLongPress = false; isDragMoved = false;
+    isLongPress = false; isDragMoved = false; isPanning = false;
     smartGuides = [];
 }
 
