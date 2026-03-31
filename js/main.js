@@ -12,6 +12,16 @@ let isPanning = false, startX, startY, scrollLeft, scrollTop;
 let isDragging = false, dragTarget = null, dragStartX = 0, dragStartY = 0, dragStartOffsetX = 0, dragStartOffsetY = 0;
 let hoveredIndex = -1, isDragMoved = false, isFullscreen = false;
 let lastClickTime = 0; 
+let longPressTimeout = null;
+let isLongPress = false;
+let smartGuides = []; // V25: Lưu trữ các đường gióng
+
+// Biến cho Multi-touch Zoom/Pan
+let initialDist = 0;
+let initialZoom = 100;
+let isPinching = false;
+let lastTouchX = 0;
+let lastTouchY = 0;
 
 // --- 2. HÀM TIỆN ÍCH CƠ BẢN ---
 function getVal(id, def=0) { let el = document.getElementById(id); return el ? (isNaN(parseFloat(el.value)) ? el.value : parseFloat(el.value)) : def; }
@@ -23,7 +33,13 @@ window.getPos = function(base, cellTotal, objSize, align, offset) {
 }
 
 // --- 3. DATA NHÀ MẠNG, PHONG THỦY & BẢN ĐỒ ÁNH XẠ CHECKBOX ---
-const NETWORK_INFO = { 'VT': { short2: 'VIETTEL', color: '#ee0033' }, 'VN': { short2: 'VINA', color: '#0066cc' }, 'MB': { short2: 'MOBI', color: '#0055a6' }, 'VNM': { short2: 'VNMB', color: '#ff6600'}, 'GM': { short2: 'GMOB', color: '#d3a800' } };
+const NETWORK_INFO = { 
+    'VT': { short1: 'Viettel', short2: 'VIETTEL', color: '#ee0033' }, 
+    'VN': { short1: 'Vinaphone', short2: 'VINA', color: '#0066cc' }, 
+    'MB': { short1: 'Mobifone', short2: 'MOBI', color: '#0055a6' }, 
+    'VNM': { short1: 'Vietnamobile', short2: 'VNMB', color: '#ff6600'}, 
+    'GM': { short1: 'Gmobile', short2: 'GMOB', color: '#d3a800' } 
+};
 const PREFIX_TO_NETWORK = { '32':'VT','33':'VT','34':'VT','35':'VT','36':'VT','37':'VT','38':'VT','39':'VT','86':'VT','96':'VT','97':'VT','98':'VT','81':'VN','82':'VN','83':'VN','84':'VN','85':'VN','88':'VN','91':'VN','94':'VN','70':'MB','76':'MB','77':'MB','78':'MB','79':'MB','89':'MB','90':'MB','93':'MB','56':'VNM','58':'VNM','92':'VNM','59':'GM','99':'GM' };
 const menhColors={'THỦY':'#0066ff','THỔ':'#8b4513','MỘC':'#0a8f0a','KIM':'#ff9900','HỎA':'#ff0000'}; 
 
@@ -37,10 +53,14 @@ window.colCheckMap = {
     'data2': 'chkData2', 'hData2': 'chkData2'
 };
 
-function getNetworkData(simNumber) { 
+function getNetworkKey(simNumber) {
     if(!simNumber) return null; let cleanSim = simNumber.replace(/\D/g, ''); 
     if(cleanSim.startsWith('84')) cleanSim = '0' + cleanSim.substring(2); 
-    if(cleanSim.length < 9) return null; return NETWORK_INFO[PREFIX_TO_NETWORK[cleanSim.substring(1, 3)]] || null; 
+    if(cleanSim.length < 9) return null; return PREFIX_TO_NETWORK[cleanSim.substring(1, 3)] || null;
+}
+function getNetworkData(simNumber) { 
+    let key = getNetworkKey(simNumber);
+    return key ? NETWORK_INFO[key] : null; 
 }
 function getMenhFromPhone(phone){
     let d=phone.replace(/\D/g,'').split('').map(Number); if(d.length===0)return''; 
@@ -182,23 +202,30 @@ window.drawProElement = function(ctx, prefix, text, cx, cy, w, h, radius, angle,
     // 3. KHỐI SHAPE (VIP) — V24: Chỉ vẽ khối khi ô có dữ liệu (không phải cellGrid trống)
     let sType = document.getElementById(prefix + 'ShapeType')?.value || 'none';
     if (sType !== 'none' && sType !== 'text_only' && !isCellGrid) {
-        // V24: TÍNH TOÁN KÍCH THƯỚC DYNAMIC (ĐỂ PHỦ THEO ĐỘ DÀI CHỮ HOẶC LỌT LÒNG)
-        let sw = _v(prefix + 'ShapeW', 45); 
-        let sh = _v(prefix + 'ShapeH', 45); 
+        // V24: TÍNH TOÁN KÍCH THƯỚC DYNAMIC (Ưu tiên Checkbox Auto)
+        let autoW = _c(prefix + 'ShapeAutoW'); 
+        let autoH = _c(prefix + 'ShapeAutoH');
+        let swInput = _v(prefix + 'ShapeW', 0); 
+        let shInput = _v(prefix + 'ShapeH', 0); 
+        
+        let sw = swInput > 0 ? swInput : 45; 
+        let sh = shInput > 0 ? shInput : 45;
         let sRadius = _v(prefix + 'ShapeRadius', 0);
 
-        if (sType.includes('expand')) {
-            // Giãn nở: Phủ theo độ dài chữ
+        if (autoW || autoH || sType.includes('expand')) {
             ctx.save();
             ctx.font = `${_c(prefix + 'Bold') ? 'bold ' : ''}${_c(prefix + 'Italic') ? 'italic ' : ''}${_v(prefix + 'Size', 24)}px "${document.getElementById(prefix + 'Font')?.value || 'Arial'}"`;
             let tW = ctx.measureText(text).width;
             ctx.restore();
-            sw = tW + 20; 
-            sh = h - 4; // Lọt lòng theo chiều cao
+            
+            // Nếu bật AutoW hoặc là loại expand mà không có kích thước nhập tay
+            if (autoW || (sType.includes('expand') && swInput <= 0)) sw = tW + 20; 
+            // Nếu bật AutoH hoặc là loại expand mà không có kích thước nhập tay
+            if (autoH || (sType.includes('expand') && shInput <= 0)) sh = _v(prefix + 'Size', 24) * 1.5; 
         } else if (sType.includes('tight')) {
-            // Gần khít: Lọt lòng nền ô
-            sw = w - 8; 
-            sh = h - 8;
+            // Gần khít / Vừa khít: Ưu tiên lấy W và H từ input, nếu không có mới dùng cỡ ô
+            if (swInput <= 0) sw = w - 8; 
+            if (shInput <= 0) sh = h - 8;
         }
 
         // V24: Dùng autoBgColor nếu có, nếu không dùng màu mặc định xám
@@ -395,9 +422,57 @@ window.drawCanvas = function() {
             let rowData = drawList[i]; 
             let num = rowData ? (rowData[0] || "") : "";
             let priceText = rowData ? (typeof window.formatPriceString === 'function' ? window.formatPriceString(rowData[1]) : (rowData[1] || "")) : "";
-            let menhText = rowData ? (typeof window.getMenhFromPhone === 'function' ? window.getMenhFromPhone(num) : "") : ""; 
-            let netData = rowData ? (typeof window.getNetworkData === 'function' ? window.getNetworkData(num) : null) : null; 
-            let vList = [num, priceText, menhText, (netData ? netData.short2 : "SIM"), rowData ? (rowData[2]||"") : "", rowData ? (rowData[3]||"") : ""];
+            
+            // Ưu tiên lấy Mệnh/Mạng từ dữ liệu dán vào (rowData[2], rowData[3])
+            let inputMenh = rowData ? (rowData[2] || "").trim() : "";
+            let inputMang = rowData ? (rowData[3] || "").trim() : "";
+            
+            // Xử lý Mệnh: LUÔN TỰ ĐỘNG từ số điện thoại
+            let rawMenh = rowData ? (typeof window.getMenhFromPhone === 'function' ? window.getMenhFromPhone(num) : "") : "";
+            let mMode = document.getElementById('menhMode')?.value || 'proper';
+            let mPre = document.getElementById('menhPrefix')?.value || '';
+            let mSuf = document.getElementById('menhSuffix')?.value || '';
+            
+            let formattedMenh = rawMenh;
+            if (mMode === 'short') formattedMenh = rawMenh.charAt(0);
+            else if (mMode === 'proper') formattedMenh = rawMenh.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+            // Nếu upper thì giữ nguyên rawMenh (vì getMenhFromPhone đã trả về Uppercase)
+            
+            let menhText = rawMenh ? (mPre + formattedMenh + mSuf) : "";
+            
+            // Xử lý Mạng: LUÔN TỰ ĐỘNG từ số điện thoại
+            let netKey = rowData ? (typeof window.getNetworkKey === 'function' ? window.getNetworkKey(num) : null) : null;
+            let netData = rowData ? (typeof window.getNetworkData === 'function' ? window.getNetworkData(num) : null) : null;
+            let mModeNet = document.getElementById('mangMode')?.value || 'proper';
+            let mPreNet = document.getElementById('mangPrefix')?.value || '';
+            let mSufNet = document.getElementById('mangSuffix')?.value || '';
+            
+            let rawMang = "";
+            if (netData) {
+                if (mModeNet === 'proper') {
+                    // Chế độ 1: Viết hoa đầu tự động từ short2 (VINA -> Vina)
+                    let base = netData.short2 || "";
+                    rawMang = base.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+                } else if (mModeNet === 'short2') {
+                    // Chế độ 2: Lấy nguyên văn từ short2 (VINA)
+                    rawMang = netData.short2 || "";
+                } else if (mModeNet === 'key') {
+                    // Chế độ 3: Lấy mã rút gọn (VT, VN)
+                    rawMang = netKey || "";
+                } else if (mModeNet === 'short1') {
+                    // Chế độ 4: Lấy dữ liệu chuẩn từ short1 (Vinaphone)
+                    rawMang = netData.short1 || "";
+                } else {
+                    rawMang = netData.short2 || "";
+                }
+            } else {
+                rawMang = "SIM";
+            }
+            
+            let mangText = (rawMang && rawMang !== "SIM") ? (mPreNet + rawMang + mSufNet) : "";
+
+            // vList mapping: num(0), price(1), menh(2), mang(3), data1(4), data2(5)
+            let vList = [num, priceText, menhText, mangText, rowData ? (rowData[2]||"") : "", rowData ? (rowData[3]||"") : ""];
             
             pKeys.forEach((p, idx) => {
                 let chkId = window.colCheckMap[p]; 
@@ -406,8 +481,12 @@ window.drawCanvas = function() {
                     let w = window.getVal(p+'W', 100), h = window.getVal(p+'H', 40);
                     let px = window.getPos(cx-cW/2, cW, w, document.getElementById(p+'AlignX')?.value || 'center', window.getVal(p+'X', 0)) + w/2;
                     let py = window.getPos(cy-cH/2, cH, h, document.getElementById(p+'AlignY')?.value || 'middle', window.getVal(p+'Y', 0)) + h/2;
-                    if (rowData && vList[idx] !== "") {
-                        let autoColor = (p === 'menh') ? (typeof menhColors !== 'undefined' ? menhColors[menhText] : null) : (p === 'mang' && netData ? netData.color : null);
+                    
+                    if (rowData && vList[idx] !== "" && vList[idx] !== undefined) {
+                        let autoColor = null;
+                        if (p === 'menh') autoColor = menhColors[rawMenh] || null; // Dùng rawMenh để lấy màu
+                        if (p === 'mang') autoColor = netData ? netData.color : null;
+                        
                         window.drawProElement(ctx, p, vList[idx], px, py, w, h, window.getVal(p+'Radius'), window.getVal(p+'Angle'), false, autoColor);
                     } else {
                         window.drawProElement(ctx, p, ' ', px, py, w, h, window.getVal(p+'Radius'), window.getVal(p+'Angle'), true);
@@ -439,6 +518,20 @@ window.drawCanvas = function() {
         ctx.restore();
     }
 
+    // V25: WATERMARK
+    if (isChecked('useWatermark')) {
+        ctx.save(); ctx.font = 'bold 20px Arial'; ctx.fillStyle = 'rgba(150, 150, 150, 0.3)';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        let wmText = document.getElementById('watermarkText')?.value || 'VIP SIM TOOL';
+        for(let i=0; i<3; i++) {
+            for(let j=0; j<5; j++) {
+                ctx.save(); ctx.translate(cw/3 * (i+0.5), ch/5 * (j+0.5)); ctx.rotate(-Math.PI/4);
+                ctx.fillText(wmText, 0, 0); ctx.restore();
+            }
+        }
+        ctx.restore();
+    }
+
     // BLUEPRINT
     if (window.showBlueprintMode && typeof hitBoxes !== 'undefined') {
         ctx.save();
@@ -461,6 +554,18 @@ window.drawCanvas = function() {
         ctx.restore();
     }
     
+    // V25: VẼ SMART GUIDES
+    if (isDragging && typeof smartGuides !== 'undefined' && smartGuides.length > 0) {
+        ctx.save(); ctx.setLineDash([5, 5]); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+        smartGuides.forEach(g => {
+            ctx.beginPath();
+            if (g.type === 'v') { ctx.moveTo(g.pos, 0); ctx.lineTo(g.pos, ch); }
+            else { ctx.moveTo(0, g.pos); ctx.lineTo(cw, g.pos); }
+            ctx.stroke();
+        });
+        ctx.restore();
+    }
+
     if(typeof window.updateZoomUI === 'function') window.updateZoomUI();
     if(typeof window.updatePagination === 'function') window.updatePagination();
 };
@@ -507,14 +612,40 @@ function handleInteractStart(clientX, clientY) {
 
     for (let i = hitBoxes.length - 1; i >= 0; i--) {
         let box = hitBoxes[i];
-        if (pos.x >= box.rectX && pos.x <= box.rectX + box.rectW && pos.y >= box.rectY && pos.y <= box.rectY + box.rectH) {
+        
+        // V25: Kiểm tra điểm nằm trong hình chữ nhật xoay (OOBB)
+        let isInside = false;
+        if (!box.angle || box.angle === 0) {
+            isInside = (pos.x >= box.rectX && pos.x <= box.rectX + box.rectW && pos.y >= box.rectY && pos.y <= box.rectY + box.rectH);
+        } else {
+            let rad = -box.angle * Math.PI / 180;
+            let cos = Math.cos(rad), sin = Math.sin(rad);
+            let dx = pos.x - box.cx, dy = pos.y - box.cy;
+            let rx = dx * cos - dy * sin;
+            let ry = dx * sin + dy * cos;
+            isInside = (Math.abs(rx) <= box.rectW / 2 && Math.abs(ry) <= box.rectH / 2);
+        }
+
+        if (isInside) {
             clickedOnObject = true; window.isOpeningModal = true;
             let lockCheck = document.getElementById(box.id + 'Locked'); let isLocked = lockCheck && lockCheck.checked;
             if (typeof window.saveState === 'function') window.saveState();
             isDragging = true; dragTarget = { ...box, isLocked }; dragStartX = pos.x; dragStartY = pos.y;
             let elX = document.getElementById(box.inputX); dragStartOffsetX = elX ? parseInt(elX.value)||0 : 0;
             let elY = document.getElementById(box.inputY); dragStartOffsetY = elY ? parseInt(elY.value)||0 : 0;
-            canvas.style.cursor = isLocked ? 'pointer' : 'grabbing'; break;
+            canvas.style.cursor = isLocked ? 'pointer' : 'grabbing'; 
+
+            // V25: Khởi tạo Long-press (Nhấn giữ 600ms)
+            isLongPress = false;
+            clearTimeout(longPressTimeout);
+            longPressTimeout = setTimeout(() => {
+                if (isDragging && !isDragMoved) {
+                    isLongPress = true;
+                    handleInteractEnd(); // Kích hoạt popup ngay lập tức
+                }
+            }, 600);
+
+            break;
         }
     }
     return clickedOnObject;
@@ -525,16 +656,45 @@ function handleInteractMove(clientX, clientY) {
         let pos = getPointerPos(canvas, clientX, clientY); let dx = pos.x - dragStartX; let dy = pos.y - dragStartY;
         if (Math.abs(dx) > 6 || Math.abs(dy) > 6) isDragMoved = true;
         if (!dragTarget.isLocked) {
+            let nx = dragStartOffsetX + dx, ny = dragStartOffsetY + dy;
+            
+            // V25: SMART SNAPPING
+            smartGuides = []; let snapDist = 10;
+            let currentCX = dragTarget.cx + dx, currentCY = dragTarget.cy + dy;
+
+            // Snap Giữa Canvas
+            if (Math.abs(currentCX - canvas.width/(2*1)) < snapDist) { nx -= (currentCX - canvas.width/2); smartGuides.push({type:'v', pos: canvas.width/2}); }
+            if (Math.abs(currentCY - canvas.height/(2*1)) < snapDist) { ny -= (currentCY - canvas.height/2); smartGuides.push({type:'h', pos: canvas.height/2}); }
+
+            // Snap với các đối tượng khác
+            hitBoxes.forEach(box => {
+                if (box.id !== dragTarget.id) {
+                    if (Math.abs(currentCX - box.cx) < snapDist) { nx -= (currentCX - box.cx); smartGuides.push({type:'v', pos: box.cx}); }
+                    if (Math.abs(currentCY - box.cy) < snapDist) { ny -= (currentCY - box.cy); smartGuides.push({type:'h', pos: box.cy}); }
+                }
+            });
+
             let inputXEl = document.getElementById(dragTarget.inputX), inputYEl = document.getElementById(dragTarget.inputY);
-            if (inputXEl) inputXEl.value = Math.round(dragStartOffsetX + dx);
-            if (inputYEl) inputYEl.value = Math.round(dragStartOffsetY + dy);
+            if (inputXEl) inputXEl.value = Math.round(nx);
+            if (inputYEl) inputYEl.value = Math.round(ny);
         }
         if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); else drawCanvas();
     } else {
         let pos = getPointerPos(canvas, clientX, clientY); let foundIdx = -1;
         for (let i = hitBoxes.length - 1; i >= 0; i--) {
             let box = hitBoxes[i];
-            if (pos.x >= box.rectX && pos.x <= box.rectX + box.rectW && pos.y >= box.rectY && pos.y <= box.rectY + box.rectH) { foundIdx = i; break; }
+            let isInside = false;
+            if (!box.angle || box.angle === 0) {
+                isInside = (pos.x >= box.rectX && pos.x <= box.rectX + box.rectW && pos.y >= box.rectY && pos.y <= box.rectY + box.rectH);
+            } else {
+                let rad = -box.angle * Math.PI / 180;
+                let cos = Math.cos(rad), sin = Math.sin(rad);
+                let dx = pos.x - box.cx, dy = pos.y - box.cy;
+                let rx = dx * cos - dy * sin;
+                let ry = dx * sin + dy * cos;
+                isInside = (Math.abs(rx) <= box.rectW / 2 && Math.abs(ry) <= box.rectH / 2);
+            }
+            if (isInside) { foundIdx = i; break; }
         }
         if (hoveredIndex !== foundIdx) {
             hoveredIndex = foundIdx;
@@ -546,28 +706,82 @@ function handleInteractMove(clientX, clientY) {
 }
 
 function handleInteractEnd() {
+    clearTimeout(longPressTimeout);
     if (isDragging) {
         let targetRef = dragTarget; isDragging = false; dragTarget = null;
         let isFS = window.isFullscreen || document.getElementById('previewColumn')?.classList.contains('fullscreen') || false;
         canvas.style.cursor = hoveredIndex !== -1 ? 'grab' : 'default';
 
-        if (isDragMoved) {
+        if (isDragMoved && !isLongPress) {
             if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); else drawCanvas();
             if (typeof window.debouncedSave === 'function') window.debouncedSave();
             setTimeout(() => { window.isOpeningModal = false; }, 100);
         } else if (targetRef) {
             window.isOpeningModal = true; 
-            if (isFS || window.innerWidth <= 768) { if (typeof window.openMobileModal === 'function') window.openMobileModal(targetRef.id); } 
+            if (isFS || window.innerWidth <= 768 || isLongPress) { 
+                if (typeof window.openMobileModal === 'function') window.openMobileModal(targetRef.id); 
+            } 
             else { if (typeof window.focusDesktopTab === 'function') window.focusDesktopTab(targetRef.id); }
             setTimeout(() => { window.isOpeningModal = false; }, 200);
         }
     }
+    isLongPress = false; smartGuides = []; // Reset Smart Guides
 }
 
 if(canvas) {
-    canvas.addEventListener('touchstart', function(e) { if(e.touches.length === 1) { let handled = handleInteractStart(e.touches[0].clientX, e.touches[0].clientY); if(handled) e.preventDefault(); } }, {passive: false});
-    window.addEventListener('mousemove', function(e) { if (isDragging) { e.preventDefault(); handleInteractMove(e.clientX, e.clientY); } else { if (e.target === canvas || (e.target.closest && e.target.closest('#canvasWrapper'))) { handleInteractMove(e.clientX, e.clientY); } } }, {passive: false});
-    window.addEventListener('touchend', function(e) { if (e.touches.length === 0) { handleInteractEnd(); } });
+    canvas.addEventListener('touchstart', function(e) { 
+        if(e.touches.length === 1) { 
+            let handled = handleInteractStart(e.touches[0].clientX, e.touches[0].clientY); 
+            if(handled) e.preventDefault(); 
+        } else if (e.touches.length === 2 && wrapper) {
+            // Khởi tạo Pinch Zoom
+            isPinching = true;
+            initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            initialZoom = currentZoom;
+            lastTouchX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            lastTouchY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            e.preventDefault();
+        }
+    }, {passive: false});
+
+    window.addEventListener('mousemove', function(e) { 
+        if (isDragging) { e.preventDefault(); handleInteractMove(e.clientX, e.clientY); } 
+        else { if (e.target === canvas || (e.target.closest && e.target.closest('#canvasWrapper'))) { handleInteractMove(e.clientX, e.clientY); } } 
+    }, {passive: false});
+
+    window.addEventListener('touchmove', function(e) {
+        if (isDragging) {
+            e.preventDefault();
+            handleInteractMove(e.touches[0].clientX, e.touches[0].clientY);
+        } else if (isPinching && e.touches.length === 2 && wrapper) {
+            e.preventDefault();
+            // 1. Pinch Zoom
+            let currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            let zoomFactor = currentDist / initialDist;
+            let newZoom = Math.max(10, Math.min(400, initialZoom * zoomFactor));
+            if (Math.abs(newZoom - currentZoom) > 1) {
+                applyZoom(newZoom);
+            }
+            
+            // 2. Two-finger Pan
+            let currentTouchX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            let currentTouchY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            wrapper.scrollLeft -= (currentTouchX - lastTouchX) * 1.5;
+            wrapper.scrollTop -= (currentTouchY - lastTouchY) * 1.5;
+            lastTouchX = currentTouchX;
+            lastTouchY = currentTouchY;
+        }
+    }, {passive: false});
+
+    window.addEventListener('touchend', function(e) { 
+        if (e.touches.length === 0) { 
+            handleInteractEnd(); 
+            isPinching = false;
+        } else if (e.touches.length === 1) {
+            isPinching = false;
+        }
+    });
+
     canvas.addEventListener('mousedown', function(e) { handleInteractStart(e.clientX, e.clientY); });
     window.addEventListener('mouseup', function(e) { handleInteractEnd(); });
 }
@@ -1021,3 +1235,38 @@ window.goToPage = function(v) {
 document.addEventListener('input', function(e) { if (e.target && e.target.id === 'pageInput') { window.goToPage(e.target.value); } });
 window.showBlueprintMode = false; 
 window.toggleBlueprintMode = function() { window.showBlueprintMode = !window.showBlueprintMode; if(typeof window.drawCanvas === 'function') window.drawCanvas(); };
+window.updatePreview = function() { if(typeof window.drawCanvas === 'function') window.drawCanvas(); };
+window.updatePreviewImmediate = function() { if(typeof window.drawCanvas === 'function') window.drawCanvas(); };
+
+window.toggleShapeOptions = function(prefix) {
+    let type = document.getElementById(prefix + 'ShapeType')?.value || 'none';
+    let opts = document.getElementById(prefix + 'ShapeOptions');
+    if (!opts) return;
+    
+    if (type === 'none' || type === 'text_only') {
+        opts.style.display = 'none';
+    } else {
+        opts.style.display = 'block';
+        
+        let swRow = document.getElementById(prefix + 'ShapeSizeRow');
+        if (swRow) {
+            swRow.style.display = 'flex';
+            let autoW = document.getElementById(prefix + 'ShapeAutoW');
+            let autoH = document.getElementById(prefix + 'ShapeAutoH');
+            let inpW = document.getElementById(prefix + 'ShapeW');
+            let inpH = document.getElementById(prefix + 'ShapeH');
+            if (type.includes('expand')) {
+                if (autoW && !autoW.dataset.init) { autoW.checked = true; autoW.dataset.init = "1"; }
+                if (autoH && !autoH.dataset.init) { autoH.checked = true; autoH.dataset.init = "1"; }
+            }
+            if (inpW && autoW) { inpW.disabled = autoW.checked; inpW.style.opacity = autoW.checked ? '0.5' : '1'; }
+            if (inpH && autoH) { inpH.disabled = autoH.checked; inpH.style.opacity = autoH.checked ? '0.5' : '1'; }
+        }
+
+        let radGrp = document.getElementById(prefix + 'ShapeRadiusGrp');
+        if (radGrp) {
+            const allowRadius = ['rect_round_expand', 'rect_round_tight', 'rect_round', 'rect_square', 'teardrop'];
+            radGrp.style.display = (allowRadius.includes(type) || type.includes('round')) ? 'inline-block' : 'none';
+        }
+    }
+};

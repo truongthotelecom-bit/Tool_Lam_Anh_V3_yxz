@@ -130,7 +130,12 @@ window.updateUI = function() {
 
     // ĐÃ BỔ SUNG ĐỦ 9 CHỮ GÓC
     let allPrefixes = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2', 'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum', 'cell'];
-    allPrefixes.forEach(p => { toggleAdv(p + 'Color'); toggleAdv(p + 'Bg'); toggleAdv(p + 'Border'); });
+    allPrefixes.forEach(p => { 
+        toggleAdv(p + 'Color'); toggleAdv(p + 'Bg'); toggleAdv(p + 'Border'); 
+        if((p === 'menh' || p === 'mang') && typeof window.toggleShapeOptions === 'function') {
+            window.toggleShapeOptions(p);
+        }
+    });
     toggleAdv('bg'); 
     
     let checkCol = (id, chkId) => { let btn = document.querySelector(`.sub-tabs button[onclick*="${id}"]`); let chk = document.getElementById(chkId); if(btn && chk) btn.style.display = chk.checked ? '' : 'none'; };
@@ -165,38 +170,108 @@ document.addEventListener('DOMContentLoaded', () => {
 // 3. DRM, MOBILE MODAL VÀ KÉO THẢ (GIỮ GỐC)
 // ==========================================
 window.activeMobileElement = null; window.placeholderNode = null;
-window.openMobileModal = function(tid) {
-    let targetId = ''; let tabId = '';
-    if(tid === 'layout') { targetId = 'sub-luoi-chung'; tabId = 'tab-layout'; }
-    else if(['num','price','menh','mang','data1','data2'].includes(tid)) { targetId = 'sub-'+tid; tabId = 'tab-layout'; }
-    else if(tid === 'header') { targetId = 'sub-hCommon'; tabId = 'tab-colheader'; }
-    else if(['hNum','hPrice','hMenh','hMang','hData1','hData2'].includes(tid)) { targetId = 'sub-'+tid; tabId = 'tab-colheader'; }
-    else if(tid === 'globaltext') { targetId = 'sub-gt-chung'; tabId = 'tab-globaltext'; }
-    else if(['header1','header2','footer1','footer2','ctl','ctr','cbl','cbr','pageNum'].includes(tid)) { targetId = 'sub-'+tid; tabId = 'tab-globaltext'; }
-    else if(tid === 'general') { targetId = 'sub-general-bg'; tabId = 'tab-general'; }
-    if(!targetId) return; let el = document.getElementById(targetId); if(!el) return;
-    
-    window.closeMobileModal(); 
-    window.placeholderNode = document.createComment("mobile-placeholder"); 
-    el.parentNode.insertBefore(window.placeholderNode, el); 
-    window.activeMobileElement = el;
-    document.getElementById('mobileModalBody').appendChild(el); 
-    el.classList.add('active'); 
-    document.querySelectorAll('.m-tab-lvl1').forEach(b => b.classList.remove('active'));
-    let mTab = document.getElementById('mTab-tab-' + tid); if(mTab) mTab.classList.add('active');
-    document.getElementById('mobileSettingModal').style.display = 'flex';
-};
-window.closeMobileModal = function() {
-    let modalEl = document.getElementById('mobileSettingModal');
-    if (modalEl) modalEl.style.display = 'none';
-    document.querySelectorAll('.m-tab-lvl1').forEach(btn => btn.classList.remove('active'));
-    if (window.activeMobileElement && window.placeholderNode && window.placeholderNode.parentNode) {
-        window.placeholderNode.parentNode.insertBefore(window.activeMobileElement, window.placeholderNode);
-        window.placeholderNode.parentNode.removeChild(window.placeholderNode);
+// Xóa các hàm Mobile Modal trùng lặp để dùng thống nhất từ main.js
+// --- PHỐI MÀU AI (V25) ---
+window.applyAIColor = function(prefix) {
+    const list = typeof window.parseList === 'function' ? window.parseList() : [];
+    let designMenh = 'KIM'; // Mặc định
+    if (list.length > 0) {
+        let firstSim = list[0][0] || "";
+        designMenh = (typeof getMenhFromPhone === 'function' ? getMenhFromPhone(firstSim) : 'KIM') || 'KIM';
     }
-    window.activeMobileElement = null; window.placeholderNode = null; 
+
+    const aiPalettes = {
+        'KIM': { main: '#ff9900', sub: '#ffffff', grad: '#ffd700' },
+        'MỘC': { main: '#0a8f0a', sub: '#ffffff', grad: '#2ecc71' },
+        'THỦY': { main: '#0066ff', sub: '#ffffff', grad: '#3498db' },
+        'HỎA': { main: '#ff0000', sub: '#ffffff', grad: '#e74c3c' },
+        'THỔ': { main: '#8b4513', sub: '#ffffff', grad: '#d35400' }
+    };
+
+    let p = aiPalettes[designMenh] || aiPalettes['KIM'];
+    
+    // Áp dụng màu cho prefix hiện tại
+    let colorEl = document.getElementById(prefix + 'Color');
+    let colorMode = document.getElementById(prefix + 'ColorMode');
+    let grad1 = document.getElementById(prefix + 'ColorGradient1');
+    let grad2 = document.getElementById(prefix + 'ColorGradient2');
+
+    if (colorEl) colorEl.value = p.main;
+    if (grad1) grad1.value = p.main;
+    if (grad2) grad2.value = p.grad;
+    
+    // Nếu là nền, áp dụng cho nền
+    let bgEl = document.getElementById(prefix + 'Bg');
+    if (bgEl) {
+        bgEl.value = p.main;
+        let bgG1 = document.getElementById(prefix + 'BgGradient1');
+        let bgG2 = document.getElementById(prefix + 'BgGradient2');
+        if (bgG1) bgG1.value = p.main;
+        if (bgG2) bgG2.value = p.grad;
+    }
+
+    if (prefix === 'all') {
+        const prefixes = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2'];
+        prefixes.forEach(pf => {
+            let colorEl = document.getElementById(pf + 'Color');
+            if (colorEl) colorEl.value = p.main;
+            let g1 = document.getElementById(pf + 'ColorGradient1');
+            let g2 = document.getElementById(pf + 'ColorGradient2');
+            if (g1) g1.value = p.main;
+            if (g2) g2.value = p.grad;
+        });
+        alert(`✨ AI đã phối màu ĐỒNG BỘ cho mệnh ${designMenh}!`);
+    } else {
+        alert(`✨ AI đã gợi ý bộ màu cho mệnh ${designMenh}!`);
+    }
+    
+    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+}
+
+window.exportToPDF = async function() {
+    const { jsPDF } = window.jspdf;
+    const list = typeof window.parseList === 'function' ? window.parseList() : [];
+    const r = parseInt(document.getElementById('tableRows')?.value) || 10;
+    const c = parseInt(document.getElementById('tableCols')?.value) || 2;
+    const totalCells = r * c;
+    const totalPages = Math.max(1, Math.ceil(list.length / totalCells));
+    
+    const loading = document.getElementById('globalLoading');
+    if (loading) loading.style.display = 'flex';
+    const lText = document.getElementById('loadingText');
+    if (lText) lText.innerText = "Đang chuẩn bị PDF...";
+
+    try {
+        const oldStep = window.currentStep;
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'px',
+            format: [canvas.width / getVal('exportScale', 1), canvas.height / getVal('exportScale', 1)]
+        });
+
+        for (let i = 0; i < totalPages; i++) {
+            if (lText) lText.innerText = `Đang xử lý trang ${i + 1}/${totalPages}`;
+            window.currentStep = i;
+            await new Promise(resolve => {
+                window.drawCanvas();
+                setTimeout(resolve, 300); // Đợi canvas vẽ xong
+            });
+            
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            if (i > 0) pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+        }
+
+        pdf.save(`VIP_SIM_CATALOG_${new Date().getTime()}.pdf`);
+        window.currentStep = oldStep;
+        window.drawCanvas();
+    } catch (err) {
+        console.error(err);
+        alert("❌ Lỗi khi xuất PDF!");
+    } finally {
+        if (loading) loading.style.display = 'none';
+    }
 };
-document.getElementById('mobileSettingModal')?.addEventListener('click', function(e) { if(e.target === this) window.closeMobileModal(); });
 
 // Kéo thả & DRM
 function setupDrag(elementId, handleId) {

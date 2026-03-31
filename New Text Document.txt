@@ -1,0 +1,53 @@
+# Kế hoạch Nâng cấp Chức năng & Mobile Tool Bảng Số VIP
+
+Bạn đã chọn ưu tiên triển khai các tính năng mới và cải thiện trải nghiệm người dùng trên Mobile. Dưới đây là kế hoạch chi tiết.
+
+## 1. 5 Tính năng Đề xuất (Core Functions)
+- **AI Color Palette**: Tự động phối màu thông minh dựa trên Mệnh hoặc các bộ màu chuyên nghiệp.
+- **Google Fonts v2**: Mở rộng kho Font chữ, có preview trực tiếp trong menu chọn.
+- **Smart Alignment**: Hiển thị các đường gióng (Smart Guides) khi kéo thả để căn chỉnh đối tượng chính xác.
+- **Contextual Menu**: Nhấn giữ (long-press) hoặc Click vào đối tượng trên ảnh để mở ngay bảng cài đặt tương ứng.
+- **Export Pro**: Tối ưu hóa chất lượng ảnh in và hỗ trợ xuất file PDF (Vector-like).
+
+## 2. Nâng cấp Mobile & Tương tác
+- **Mobile Popup System**: Khôi phục chức năng Popup khi ở chế độ toàn màn hình, đảm bảo giao diện cài đặt không bị che khuất.
+- **Pinch-to-Zoom & Pan**: Hỗ trợ phóng to/thu nhỏ bằng 2 ngón tay và di chuyển vùng nhìn linh hoạt (panning) trên thiết bị di động.
+- **Rotation (Xoay đối tượng)**: 
+    - Bổ sung khả năng xoay cho từng thẻ chữ (SIM, Tiêu đề).
+    - Có thể xoay cả khối nền (Shape) đi kèm với chữ.
+
+## 3. Bảo mật (DRM)
+- **Giữ nguyên**: Hệ thống khóa Machine ID và License Key trong `js/script.js` sẽ được giữ nguyên hoàn toàn để đảm bảo bản quyền.
+
+---
+
+## Các bước thực hiện (Proposed Changes)
+
+### [Component] Chức năng Nâng cao (Logic)
+
+#### [MODIFY] [main.js](file:///d:/TAO%20FILE%20ANH/TEST%20TER/NANG%20CAP%20-%2014%20antigravity%20-%20%20NHO%20GEMINI%20LAM%20TIEP%20-%201/js/main.js)
+- Thêm logic xử lý góc xoay (`angle`) cho các thẻ dữ liệu.
+- Cập nhật bộ xử lý Touch Events (`touchstart`, `touchmove`) để nhận diện thao tác 2 ngón tay (Pinch/Pan).
+- Triển khai thuật toán hiển thị "Smart Guides" khi người dùng đang kéo thả (dragging).
+
+#### [MODIFY] [index.html](file:///d:/TAO%20FILE%20ANH/TEST%20TER/NANG%20CAP%20-%2014%20antigravity%20-%20%20NHO%20GEMINI%20LAM%20TIEP%20-%201/index.html)
+- Bổ sung thêm thanh trượt xoay (Rotation Slider) trong các Tab cài đặt đối tượng.
+- Cập nhật menu Font chữ hiển thị theo dạng danh sách có preview.
+
+### [Component] Tiện ích (Scripts)
+
+#### [MODIFY] [script.js](file:///d:/TAO%20FILE%20ANH/TEST%20TER/NANG%20CAP%20-%2014%20antigravity%20-%20%20NHO%20GEMINI%20LAM%20TIEP%20-%201/js/script.js)
+- Xây dựng bảng palette màu AI để người dùng chọn nhanh.
+- Tối ưu hóa hàm xuất ảnh để hỗ trợ chất lượng cao (Export Pro).
+
+---
+
+## Câu hỏi cho Bạn (Open Questions)
+> [!IMPORTANT]
+> 1. Tính năng **Xoay (Rotation)**: Bạn muốn xoay tự do (360 độ) bằng thanh kéo hay chỉ xoay theo các góc cố định (90, 180, 270)?
+> 2. **Mobile Zoom/Pan**: Bạn có muốn khi thu nhỏ (zoom out) quá mức thì nó tự động quay về kích thước vừa vặn (Fit) không?
+
+## Kế hoạch Xác minh
+- **Kiểm tra khóa**: Sau khi thêm tính năng, đảm bảo hệ thống DRM vẫn hoạt động bình thường.
+- **Mobile Test**: Sử dụng trình duyệt giả lập trên thiết bị di động để kiểm tra thao tác 2 ngón tay.
+- **Rotation Test**: Đảm bảo bóng đổ (Shadows) và bộ đệm (Hitboxes) vẫn hoạt động đúng khi đối tượng bị xoay.

@@ -4,21 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
 <title>Tool Bảng Số VIP - Bản Quyền Giao Khách (UPGRADED)</title>
-<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Oswald:wght@400;700&family=Pattaya&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Oswald:wght@400;700&family=Pattaya&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;700&family=Outfit:wght@400;700&family=Playfair+Display:wght@400;700&family=Bungee&family=Lobster&family=Pacifico&family=Saira+Stencil+One&family=Charm:wght@400;700&family=Sedgwick+Ave+Display&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <style>
     /* CSS GIAO DIỆN PRO-BOX MỚI TỪ BẢN THAM KHẢO */
-    .pro-box { border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px; overflow: hidden; border: 1px solid #eaeaea; }
-    .pro-title { padding: 10px 15px; font-weight: bold; font-size: 13px; text-transform: uppercase; color: #fff; background: #34495e; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
-    .pro-row { display: flex; padding: 10px 15px; border-bottom: 1px solid #fcfcfc; align-items: center; }
-    .pro-row:last-child { border-bottom: none; }
-    .pro-row > label { width: 90px; font-size: 12px; font-weight: 600; color: #555; flex-shrink: 0; margin:0; }
-    .pro-inputs { display: flex; flex: 1; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; }
-    .pro-inputs input[type="number"], .pro-inputs input[type="text"] { width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; text-align: center; outline: none; }
-    .pro-inputs input[type="text"] { width: 100%; text-align: left; }
-    .pro-inputs select { flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
-    .pro-inputs input[type="color"] { padding: 0; width: 28px; height: 28px; border: none; border-radius: 4px; cursor: pointer; }
-    .pro-inputs label { display: flex; align-items: center; gap: 4px; cursor: pointer; margin:0; font-weight:bold; }
+    .setting-box { border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px; overflow: hidden; border: 1px solid #eaeaea; }
+    .setting-title { padding: 10px 15px; font-weight: bold; font-size: 13px; text-transform: uppercase; color: #fff; background: #34495e; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+    .setting-row { display: flex; padding: 10px 15px; border-bottom: 1px solid #fcfcfc; align-items: center; }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-row > label { width: 90px; font-size: 12px; font-weight: 600; color: #555; flex-shrink: 0; margin:0; }
+    .setting-inputs { display: flex; flex: 1; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; }
+    .setting-inputs input[type="number"], .setting-inputs input[type="text"] { width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; text-align: center; outline: none; }
+    .setting-inputs input[type="text"] { width: 100%; text-align: left; }
+    .setting-inputs select { flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
+    .setting-inputs input[type="color"] { padding: 0; width: 28px; height: 28px; border: none; border-radius: 4px; cursor: pointer; }
+    .setting-inputs label { display: flex; align-items: center; gap: 4px; cursor: pointer; margin:0; font-weight:bold; }
     .btn-mini { background: #007bff; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
     .column.fullscreen { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: #fff !important; margin: 0 !important; padding: 20px !important; box-sizing: border-box; overflow-y: auto; }
     
@@ -95,6 +95,7 @@
     <button onclick="downloadSingleImage()" class="btn-primary" style="background:#17a2b8; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">💾 Lưu 1 Ảnh</button>
     <button onclick="printAllPages()" class="btn-purple" style="border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">🖨️ In A4</button>
     <button onclick="generateAllImages()" class="btn-success" style="border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📦 Tải ZIP</button>
+    <button onclick="exportToPDF()" class="btn-purple" style="background:#e84393; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📄 Xuất PDF</button>
     <button onclick="exportToExcel()" class="btn-excel" style="background:#20c997; color:#fff; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📊 Xuất Excel</button>
 </div>
 
@@ -205,82 +206,108 @@
         </div>
 
         <div id="ssub-${prefix}-pos" class="sub-sub-tab-content active">
-            <div class="pro-box"><div class="pro-title">📐 Vị Trí & Kích Thước</div>
-            <div class="pro-row"><label>Kích thước</label><div class="pro-inputs"><span>W:</span><input type="number" id="${prefix}W" value="${defW}"><span>H:</span><input type="number" id="${prefix}H" value="50"></div></div>
-            <div class="pro-row"><label>Lệch vị trí</label><div class="pro-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="0"></div></div>
-            <div class="pro-row"><label>Khóa/Canh</label><div class="pro-inputs"><select id="${prefix}AlignX"><option value="left" ${prefix==='num'?'selected':''}>Trái</option><option value="center" ${prefix==='price'||prefix==='data1'||prefix==='data2'?'selected':''}>Giữa</option><option value="right" ${prefix==='menh'||prefix==='mang'?'selected':''}>Phải</option></select><select id="${prefix}AlignY"><option value="top">Trên</option><option value="middle" selected>Giữa</option><option value="bottom">Dưới</option></select><label style="color:red;"><input type="checkbox" id="${prefix}Locked">🔒 Khóa</label></div></div>
+            <div class="setting-box"><div class="setting-title">📐 Vị Trí & Kích Thước</div>
+            <div class="setting-row"><label>Kích thước</label><div class="setting-inputs"><span>W:</span><input type="number" id="${prefix}W" value="${defW}"><span>H:</span><input type="number" id="${prefix}H" value="50"></div></div>
+            <div class="setting-row"><label>Lệch vị trí</label><div class="setting-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="0"></div></div>
+            <div class="setting-row"><label>Xoay (Góc)</label><div class="setting-inputs"><span>∠:</span><input type="number" id="${prefix}Angle" value="0" style="width:45px;"> <input type="range" min="0" max="360" value="0" oninput="document.getElementById('${prefix}Angle').value=this.value; typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="flex:1;"></div></div>
+            <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs"><select id="${prefix}AlignX"><option value="left" ${prefix==='num'?'selected':''}>Trái</option><option value="center" ${prefix==='price'||prefix==='data1'||prefix==='data2'?'selected':''}>Giữa</option><option value="right" ${prefix==='menh'||prefix==='mang'?'selected':''}>Phải</option></select><select id="${prefix}AlignY"><option value="top">Trên</option><option value="middle" selected>Giữa</option><option value="bottom">Dưới</option></select><label style="color:red;"><input type="checkbox" id="${prefix}Locked">🔒 Khóa</label></div></div>
             </div>
         </div>
 
         <div id="ssub-${prefix}-format" class="sub-sub-tab-content">
-            <div class="pro-box"><div class="pro-title" style="background:#2ecc71;">🔠 Định Dạng Chữ</div>
-            <div class="pro-row"><label>Font & Cỡ</label><div class="pro-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
-            <div class="pro-row"><label>Canh & Lệch</label><div class="pro-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
-            <div class="pro-row"><label>Màu Chữ</label><div class="pro-inputs">
+            <div class="setting-box"><div class="setting-title" style="background:#2ecc71;">🔠 Định Dạng Chữ</div>
+            <div class="setting-row"><label>Font & Cỡ</label><div class="setting-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
+            <div class="setting-row"><label>Canh & Lệch</label><div class="setting-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
+            <div class="setting-row"><label>Màu Chữ</label><div class="setting-inputs">
                 <select id="${prefix}ColorMode" onchange="document.getElementById('${prefix}ColorSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}ColorGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}ColorImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select>
+                <button type="button" class="btn-mini" style="background:#8e44ad; color:white; margin-left:5px;" onclick="if(typeof applyAIColor==='function') applyAIColor('${prefix}')">✨ AI</button>
             </div></div>
-            <div class="pro-row" id="${prefix}ColorSolidGrp"><label>Màu trơn</label><div class="pro-inputs"><input type="color" id="${prefix}Color" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
-            <div class="pro-row" id="${prefix}ColorGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}ColorGradient1" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}ColorGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}ColorGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
-            <div class="pro-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;">
+            <div class="setting-row" id="${prefix}ColorSolidGrp"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="${prefix}Color" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+            <div class="setting-row" id="${prefix}ColorGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}ColorGradient1" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}ColorGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}ColorGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+            <div class="setting-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;">
                 <input type="file" id="${prefix}ColorInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}ColorImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
                 <button type="button" onclick="openBgCloudModal('${prefix}ColorImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
             </div></div>
-            <div class="pro-row"><label>Trang trí</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}Bold" checked><b>B</b></label><label><input type="checkbox" id="${prefix}Italic"><i>I</i></label><label><input type="checkbox" id="${prefix}Underline"><u>U</u></label><label><input type="checkbox" id="${prefix}Stroke">Viền</label><input type="color" id="${prefix}StrokeColor" value="#ffffff"><input type="number" id="${prefix}StrokeWidth" value="1"></div></div>
+            <div class="setting-row"><label>Trang trí</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}Bold" checked><b>B</b></label><label><input type="checkbox" id="${prefix}Italic"><i>I</i></label><label><input type="checkbox" id="${prefix}Underline"><u>U</u></label><label><input type="checkbox" id="${prefix}Stroke">Viền</label><input type="color" id="${prefix}StrokeColor" value="#ffffff"><input type="number" id="${prefix}StrokeWidth" value="1"></div></div>
             </div>
-            <div class="pro-box" style="border: 1px solid #27ae60;"><div class="pro-title" style="background:#e8f4e8; color:#27ae60;">⛅ BÓNG CHỮ RIÊNG</div><div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}ObjShadow"> Bật bóng chữ</label><span>X:</span><input type="number" id="${prefix}ObjShadowX" value="3"><span>Y:</span><input type="number" id="${prefix}ObjShadowY" value="3"><span>Mờ:</span><input type="number" id="${prefix}ObjShadowBlur" value="5"><input type="color" id="${prefix}ObjShadowColor" value="#000000"></div></div></div>
+            <div class="setting-box" style="border: 1px solid #27ae60;"><div class="setting-title" style="background:#e8f4e8; color:#27ae60;">⛅ BÓNG CHỮ RIÊNG</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}ObjShadow"> Bật bóng chữ</label><span>X:</span><input type="number" id="${prefix}ObjShadowX" value="3"><span>Y:</span><input type="number" id="${prefix}ObjShadowY" value="3"><span>Mờ:</span><input type="number" id="${prefix}ObjShadowBlur" value="5"><input type="color" id="${prefix}ObjShadowColor" value="#000000"></div></div></div>
+
+            ${prefix === 'price' ? `
+            <div class="setting-box" style="background:#fafffa; border: 1px solid #2ecc71; margin-top: 10px;">
+                <div class="setting-title" style="background:#2ecc71;">✂️ ĐỊNH DẠNG GIÁ</div>
+                <div class="setting-row"><label>Kèm chữ</label><div class="setting-inputs"><span>Đầu:</span><input type="text" id="pricePrefix" value="" style="width:50px;" oninput="drawCanvas()"><span>Cuối:</span><input type="text" id="priceSuffix" value="đ" style="width:50px;" oninput="drawCanvas()"></div></div>
+                <div class="setting-row"><label>Rút gọn</label><div class="setting-inputs"><select id="priceFormatMode" style="flex:1;" onchange="drawCanvas()"><option value="auto_compact">Rút gọn: 5.5Tr</option><option value="auto_slang">Tiếng lóng: 5Tr5</option><option value="auto_k">Quy ra K: 500K</option><option value="auto" selected>Cơ bản: 5.5 Tr</option><option value="dot">Dấu chấm: 5.000</option><option value="comma">Dấu phẩy: 5,000</option></select></div></div>
+            </div>
+            ` : ''}
+
+            ${prefix === 'menh' ? `
+            <div class="setting-box" style="background:#fffcf0; border: 1px solid #f39c12; margin-top: 10px;">
+                <div class="setting-title" style="background:#f39c12;">✂️ ĐỊNH DẠNG MỆNH</div>
+                <div class="setting-row"><label>Kiểu chữ</label><div class="setting-inputs"><select id="menhMode" style="flex:1;" onchange="drawCanvas()"><option value="proper" selected>Viết hoa đầu (Thuỷ)</option><option value="upper">Viết hoa hết (THUỶ)</option><option value="short">Chữ cái đầu (T)</option></select></div></div>
+                <div class="setting-row"><label>Kèm chữ</label><div class="setting-inputs"><span>Đầu:</span><input type="text" id="menhPrefix" value="" style="width:60px;" oninput="drawCanvas()"><span>Cuối:</span><input type="text" id="menhSuffix" value="" style="width:60px;" oninput="drawCanvas()"></div></div>
+            </div>
+            ` : ''}
+
+            ${prefix === 'mang' ? `
+            <div class="setting-box" style="background:#f0fbff; border: 1px solid #3498db; margin-top: 10px;">
+                <div class="setting-title" style="background:#3498db;">✂️ ĐỊNH DẠNG MẠNG</div>
+                <div class="setting-row"><label>Kiểu chữ</label><div class="setting-inputs"><select id="mangMode" style="flex:1;" onchange="drawCanvas()"><option value="proper" selected>Viết hoa đầu (từ short2)</option><option value="short2">Viết hoa hết (từ short2)</option><option value="key">Rút gọn (VT, VN)</option><option value="short1">Dữ liệu chuẩn (short1)</option></select></div></div>
+                <div class="setting-row"><label>Kèm chữ</label><div class="setting-inputs"><span>Đầu:</span><input type="text" id="mangPrefix" value="" style="width:60px;" oninput="drawCanvas()"><span>Cuối:</span><input type="text" id="mangSuffix" value="" style="width:60px;" oninput="drawCanvas()"></div></div>
+            </div>
+            ` : ''}
         </div>
 
         <div id="ssub-${prefix}-bg" class="sub-sub-tab-content">             
-            <div class="pro-box">
-                <div class="pro-title" style="background:#3498db;">🎨 NỀN Ô KHUNG</div>
-                <div class="pro-row"><label>Kiểu nền</label><div class="pro-inputs">
+            <div class="setting-box">
+                <div class="setting-title" style="background:#3498db;">🎨 NỀN Ô KHUNG</div>
+                <div class="setting-row"><label>Kiểu nền</label><div class="setting-inputs">
                     <select id="${prefix}BgMode" onchange="document.getElementById('${prefix}BgSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}BgGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}BgImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh lót</option></select>
                     <label><input type="checkbox" id="${prefix}BgTrans" checked>Ẩn</label>
                 </div></div>
-                <div class="pro-row" id="${prefix}BgSolidGrp"><label>Màu lót</label><div class="pro-inputs"><input type="color" id="${prefix}Bg" value="${defBg}" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
-                <div class="pro-row" id="${prefix}BgGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}BgGradient1" value="${defBg}" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}BgGradient2" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}BgGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
-                <div class="pro-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;">
+                <div class="setting-row" id="${prefix}BgSolidGrp"><label>Màu lót</label><div class="setting-inputs"><input type="color" id="${prefix}Bg" value="${defBg}" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="setting-row" id="${prefix}BgGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BgGradient1" value="${defBg}" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}BgGradient2" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}BgGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="setting-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;">
                     <input type="file" id="${prefix}BgInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}BgImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
                     <button type="button" onclick="openBgCloudModal('${prefix}BgImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
                 </div></div>
             </div>
-            <div class="pro-box">
-                <div class="pro-title" style="background:#f39c12;">🔲 VIỀN Ô KHUNG</div>
-                <div class="pro-row"><label>Kiểu viền</label><div class="pro-inputs">
+            <div class="setting-box">
+                <div class="setting-title" style="background:#f39c12;">🔲 VIỀN Ô KHUNG</div>
+                <div class="setting-row"><label>Kiểu viền</label><div class="setting-inputs">
                     <select id="${prefix}BorderMode" onchange="document.getElementById('${prefix}BorderSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}BorderGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}BorderImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh</option></select>
                     <label><input type="checkbox" id="${prefix}BorderTrans" checked>Ẩn</label>
                 </div></div>
-                <div class="pro-row" id="${prefix}BorderSolidGrp"><label>Màu viền</label><div class="pro-inputs"><input type="color" id="${prefix}BorderColor" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
-                <div class="pro-row" id="${prefix}BorderGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}BorderGradient1" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}BorderGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}BorderGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
-                <div class="pro-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;">
+                <div class="setting-row" id="${prefix}BorderSolidGrp"><label>Màu viền</label><div class="setting-inputs"><input type="color" id="${prefix}BorderColor" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="setting-row" id="${prefix}BorderGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BorderGradient1" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}BorderGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}BorderGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="setting-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;">
                     <input type="file" id="${prefix}BorderInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}BorderImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
                     <button type="button" onclick="openBgCloudModal('${prefix}BorderImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
                 </div></div>
-                <div class="pro-row"><label>Dày/Bo</label><div class="pro-inputs"><span>Dày:</span><input type="number" id="${prefix}BorderW" value="2" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Bo(R):</span><input type="number" id="${prefix}Radius" value="8" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><select id="${prefix}BorderStyle" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div>
+                <div class="setting-row"><label>Dày/Bo</label><div class="setting-inputs"><span>Dày:</span><input type="number" id="${prefix}BorderW" value="2" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Bo(R):</span><input type="number" id="${prefix}Radius" value="8" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><select id="${prefix}BorderStyle" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div>
             </div>
-            <div class="pro-box" style="border: 1px solid #d35400;">
-                <div class="pro-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG NỀN Ô</div>
-                <div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}BoxShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> Bật bóng Nền</label><span>X:</span><input type="number" id="${prefix}BoxShadowX" value="5"><span>Y:</span><input type="number" id="${prefix}BoxShadowY" value="5"><span>Mờ:</span><input type="number" id="${prefix}BoxShadowBlur" value="10"><input type="color" id="${prefix}BoxShadowColor" value="#000000"></div></div>
+            <div class="setting-box" style="border: 1px solid #d35400;">
+                <div class="setting-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG NỀN Ô</div>
+                <div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}BoxShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> Bật bóng Nền</label><span>X:</span><input type="number" id="${prefix}BoxShadowX" value="5"><span>Y:</span><input type="number" id="${prefix}BoxShadowY" value="5"><span>Mờ:</span><input type="number" id="${prefix}BoxShadowBlur" value="10"><input type="color" id="${prefix}BoxShadowColor" value="#000000"></div></div>
             </div>
-            <div class="pro-box" style="border: 1px solid #e67e22;">
-                <div class="pro-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div>
-                <div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}BorderShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> Bật bóng Viền</label><span>X:</span><input type="number" id="${prefix}BorderShadowX" value="2"><span>Y:</span><input type="number" id="${prefix}BorderShadowY" value="2"><span>Mờ:</span><input type="number" id="${prefix}BorderShadowBlur" value="4"><input type="color" id="${prefix}BorderShadowColor" value="#000000"></div></div>
+            <div class="setting-box" style="border: 1px solid #e67e22;">
+                <div class="setting-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div>
+                <div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}BorderShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> Bật bóng Viền</label><span>X:</span><input type="number" id="${prefix}BorderShadowX" value="2"><span>Y:</span><input type="number" id="${prefix}BorderShadowY" value="2"><span>Mờ:</span><input type="number" id="${prefix}BorderShadowBlur" value="4"><input type="color" id="${prefix}BorderShadowColor" value="#000000"></div></div>
             </div>
         </div>
 
         ${hasShape ? `
         <div id="ssub-${prefix}-shape" class="sub-sub-tab-content">
-            <div class="pro-box" style="border: 2px solid #e74c3c;">
-                <div class="pro-title" style="background:#fff0f0; color:#e74c3c; display: flex; justify-content: space-between; align-items: center;">
+            <div class="setting-box" style="border: 2px solid #e74c3c;">
+                <div class="setting-title" style="background:#fff0f0; color:#e74c3c; display: flex; justify-content: space-between; align-items: center;">
                     <span>💎 THIẾT KẾ KHỐI ĐỘC LẬP</span>
                     <label style="font-size: 11px; cursor: pointer; color: #e74c3c; display: flex; align-items: center; gap: 4px;">
                         <input type="checkbox" id="${prefix}Shape3D" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> BẬT BÓNG 3D
                     </label>
                 </div>
                 
-                <div class="pro-row">
+                <div class="setting-row">
                     <label>1. Chọn dáng</label>
-                    <div class="pro-inputs">
+                    <div class="setting-inputs">
                         <select id="${prefix}ShapeType" onchange="toggleShapeOptions('${prefix}'); typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="font-weight:bold; color:#e74c3c;">
                             <option value="none" selected>Không dùng khối</option>
                             <option value="text_only">Chữ theo màu mạng</option>
@@ -303,20 +330,26 @@
 
                 <div id="${prefix}ShapeOptions" style="display: none; border-top: 1px dashed #e74c3c; padding-top: 10px; margin-top: 8px;">
                     
-                    <div class="pro-row" id="${prefix}ShapeSizeRow">
-                        <label>5. Kích thước</label>
-                        <div class="pro-inputs">
-                            <span>W:</span><input type="number" id="${prefix}ShapeW" value="45" style="width:45px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
-                            <span>H:</span><input type="number" id="${prefix}ShapeH" value="45" style="width:45px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                    <div class="setting-row" id="${prefix}ShapeSizeRow">
+                        <label>5. KÍCH THƯỚC</label>
+                        <div class="setting-inputs" style="flex-wrap: wrap; gap: 5px;">
+                            <div style="display:flex; align-items:center; gap:3px; background:#fafffa; padding:2px 5px; border-radius:4px; border:1px solid #2ecc71;">
+                                <span>W:</span><input type="number" id="${prefix}ShapeW" value="45" style="width:45px;" oninput="drawCanvas()">
+                                <label style="font-size:10px; color:#27ae60; cursor:pointer; font-weight:bold;"><input type="checkbox" id="${prefix}ShapeAutoW" onchange="toggleShapeOptions('${prefix}'); drawCanvas()"> AUTO</label>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:3px; background:#fafffa; padding:2px 5px; border-radius:4px; border:1px solid #2ecc71;">
+                                <span>H:</span><input type="number" id="${prefix}ShapeH" value="45" style="width:45px;" oninput="drawCanvas()">
+                                <label style="font-size:10px; color:#27ae60; cursor:pointer; font-weight:bold;"><input type="checkbox" id="${prefix}ShapeAutoH" onchange="toggleShapeOptions('${prefix}'); drawCanvas()"> AUTO</label>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="pro-box" style="border: 1px solid #f39c12; margin-top: 10px;">
-                        <div class="pro-title" style="background:#fdf2e9; color:#f39c12;">🔲 VIỀN KHỐI</div>
+                    <div class="setting-box" style="border: 1px solid #f39c12; margin-top: 10px;">
+                        <div class="setting-title" style="background:#fdf2e9; color:#f39c12;">🔲 VIỀN KHỐI</div>
                         
-                        <div class="pro-row">
+                        <div class="setting-row">
                             <label>Kiểu viền</label>
-                            <div class="pro-inputs">
+                            <div class="setting-inputs">
                                 <select id="${prefix}ShapeBorderMode" onchange="document.getElementById('${prefix}ShapeBorderSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}ShapeBorderGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}ShapeBorderImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();">
                                     <option value="solid" selected>Màu trơn</option>
                                     <option value="gradient">Gradient</option>
@@ -326,16 +359,16 @@
                             </div>
                         </div>
 
-                        <div class="pro-row" id="${prefix}ShapeBorderSolidGrp">
+                        <div class="setting-row" id="${prefix}ShapeBorderSolidGrp">
                             <label>Màu viền</label>
-                            <div class="pro-inputs">
+                            <div class="setting-inputs">
                                 <input type="color" id="${prefix}ShapeBorderColor" value="#ffffff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
                             </div>
                         </div>
 
-                        <div class="pro-row" id="${prefix}ShapeBorderGradGrp" style="display:none;">
+                        <div class="setting-row" id="${prefix}ShapeBorderGradGrp" style="display:none;">
                             <label>Gradient</label>
-                            <div class="pro-inputs">
+                            <div class="setting-inputs">
                                 <input type="color" id="${prefix}ShapeBorderGradient1" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
                                 <span>➔</span>
                                 <input type="color" id="${prefix}ShapeBorderGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
@@ -343,17 +376,17 @@
                             </div>
                         </div>
 
-                        <div class="pro-row" id="${prefix}ShapeBorderImgGrp" style="display:none;">
+                        <div class="setting-row" id="${prefix}ShapeBorderImgGrp" style="display:none;">
                             <label>Ảnh lồng</label>
-                            <div class="pro-inputs" style="display:flex; gap:5px; width:100%;">
+                            <div class="setting-inputs" style="display:flex; gap:5px; width:100%;">
                                 <input type="file" id="${prefix}ShapeBorderInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}ShapeBorderImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
                                 <button type="button" onclick="openBgCloudModal('${prefix}ShapeBorderImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
                             </div>
                         </div>
 
-                        <div class="pro-row">
+                        <div class="setting-row">
                             <label>Dày/Bo</label>
-                            <div class="pro-inputs">
+                            <div class="setting-inputs">
                                 <span>Dày:</span><input type="number" id="${prefix}ShapeBorderW" value="2" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
                                 <span id="${prefix}ShapeRadiusGrp" style="display:none;">
                                     <span>Bo(R):</span><input type="number" id="${prefix}ShapeRadius" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
@@ -365,11 +398,11 @@
                         </div>
                     </div>
 
-                    <div class="pro-box" style="border: 1px solid #d35400; margin-top: 10px;">
-                        <div class="pro-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG KHỐI</div>
-                        <div class="pro-row">
+                    <div class="setting-box" style="border: 1px solid #d35400; margin-top: 10px;">
+                        <div class="setting-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG KHỐI</div>
+                        <div class="setting-row">
                             <label>Trạng thái</label>
-                            <div class="pro-inputs">
+                            <div class="setting-inputs">
                                 <input type="checkbox" id="${prefix}ShapeBoxShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> <span>Bật</span>
                                 <span>X:</span><input type="number" id="${prefix}ShapeBoxShadowX" value="2" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
                                 <span>Y:</span><input type="number" id="${prefix}ShapeBoxShadowY" value="2" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
@@ -379,11 +412,11 @@
                         </div>
                     </div>
 
-                    <div class="pro-box" style="border: 1px solid #e67e22; margin-top: 10px;">
-                        <div class="pro-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div>
-                        <div class="pro-row">
+                    <div class="setting-box" style="border: 1px solid #e67e22; margin-top: 10px;">
+                        <div class="setting-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div>
+                        <div class="setting-row">
                             <label>Trạng thái</label>
-                            <div class="pro-inputs">
+                            <div class="setting-inputs">
                                 <input type="checkbox" id="${prefix}ShapeBorderShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> <span>Bật</span>
                                 <span>X:</span><input type="number" id="${prefix}ShapeBorderShadowX" value="0" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
                                 <span>Y:</span><input type="number" id="${prefix}ShapeBorderShadowY" value="0" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
@@ -392,45 +425,9 @@
                             </div>
                         </div>
                     </div>
-
+                    </div>
                 </div>
             </div>
-        </div>
-        ` : ''}
-
-        ${prefix === 'price' ? `
-        <div class="pro-box" style="background:#fafffa; border: 1px solid #2ecc71; margin-top: 15px;">
-    <div class="pro-title" style="background:#2ecc71;">✂️ CÀI ĐẶT HIỂN THỊ GIÁ</div>
-    
-    <div class="pro-row">
-        <label>Hiển thị</label>
-        <div class="pro-inputs">
-            <label><input type="checkbox" id="showPrice" checked onchange="drawCanvas()"> Hiện giá tiền</label>
-        </div>
-    </div>
-    
-    <div class="pro-row">
-        <label>Kèm chữ</label>
-        <div class="pro-inputs">
-            <span>Đầu:</span><input type="text" id="pricePrefix" value="" style="width:50px;" oninput="drawCanvas()">
-            <span>Cuối:</span><input type="text" id="priceSuffix" value="đ" style="width:50px;" oninput="drawCanvas()">
-        </div>
-    </div>
-    
-    <div class="pro-row">
-        <label>Rút gọn</label>
-        <div class="pro-inputs">
-            <select id="priceFormatMode" style="flex:1;" onchange="window.drawCanvas()">
-                <option value="auto_compact">Rút gọn: Viết liền (VD: 5.5Tr, 500K)</option>
-                <option value="auto_slang">Rút gọn: Tiếng lóng (VD: 5Tr5, 1Tr1)</option>
-                <option value="auto_k">Rút gọn: Quy ra K (VD: 6.868K, 500K)</option>
-                <option value="auto">Cơ bản: Có khoảng trắng (VD: 5.5 Tr, 500 K)</option>
-                <option value="dot">Truyền thống: Dấu chấm (VD: 5.000.000)</option>
-                <option value="comma">Truyền thống: Dấu phẩy (VD: 5,000,000)</option>
-            </select>
-        </div>
-    </div>
-</div>
         ` : ''}
     </div>`;
     return html;
@@ -444,23 +441,24 @@
                 <button class="sub-sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-bg', this)">🎨 Nền & Viền</button>
             </div>
             <div id="ssub-${prefix}-format" class="sub-sub-tab-content">
-                <div class="pro-box"><div class="pro-title" style="background:#2ecc71;">🔠 Định Dạng Chữ</div>
-                <div class="pro-row"><label style="color:#e74c3c;">Tên hiển thị</label><div class="pro-inputs"><input type="text" id="${prefix}Text" value="${title}" class="flex-1"></div></div>
-                <div class="pro-row"><label>Font & Cỡ</label><div class="pro-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
-                <div class="pro-row"><label>Canh & Lệch</label><div class="pro-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
-                <div class="pro-row"><label>Màu Chữ</label><div class="pro-inputs"><select id="${prefix}ColorMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select></div></div>
-                <div class="pro-row" id="${prefix}ColorSolidGrp"><label>Màu trơn</label><div class="pro-inputs"><input type="color" id="${prefix}Color" value="#000000"></div></div>
-                <div class="pro-row" id="${prefix}ColorGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}ColorGradient1" value="#000000"><span>➔</span><input type="color" id="${prefix}ColorGradient2" value="#ff0000"><span>Góc:</span><input type="number" id="${prefix}ColorGradAngle" value="0" style="width:40px;"></div></div>
-                <div class="pro-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}ColorInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}ColorImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
-                <div class="pro-row"><label>Trang trí</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}Bold" checked><b>B</b></label><label><input type="checkbox" id="${prefix}Italic"><i>I</i></label><label><input type="checkbox" id="${prefix}Underline"><u>U</u></label><label><input type="checkbox" id="${prefix}Stroke">Viền</label><input type="color" id="${prefix}StrokeColor" value="#ffffff"><input type="number" id="${prefix}StrokeWidth" value="1"></div></div>
+                <div class="setting-box"><div class="setting-title" style="background:#2ecc71;">🔠 Định Dạng Chữ</div>
+                <div class="setting-row"><label style="color:#e74c3c;">Tên hiển thị</label><div class="setting-inputs"><input type="text" id="${prefix}Text" value="${title}" class="flex-1"></div></div>
+                <div class="setting-row"><label>Font & Cỡ</label><div class="setting-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
+                <div class="setting-row"><label>Canh & Lệch</label><div class="setting-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
+                <div class="setting-row"><label>Màu Chữ</label><div class="setting-inputs"><select id="${prefix}ColorMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select><button type="button" class="btn-mini" style="background:#8e44ad; color:white; margin-left:5px;" onclick="if(typeof applyAIColor==='function') applyAIColor('${prefix}')">✨ AI</button></div></div>
+                <div class="setting-row" id="${prefix}ColorSolidGrp"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="${prefix}Color" value="#000000"></div></div>
+                <div class="setting-row" id="${prefix}ColorGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}ColorGradient1" value="#000000"><span>➔</span><input type="color" id="${prefix}ColorGradient2" value="#ff0000"><span>Góc:</span><input type="number" id="${prefix}ColorGradAngle" value="0" style="width:40px;"></div></div>
+                <div class="setting-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}ColorInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}ColorImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
+                <div class="setting-row"><label>Trang trí</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}Bold" checked><b>B</b></label><label><input type="checkbox" id="${prefix}Italic"><i>I</i></label><label><input type="checkbox" id="${prefix}Underline"><u>U</u></label><label><input type="checkbox" id="${prefix}Stroke">Viền</label><input type="color" id="${prefix}StrokeColor" value="#ffffff"><input type="number" id="${prefix}StrokeWidth" value="1"></div></div>
                 </div>
-                <div class="pro-box" style="border: 1px solid #27ae60;"><div class="pro-title" style="background:#e8f4e8; color:#27ae60;">⛅ BÓNG CHỮ (ObjShadow)</div><div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}ObjShadow"> Bật bóng chữ</label><span>X:</span><input type="number" id="${prefix}ObjShadowX" value="3"><span>Y:</span><input type="number" id="${prefix}ObjShadowY" value="3"><span>Mờ:</span><input type="number" id="${prefix}ObjShadowBlur" value="5"><input type="color" id="${prefix}ObjShadowColor" value="#000000"></div></div></div>
+                <div class="setting-box" style="border: 1px solid #27ae60;"><div class="setting-title" style="background:#e8f4e8; color:#27ae60;">⛅ BÓNG CHỮ (ObjShadow)</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}ObjShadow"> Bật bóng chữ</label><span>X:</span><input type="number" id="${prefix}ObjShadowX" value="3"><span>Y:</span><input type="number" id="${prefix}ObjShadowY" value="3"><span>Mờ:</span><input type="number" id="${prefix}ObjShadowBlur" value="5"><input type="color" id="${prefix}ObjShadowColor" value="#000000"></div></div></div>
             </div>
             <div id="ssub-${prefix}-pos" class="sub-sub-tab-content active">
-                <div class="pro-box"><div class="pro-title">📐 Vị Trí & Kích Thước</div>
-                <div class="pro-row"><label>Kích thước</label><div class="pro-inputs"><span>W:</span><input type="number" id="${prefix}W" value="${defW}"><span>H:</span><input type="number" id="${prefix}H" value="40"></div></div>
-                <div class="pro-row"><label>Lệch khối</label><div class="pro-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="${defY}"></div></div>
-                <div class="pro-row"><label>Khóa/Canh</label><div class="pro-inputs">
+                <div class="setting-box"><div class="setting-title">📐 Vị Trí & Kích Thước</div>
+                <div class="setting-row"><label>Kích thước</label><div class="setting-inputs"><span>W:</span><input type="number" id="${prefix}W" value="${defW}"><span>H:</span><input type="number" id="${prefix}H" value="40"></div></div>
+                <div class="setting-row"><label>Lệch khối</label><div class="setting-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="${defY}"></div></div>
+                <div class="setting-row"><label>Xoay (Góc)</label><div class="setting-inputs"><span>∠:</span><input type="number" id="${prefix}Angle" value="0" style="width:45px;"> <input type="range" min="0" max="360" value="0" oninput="document.getElementById('${prefix}Angle').value=this.value; typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="flex:1;"></div></div>
+                <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs">
                     <select id="${prefix}AlignX"><option value="left" ${ax==='left'?'selected':''}>Trái</option><option value="center" ${ax==='center'?'selected':''}>Giữa</option><option value="right" ${ax==='right'?'selected':''}>Phải</option></select>
                     <select id="${prefix}AlignY"><option value="top" ${ay==='top'?'selected':''}>Trên</option><option value="middle" ${ay==='middle'?'selected':''}>Giữa</option><option value="bottom" ${ay==='bottom'?'selected':''}>Dưới</option></select>
                     <label style="color:red;"><input type="checkbox" id="${prefix}Locked">🔒 Khóa</label>
@@ -468,20 +466,20 @@
                 </div>
             </div>
             <div id="ssub-${prefix}-bg" class="sub-sub-tab-content">
-                <div class="pro-box"><div class="pro-title" style="background:#e74c3c;">🎨 NỀN Ô KHUNG</div>
-                <div class="pro-row"><label>Kiểu nền</label><div class="pro-inputs"><select id="${prefix}BgMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh lót</option></select><label><input type="checkbox" id="${prefix}BgTrans" checked>Ẩn</label></div></div>
-                <div class="pro-row" id="${prefix}BgSolidGrp"><label>Màu lót</label><div class="pro-inputs"><input type="color" id="${prefix}Bg" value="#ffffff"></div></div>
-                <div class="pro-row" id="${prefix}BgGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}BgGradient1" value="#ffffff"><span>➔</span><input type="color" id="${prefix}BgGradient2" value="#007bff"><span>Góc:</span><input type="number" id="${prefix}BgGradAngle" value="0" style="width:40px;"></div></div>
-                <div class="pro-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}BgInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}BgImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
+                <div class="setting-box"><div class="setting-title" style="background:#e74c3c;">🎨 NỀN Ô KHUNG</div>
+                <div class="setting-row"><label>Kiểu nền</label><div class="setting-inputs"><select id="${prefix}BgMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh lót</option></select><label><input type="checkbox" id="${prefix}BgTrans" checked>Ẩn</label></div></div>
+                <div class="setting-row" id="${prefix}BgSolidGrp"><label>Màu lót</label><div class="setting-inputs"><input type="color" id="${prefix}Bg" value="#ffffff"></div></div>
+                <div class="setting-row" id="${prefix}BgGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BgGradient1" value="#ffffff"><span>➔</span><input type="color" id="${prefix}BgGradient2" value="#007bff"><span>Góc:</span><input type="number" id="${prefix}BgGradAngle" value="0" style="width:40px;"></div></div>
+                <div class="setting-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}BgInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}BgImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
                 </div>
-                <div class="pro-box"><div class="pro-title" style="background:#f39c12;">🔲 VIỀN Ô KHUNG</div>
-                <div class="pro-row"><label>Kiểu viền</label><div class="pro-inputs"><select id="${prefix}BorderMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh</option></select><label><input type="checkbox" id="${prefix}BorderTrans" checked>Ẩn</label></div></div>
-                <div class="pro-row" id="${prefix}BorderSolidGrp"><label>Màu viền</label><div class="pro-inputs"><input type="color" id="${prefix}BorderColor" value="#007bff"></div></div>
-                <div class="pro-row" id="${prefix}BorderGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="${prefix}BorderGradient1" value="#007bff"><span>➔</span><input type="color" id="${prefix}BorderGradient2" value="#ff0000"><span>Góc:</span><input type="number" id="${prefix}BorderGradAngle" value="0" style="width:40px;"></div></div>
-                <div class="pro-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="pro-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}BorderInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}BorderImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
-                <div class="pro-row"><label>Dày/Bo</label><div class="pro-inputs"><span>Dày:</span><input type="number" id="${prefix}BorderW" value="2"><span>Bo(R):</span><input type="number" id="${prefix}Radius" value="8"><select id="${prefix}BorderStyle"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div></div>
-                <div class="pro-box" style="border: 1px solid #d35400;"><div class="pro-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG NỀN Ô</div><div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}BoxShadow"> Bật bóng Nền</label><span>X:</span><input type="number" id="${prefix}BoxShadowX" value="5"><span>Y:</span><input type="number" id="${prefix}BoxShadowY" value="5"><span>Mờ:</span><input type="number" id="${prefix}BoxShadowBlur" value="10"><input type="color" id="${prefix}BoxShadowColor" value="#000000"></div></div></div>
-                <div class="pro-box" style="border: 1px solid #e67e22;"><div class="pro-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div><div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="${prefix}BorderShadow"> Bật bóng Viền</label><span>X:</span><input type="number" id="${prefix}BorderShadowX" value="2"><span>Y:</span><input type="number" id="${prefix}BorderShadowY" value="2"><span>Mờ:</span><input type="number" id="${prefix}BorderShadowBlur" value="4"><input type="color" id="${prefix}BorderShadowColor" value="#000000"></div></div></div>
+                <div class="setting-box"><div class="setting-title" style="background:#f39c12;">🔲 VIỀN Ô KHUNG</div>
+                <div class="setting-row"><label>Kiểu viền</label><div class="setting-inputs"><select id="${prefix}BorderMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh</option></select><label><input type="checkbox" id="${prefix}BorderTrans" checked>Ẩn</label></div></div>
+                <div class="setting-row" id="${prefix}BorderSolidGrp"><label>Màu viền</label><div class="setting-inputs"><input type="color" id="${prefix}BorderColor" value="#007bff"></div></div>
+                <div class="setting-row" id="${prefix}BorderGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BorderGradient1" value="#007bff"><span>➔</span><input type="color" id="${prefix}BorderGradient2" value="#ff0000"><span>Góc:</span><input type="number" id="${prefix}BorderGradAngle" value="0" style="width:40px;"></div></div>
+                <div class="setting-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}BorderInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}BorderImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
+                <div class="setting-row"><label>Dày/Bo</label><div class="setting-inputs"><span>Dày:</span><input type="number" id="${prefix}BorderW" value="2"><span>Bo(R):</span><input type="number" id="${prefix}Radius" value="8"><select id="${prefix}BorderStyle"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div></div>
+                <div class="setting-box" style="border: 1px solid #d35400;"><div class="setting-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG NỀN Ô</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}BoxShadow"> Bật bóng Nền</label><span>X:</span><input type="number" id="${prefix}BoxShadowX" value="5"><span>Y:</span><input type="number" id="${prefix}BoxShadowY" value="5"><span>Mờ:</span><input type="number" id="${prefix}BoxShadowBlur" value="10"><input type="color" id="${prefix}BoxShadowColor" value="#000000"></div></div></div>
+                <div class="setting-box" style="border: 1px solid #e67e22;"><div class="setting-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}BorderShadow"> Bật bóng Viền</label><span>X:</span><input type="number" id="${prefix}BorderShadowX" value="2"><span>Y:</span><input type="number" id="${prefix}BorderShadowY" value="2"><span>Mờ:</span><input type="number" id="${prefix}BorderShadowBlur" value="4"><input type="color" id="${prefix}BorderShadowColor" value="#000000"></div></div></div>
             </div>
         </div>`;
         return html;
@@ -490,14 +488,14 @@
     document.addEventListener('DOMContentLoaded', () => {
         let layoutHtml = `<div id="tab-layout" class="tab-content active"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-luoi-chung', this)">Lưới Chung</button><button class="sub-tab-btn" onclick="switchSubTab('sub-num', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-price', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-menh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-mang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data2', this)">DL 2</button></div>`;
         
-layoutHtml += `<div id="sub-luoi-chung" class="sub-tab-content active"><div class="pro-box"><div class="pro-title">📐 Kích Thước Lưới</div><div class="pro-row"><label>Cột hiển thị</label><div class="pro-inputs"><label><input type="checkbox" id="chkNum" checked onchange="updateUI()">Số</label><label><input type="checkbox" id="chkPrice" checked onchange="updateUI()">Giá</label><label><input type="checkbox" id="chkMenh" checked onchange="updateUI()">Mệnh</label><label><input type="checkbox" id="chkMang" checked onchange="updateUI()">Mạng</label><label><input type="checkbox" id="chkData1" checked onchange="updateUI()">DL1</label><label><input type="checkbox" id="chkData2" checked onchange="updateUI()">DL2</label></div></div><div class="pro-row"><label>Ô Lưới</label><div class="pro-inputs"><span>W:</span><input type="number" id="cellW" value="380"><span>H:</span><input type="number" id="cellH" value="60"></div></div><div class="pro-row"><label>Số lượng</label><div class="pro-inputs"><span>Cột:</span><input type="number" id="tableCols" value="2"><span>Dòng:</span><input type="number" id="tableRows" value="10"></div></div><div class="pro-row"><label>Cách nhau</label><div class="pro-inputs"><span>Cột:</span><input type="number" id="tableGap" value="15"><span>Dòng:</span><input type="number" id="rowGap" value="10"></div></div></div>`;
+layoutHtml += `<div id="sub-luoi-chung" class="sub-tab-content active"><div class="setting-box"><div class="setting-title" style="display:flex; justify-content:space-between; align-items:center;"><span>📐 Kích Thước Lưới</span><button onclick="applyAIColor('all')" class="btn-mini" style="background:#8e44ad; color:white; padding: 2px 10px;">✨ BỘ MÀU AI</button></div><div class="setting-row"><label>Cột hiển thị</label><div class="setting-inputs"><label><input type="checkbox" id="chkNum" checked onchange="updateUI()">Số</label><label><input type="checkbox" id="chkPrice" checked onchange="updateUI()">Giá</label><label><input type="checkbox" id="chkMenh" checked onchange="updateUI()">Mệnh</label><label><input type="checkbox" id="chkMang" checked onchange="updateUI()">Mạng</label><label><input type="checkbox" id="chkData1" checked onchange="updateUI()">DL1</label><label><input type="checkbox" id="chkData2" checked onchange="updateUI()">DL2</label></div></div><div class="setting-row"><label>Ô Lưới</label><div class="setting-inputs"><span>W:</span><input type="number" id="cellW" value="380"><span>H:</span><input type="number" id="cellH" value="60"></div></div><div class="setting-row"><label>Số lượng</label><div class="setting-inputs"><span>Cột:</span><input type="number" id="tableCols" value="2"><span>Dòng:</span><input type="number" id="tableRows" value="10"></div></div><div class="setting-row"><label>Cách nhau</label><div class="setting-inputs"><span>Cột:</span><input type="number" id="tableGap" value="15"><span>Dòng:</span><input type="number" id="rowGap" value="10"></div></div></div>`;
 
-layoutHtml += `<div class="pro-box">
-    <div class="pro-title" style="background:#f39c12;">🎨 Nền Ô Lưới & Bóng Cell</div>
+layoutHtml += `<div class="setting-box">
+    <div class="setting-title" style="background:#f39c12;">🎨 Nền Ô Lưới & Bóng Cell</div>
     
-    <div class="pro-row">
+    <div class="setting-row">
         <label>Nền Ô Lưới</label>
-        <div class="pro-inputs">
+        <div class="setting-inputs">
             <select id="cellBgMode" onchange="document.getElementById('cellBgSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('cellBgGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('cellBgImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; updateUI();">
                 <option value="solid" selected>Trơn</option>
                 <option value="gradient">Gradient</option>
@@ -507,12 +505,12 @@ layoutHtml += `<div class="pro-box">
         </div>
     </div>
     
-    <div class="pro-row" id="cellBgSolidGrp"><label>Màu nền</label><div class="pro-inputs"><input type="color" id="cellBg" value="#ffffff"></div></div>
-    <div class="pro-row" id="cellBgGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="cellBgGradient1" value="#ffffff"><span>➔</span><input type="color" id="cellBgGradient2" value="#f0f0f0"><span>Góc:</span><input type="number" id="cellBgGradAngle" value="0" style="width:40px;"></div></div>
+    <div class="setting-row" id="cellBgSolidGrp"><label>Màu nền</label><div class="setting-inputs"><input type="color" id="cellBg" value="#ffffff"></div></div>
+    <div class="setting-row" id="cellBgGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="cellBgGradient1" value="#ffffff"><span>➔</span><input type="color" id="cellBgGradient2" value="#f0f0f0"><span>Góc:</span><input type="number" id="cellBgGradAngle" value="0" style="width:40px;"></div></div>
     
-    <div class="pro-row" id="cellBgImgGrp" style="display:none;">
+    <div class="setting-row" id="cellBgImgGrp" style="display:none;">
         <label>Ảnh nền</label>
-        <div class="pro-inputs" style="flex-direction:column; gap:3px;">
+        <div class="setting-inputs" style="flex-direction:column; gap:3px;">
             <div style="display:flex; gap:5px; width:100%;">
                 <input type="file" id="cellBgInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, 'cellBgImage', 'cellBgStatus')">
                 
@@ -524,9 +522,9 @@ layoutHtml += `<div class="pro-box">
         </div>
     </div>
 
-    <div class="pro-row">
+    <div class="setting-row">
         <label>Viền Lưới</label>
-        <div class="pro-inputs">
+        <div class="setting-inputs">
             <select id="cellBorderMode" onchange="document.getElementById('cellBorderSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('cellBorderGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('cellBorderImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; updateUI();">
                 <option value="solid" selected>Trơn</option>
                 <option value="gradient">Gradient</option>
@@ -536,12 +534,12 @@ layoutHtml += `<div class="pro-box">
         </div>
     </div>
     
-    <div class="pro-row" id="cellBorderSolidGrp"><label>Màu viền</label><div class="pro-inputs"><input type="color" id="cellBorderColor" value="#cccccc"></div></div>
-    <div class="pro-row" id="cellBorderGradGrp" style="display:none;"><label>Gradient</label><div class="pro-inputs"><input type="color" id="cellBorderGradient1" value="#cccccc"><span>➔</span><input type="color" id="cellBorderGradient2" value="#000000"><span>Góc:</span><input type="number" id="cellBorderGradAngle" value="0" style="width:40px;"></div></div>
+    <div class="setting-row" id="cellBorderSolidGrp"><label>Màu viền</label><div class="setting-inputs"><input type="color" id="cellBorderColor" value="#cccccc"></div></div>
+    <div class="setting-row" id="cellBorderGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="cellBorderGradient1" value="#cccccc"><span>➔</span><input type="color" id="cellBorderGradient2" value="#000000"><span>Góc:</span><input type="number" id="cellBorderGradAngle" value="0" style="width:40px;"></div></div>
     
-    <div class="pro-row" id="cellBorderImgGrp" style="display:none;">
+    <div class="setting-row" id="cellBorderImgGrp" style="display:none;">
         <label>Ảnh viền</label>
-        <div class="pro-inputs" style="flex-direction:column; gap:3px;">
+        <div class="setting-inputs" style="flex-direction:column; gap:3px;">
             <div style="display:flex; gap:5px; width:100%;">
                 <input type="file" id="cellBorderInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, 'cellBorderImage', 'cellBorderStatus')">
                 
@@ -553,14 +551,14 @@ layoutHtml += `<div class="pro-box">
         </div>
     </div>
 
-    <div class="pro-row"><label>Dày/Bo</label><div class="pro-inputs"><span>Dày:</span><input type="number" id="cellBorderW" value="1"><span>Bo:</span><input type="number" id="cellRadius" value="0"><select id="cellBorderStyle"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div>
-    <div class="pro-row" style="background:#fffcf0;"><label style="color:red;">🔲 Bóng Cell</label><div class="pro-inputs"><label><input type="checkbox" id="cellBoxShadow"> Bật bóng Ô Lưới</label><span>X:</span><input type="number" id="cellBoxShadowX" value="3"><span>Y:</span><input type="number" id="cellBoxShadowY" value="3"><span>Mờ:</span><input type="number" id="cellBoxShadowBlur" value="8"><input type="color" id="cellBoxShadowColor" value="#000000"></div></div>
-    <div class="pro-row" style="background:#e8f4e8;"><label style="color:green;">🦓 Ngựa Vằn</label><div class="pro-inputs"><label><input type="checkbox" id="useZebra"> Bật nền xen kẽ</label></div></div>
+    <div class="setting-row"><label>Dày/Bo</label><div class="setting-inputs"><span>Dày:</span><input type="number" id="cellBorderW" value="1"><span>Bo:</span><input type="number" id="cellRadius" value="0"><select id="cellBorderStyle"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div>
+    <div class="setting-row" style="background:#fffcf0;"><label style="color:red;">🔲 Bóng Cell</label><div class="setting-inputs"><label><input type="checkbox" id="cellBoxShadow"> Bật bóng Ô Lưới</label><span>X:</span><input type="number" id="cellBoxShadowX" value="3"><span>Y:</span><input type="number" id="cellBoxShadowY" value="3"><span>Mờ:</span><input type="number" id="cellBoxShadowBlur" value="8"><input type="color" id="cellBoxShadowColor" value="#000000"></div></div>
+    <div class="setting-row" style="background:#e8f4e8;"><label style="color:green;">🦓 Ngựa Vằn</label><div class="setting-inputs"><label><input type="checkbox" id="useZebra"> Bật nền xen kẽ</label></div></div>
 </div></div>`;
         layoutHtml += generateColTab('num', 'Cột Số', 0, false, 200, '#ffffff') + generateColTab('price', 'Cột Giá', 65, false, 110, '#ffffff') + generateColTab('menh', 'Cột Mệnh', 0, true, 70, '#ffffff') + generateColTab('mang', 'Cột Mạng', -80, true, 70, '#ffffff') + generateColTab('data1', 'Cột DL 1', 0, false, 100, '#ffffff') + generateColTab('data2', 'Cột DL 2', 0, false, 100, '#ffffff') + `</div>`;
 
         let headHtml = `<div id="tab-colheader" class="tab-content"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-hCommon', this)">Bật/Tắt Tiêu Đề</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hNum', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hPrice', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMenh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData2', this)">DL 2</button></div>`;
-        headHtml += `<div id="sub-hCommon" class="sub-tab-content active"><div class="pro-box"><div class="pro-title">🏷️ Kích Hoạt Tiêu Đề</div><div class="pro-row"><label>Trạng thái</label><div class="pro-inputs"><label><input type="checkbox" id="showHeaderRow" checked> Hiện hàng Tiêu Đề</label><span>Cao(H):</span><input type="number" id="headerRowHeight" value="50"></div></div></div></div>`;
+        headHtml += `<div id="sub-hCommon" class="sub-tab-content active"><div class="setting-box"><div class="setting-title">🏷️ Kích Hoạt Tiêu Đề</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="showHeaderRow" checked> Hiện hàng Tiêu Đề</label><span>Cao(H):</span><input type="number" id="headerRowHeight" value="50"></div></div></div></div>`;
         headHtml += generateHeaderTab('hNum', 'SỐ ĐẸP VIP', 0, 200) + generateHeaderTab('hPrice', 'GIÁ BÁN', 65, 110) + generateHeaderTab('hMenh', 'MỆNH', 0, 70) + generateHeaderTab('hMang', 'MẠNG', -80, 70) + generateHeaderTab('hData1', 'DỮ LIỆU 1', 0, 100) + generateHeaderTab('hData2', 'DỮ LIỆU 2', 0, 100) + `</div>`;
 
         let globHtml = `<div id="tab-globaltext" class="tab-content"><div class="sub-tabs" id="globalTextTabs" style="flex-wrap: wrap;"></div><div id="dynamic-globals-container">`;
@@ -576,7 +574,7 @@ layoutHtml += `<div class="pro-box">
             {id:'pageNum', t:'Số Trang', d:'Trang {p}/{t}', w:150, y:0, ax:'center', ay:'bottom'}
         ];
         let gTabs = '<button class="sub-tab-btn active" onclick="switchSubTab(\'sub-gt-chung\', this)">Bật/Tắt Cụm</button>';
-        globHtml += `<div id="sub-gt-chung" class="sub-tab-content active"><div class="pro-box"><div class="pro-title">BẬT TẮT CHỮ GÓC</div><div class="pro-row"><div class="pro-inputs" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+        globHtml += `<div id="sub-gt-chung" class="sub-tab-content active"><div class="setting-box"><div class="setting-title">BẬT TẮT CHỮ GÓC</div><div class="setting-row"><div class="setting-inputs" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
             <label><input type="checkbox" id="use_header1" checked onchange="updateUI()">T.Đề 1</label>
             <label><input type="checkbox" id="use_header2" checked onchange="updateUI()">T.Đề 2</label>
             <label><input type="checkbox" id="use_ctl" checked onchange="updateUI()">Trái Trên</label>
@@ -678,7 +676,12 @@ layoutHtml += `<div class="pro-box">
     </div>
 
     <div id="sub-general-margin" class="sub-tab-content"><div class="pro-box"><div class="pro-title" style="background:#8e44ad;">📏 CĂN LỀ & ĐÓNG GÁY</div><div class="pro-row"><label>Lề Dọc</label><div class="pro-inputs"><span>Trán:</span><input type="number" id="tZoneH" value="100" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Chân:</span><input type="number" id="fZoneH" value="80" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div><div class="pro-row" style="background:#fff4f4;"><label style="color:var(--danger)">Đóng gáy in</label><div class="pro-inputs"><select id="bindingMode" class="flex-1" onchange="document.getElementById('grpMarginNormal').style.display = (this.value === 'none' ? 'flex' : 'none'); document.getElementById('grpMarginBinding').style.display = (this.value === 'none' ? 'none' : 'flex'); if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><option value="none">1. Không đóng gáy</option><option value="single">2. Đóng gáy 1 mặt</option><option value="double">3. Đóng gáy 2 mặt (Lẻ/Chẵn)</option></select></div></div><div class="pro-row" id="grpMarginNormal"><label>Lề Ngang</label><div class="pro-inputs"><span>Trái:</span><input type="number" id="mLeft" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Phải:</span><input type="number" id="mRight" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div><div class="pro-row" id="grpMarginBinding" style="display:none; background:#fff4f4;"><label style="color:var(--danger)">Lề Đóng Gáy</label><div class="pro-inputs"><span>Gáy:</span><input type="number" id="marginBinding" value="80" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Lề:</span><input type="number" id="marginNonBinding" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div></div></div>
-    <div id="sub-general-export" class="sub-tab-content"><div class="pro-box"><div class="pro-title" style="background:#27ae60;">📦 CHẤT LƯỢNG XUẤT FILE</div><div class="pro-row"><label>Độ nét</label><div class="pro-inputs"><select id="exportScale" class="flex-1" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><option value="1">1x (Web)</option><option value="2" selected>2x (HD)</option><option value="3">3x (In Ấn)</option></select></div></div><div class="pro-row"><label>Định dạng</label><div class="pro-inputs"><select id="exportFormat" class="flex-1"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option></select></div></div></div></div>
+    <div id="sub-general-export" class="sub-tab-content">
+        <div class="pro-box"><div class="pro-title" style="background:#27ae60;">📦 CHẤT LƯỢNG XUẤT FILE PRO</div>
+        <div class="pro-row"><label>Độ nét</label><div class="pro-inputs"><select id="exportScale" class="flex-1" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><option value="1">1x (Web)</option><option value="2" selected>2x (HD)</option><option value="3">3x (In Ấn)</option><option value="4">4x (Ultra Pro)</option></select></div></div>
+        <div class="pro-row"><label>Watermark</label><div class="pro-inputs"><label><input type="checkbox" id="useWatermark" onchange="drawCanvas()"> Bật chữ ký</label><input type="text" id="watermarkText" value="VIP SIM TOOL" placeholder="Nội dung..." oninput="drawCanvas()"></div></div>
+        <div class="pro-row"><label>Định dạng</label><div class="pro-inputs"><select id="exportFormat" class="flex-1"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option></select></div></div></div>
+    </div>
 </div>
 `;
 
@@ -747,6 +750,7 @@ layoutHtml += `<div class="pro-box">
 <div id="printArea"></div>
 
 <script src="https://stuk.github.io/jszip/dist/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="js/script.js"></script>
 <script src="js/main.js"></script>
 
@@ -848,14 +852,24 @@ document.addEventListener('DOMContentLoaded', () => {
         return isNaN(val) ? def : val; 
     };
 
-    const sysFonts = ['Arial','Verdana','Tahoma','Times New Roman','Courier New','Segoe UI','Impact','Roboto','Montserrat','Oswald','Dancing Script','Pattaya'];
-    document.querySelectorAll('.font-selector').forEach(sel => {
-        sysFonts.forEach(f => {
-            let opt = document.createElement('option');
-            opt.value = f; opt.innerText = f;
-            sel.appendChild(opt);
+    const sysFonts = [
+        'Arial','Verdana','Tahoma','Times New Roman','Courier New','Segoe UI','Impact',
+        'Roboto','Montserrat','Oswald','Dancing Script','Pattaya','Inter','Outfit',
+        'Playfair Display','Bungee','Lobster','Pacifico','Saira Stencil One','Charm',
+        'Sedgwick Ave Display','Century','Century-Bold','UVN Saigon','UVN Dam Cuoi','HL Thu phap'
+    ];
+    window.initFontSelectors = function() {
+        document.querySelectorAll('.font-selector').forEach(sel => {
+            if (sel.children.length > 0) return; // Tránh nạp trùng
+            sysFonts.forEach(f => {
+                let opt = document.createElement('option');
+                opt.value = f; opt.innerText = f;
+                opt.style.fontFamily = `"${f}", sans-serif`;
+                sel.appendChild(opt);
+            });
         });
-    });
+    };
+    initFontSelectors();
 
     window.setupAdvancedUploader = function(inputId, globalVarName) {
         let inputEl = document.getElementById(inputId);
@@ -1513,19 +1527,34 @@ window.toggleShapeOptions = function(prefix) {
         } else {
             optionsDiv.style.display = 'block';
             
-            // V24: Hiện/Ẩn thông số Bo(R) theo danh sách hỗ trợ rõ ràng
+            // Bo(R) visibility
             if (radiusGrp) {
                 const allowList = ['rect_round_expand', 'rect_round_tight', 'rect_round', 'rect_square'];
                 const isLegacyShape = ['circle', 'diamond', 'pentagon', 'hexagon', 'octagon', 'teardrop', 'star'].includes(val);
                 const isSharpRect = ['rect_expand', 'rect_tight', 'rect_square_sharp'].includes(val);
                 const showRadius = allowList.includes(val) || (!isLegacyShape && !isSharpRect);
-                radiusGrp.style.display = showRadius ? 'inline' : 'none';
+                radiusGrp.style.display = showRadius ? 'inline-block' : 'none';
             }
 
-            // V24: Ẩn Kích thước W/H nếu chọn loại tự động (Giãn nở / Gần khít)
+            // SizeRow visibility
             if (sizeRow) {
-                const isAuto = val.includes('expand') || val.includes('tight');
-                sizeRow.style.display = isAuto ? 'none' : 'flex';
+                sizeRow.style.display = 'flex';
+                // Handle Auto Checkboxes
+                let autoW = document.getElementById(prefix + 'ShapeAutoW');
+                let autoH = document.getElementById(prefix + 'ShapeAutoH');
+                let inpW = document.getElementById(prefix + 'ShapeW');
+                let inpH = document.getElementById(prefix + 'ShapeH');
+
+                // V24: Mặc định check Auto nếu là loại "expand"
+                if (val.includes('expand')) {
+                    if (autoW && !autoW.dataset.init) { autoW.checked = true; autoW.dataset.init = "1"; }
+                    if (autoH && !autoH.dataset.init) { autoH.checked = true; autoH.dataset.init = "1"; }
+                }
+
+                if (inpW && autoW) inpW.disabled = autoW.checked;
+                if (inpH && autoH) inpH.disabled = autoH.checked;
+                if (inpW && autoW) inpW.style.opacity = autoW.checked ? '0.5' : '1';
+                if (inpH && autoH) inpH.style.opacity = autoH.checked ? '0.5' : '1';
             }
         }
     }

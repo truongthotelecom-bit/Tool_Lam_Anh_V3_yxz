@@ -344,10 +344,10 @@
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.4); /* Nền tối vừa đủ nhìn bản vẽ */
-    z-index: 999998;
+    background: rgba(0, 0, 0, 0.4); 
+    z-index: 10000000; /* V25: Cao hơn cả Fullscreen */
     flex-direction: column;
-    justify-content: flex-end; /* Ép nội dung xuống đáy */
+    justify-content: flex-end; 
     animation: fadeInOverlay 0.25s ease;
     backdrop-filter: blur(2px);
 }
