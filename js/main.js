@@ -470,29 +470,29 @@ window.drawCanvas = function() {
             }
             
             let mangText = (rawMang && rawMang !== "SIM") ? (mPreNet + rawMang + mSufNet) : "";
-
-            // vList mapping: num(0), price(1), menh(2), mang(3), data1(4), data2(5)
-            let vList = [num, priceText, menhText, mangText, rowData ? (rowData[2]||"") : "", rowData ? (rowData[3]||"") : ""];
-            
-            pKeys.forEach((p, idx) => {
-                let chkId = window.colCheckMap[p]; 
-                let chkEl = document.getElementById(chkId);
-                if (!chkEl || chkEl.checked) {
-                    let w = window.getVal(p+'W', 100), h = window.getVal(p+'H', 40);
-                    let px = window.getPos(cx-cW/2, cW, w, document.getElementById(p+'AlignX')?.value || 'center', window.getVal(p+'X', 0)) + w/2;
-                    let py = window.getPos(cy-cH/2, cH, h, document.getElementById(p+'AlignY')?.value || 'middle', window.getVal(p+'Y', 0)) + h/2;
-                    
-                    if (rowData && vList[idx] !== "" && vList[idx] !== undefined) {
-                        let autoColor = null;
-                        if (p === 'menh') autoColor = menhColors[rawMenh] || null; // Dùng rawMenh để lấy màu
-                        if (p === 'mang') autoColor = netData ? netData.color : null;
-                        
-                        window.drawProElement(ctx, p, vList[idx], px, py, w, h, window.getVal(p+'Radius'), window.getVal(p+'Angle'), false, autoColor);
-                    } else {
-                        window.drawProElement(ctx, p, ' ', px, py, w, h, window.getVal(p+'Radius'), window.getVal(p+'Angle'), true);
-                    }
-                }
-            });
+ 
+             // vList mapping: num(0), price(1), menh(2), mang(3), data1(4), data2(5)
+             let vList = [num, priceText, menhText, mangText, rowData ? (rowData[2]||"") : "", rowData ? (rowData[3]||"") : ""];
+             
+             pKeys.forEach((p, idx) => {
+                 let chkId = window.colCheckMap[p]; 
+                 let chkEl = document.getElementById(chkId);
+                 if (!chkEl || chkEl.checked) {
+                     let w = window.getVal(p+'W', 100), h = window.getVal(p+'H', 40);
+                     let px = window.getPos(cx-cW/2, cW, w, document.getElementById(p+'AlignX')?.value || 'center', window.getVal(p+'X', 0)) + w/2;
+                     let py = window.getPos(cy-cH/2, cH, h, document.getElementById(p+'AlignY')?.value || 'middle', window.getVal(p+'Y', 0)) + h/2;
+                     
+                     if (rowData && vList[idx] !== "" && vList[idx] !== undefined) {
+                         let autoColor = null;
+                         if (p === 'menh') autoColor = menhColors[rawMenh] || null; // Dùng rawMenh để lấy màu
+                         if (p === 'mang') autoColor = netData ? netData.color : null;
+                         
+                         window.drawProElement(ctx, p, vList[idx], px, py, w, h, window.getVal(p+'Radius'), window.getVal(p+'Angle'), false, autoColor);
+                     } else {
+                         window.drawProElement(ctx, p, ' ', px, py, w, h, window.getVal(p+'Radius'), window.getVal(p+'Angle'), true);
+                     }
+                 }
+             });
         }
     }
 
@@ -529,40 +529,6 @@ window.drawCanvas = function() {
                 ctx.fillText(wmText, 0, 0); ctx.restore();
             }
         }
-        ctx.restore();
-    }
-
-    // BLUEPRINT
-    if (window.showBlueprintMode && typeof hitBoxes !== 'undefined') {
-        ctx.save();
-        ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 4; ctx.setLineDash([10, 10]); ctx.strokeRect(0, 0, cw, ch);
-        let canvasInfo = `NỀN TOÀN CẢNH (${Math.round(cw)}x${Math.round(ch)})`; ctx.font = 'bold 14px Arial, Tahoma'; let cTw = ctx.measureText(canvasInfo).width;
-        ctx.fillStyle = 'rgba(0, 229, 255, 0.9)'; ctx.fillRect(10, 10, cTw + 16, 26); ctx.fillStyle = '#000000'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(canvasInfo, 18, 23);
-
-        let cellLabelDrawn = false;
-        hitBoxes.forEach(b => {
-            if(b.rectW <= 0 || b.rectH <= 0) return;
-            ctx.save(); ctx.translate(b.cx, b.cy); if (b.angle) ctx.rotate(b.angle * Math.PI / 180);
-            let isCell = b.id === 'cell'; ctx.strokeStyle = isCell ? '#00e676' : '#ff007f'; ctx.lineWidth = isCell ? 2 : 1.5; ctx.setLineDash([5, 5]); ctx.strokeRect(-b.rectW/2, -b.rectH/2, b.rectW, b.rectH);
-            if (!isCell || !cellLabelDrawn) {
-                let info = `${b.id.toUpperCase()} (${Math.round(b.rectW)}x${Math.round(b.rectH)})`; ctx.font = 'bold 11px Arial, Tahoma'; let tW = ctx.measureText(info).width;
-                ctx.fillStyle = isCell ? 'rgba(0, 230, 118, 0.9)' : 'rgba(255, 0, 127, 0.85)'; ctx.fillRect(-b.rectW/2, -b.rectH/2 - 16, tW + 8, 16); ctx.fillStyle = isCell ? '#000000' : '#ffffff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(info, -b.rectW/2 + 4, -b.rectH/2 - 8);
-                if (isCell) cellLabelDrawn = true;
-            }
-            ctx.restore();
-        });
-        ctx.restore();
-    }
-    
-    // V25: VẼ SMART GUIDES
-    if (isDragging && typeof smartGuides !== 'undefined' && smartGuides.length > 0) {
-        ctx.save(); ctx.setLineDash([5, 5]); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
-        smartGuides.forEach(g => {
-            ctx.beginPath();
-            if (g.type === 'v') { ctx.moveTo(g.pos, 0); ctx.lineTo(g.pos, ch); }
-            else { ctx.moveTo(0, g.pos); ctx.lineTo(cw, g.pos); }
-            ctx.stroke();
-        });
         ctx.restore();
     }
 
@@ -657,22 +623,6 @@ function handleInteractMove(clientX, clientY) {
         if (Math.abs(dx) > 6 || Math.abs(dy) > 6) isDragMoved = true;
         if (!dragTarget.isLocked) {
             let nx = dragStartOffsetX + dx, ny = dragStartOffsetY + dy;
-            
-            // V25: SMART SNAPPING
-            smartGuides = []; let snapDist = 10;
-            let currentCX = dragTarget.cx + dx, currentCY = dragTarget.cy + dy;
-
-            // Snap Giữa Canvas
-            if (Math.abs(currentCX - canvas.width/(2*1)) < snapDist) { nx -= (currentCX - canvas.width/2); smartGuides.push({type:'v', pos: canvas.width/2}); }
-            if (Math.abs(currentCY - canvas.height/(2*1)) < snapDist) { ny -= (currentCY - canvas.height/2); smartGuides.push({type:'h', pos: canvas.height/2}); }
-
-            // Snap với các đối tượng khác
-            hitBoxes.forEach(box => {
-                if (box.id !== dragTarget.id) {
-                    if (Math.abs(currentCX - box.cx) < snapDist) { nx -= (currentCX - box.cx); smartGuides.push({type:'v', pos: box.cx}); }
-                    if (Math.abs(currentCY - box.cy) < snapDist) { ny -= (currentCY - box.cy); smartGuides.push({type:'h', pos: box.cy}); }
-                }
-            });
 
             let inputXEl = document.getElementById(dragTarget.inputX), inputYEl = document.getElementById(dragTarget.inputY);
             if (inputXEl) inputXEl.value = Math.round(nx);
@@ -1177,33 +1127,131 @@ window.undo = function() {
 document.addEventListener('focusin', function(e) { if (['INPUT', 'SELECT'].includes(e.target.tagName) && e.target.type !== 'file' && e.target.id !== 'list') { window.saveState(); } });
 document.addEventListener('mousedown', function(e) { if (e.target.type === 'checkbox') window.saveState(); });
 
-document.addEventListener('DOMContentLoaded', () => {
-    let exportFabBtn = document.getElementById('exportFabBtn'); let exportMenu = document.getElementById('exportMenu'); let exportFabContainer = document.getElementById('exportFabContainer');
+// ============================================================================
+// HỆ THỐNG MENU THỐNG NHẤT (V26) 
+// ============================================================================
+window.toggleUnifiedMenu = function() {
+    let container = document.getElementById('unifiedMenuContainer');
+    let list = document.getElementById('subMenuList');
+    if (!container || !list) return;
 
-    if (exportFabBtn && exportMenu && exportFabContainer) {
-        exportFabBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            let isMoved = typeof window.checkFab2Moved === 'function' ? window.checkFab2Moved() : false;
-            if (isMoved) return;
+    let isHidden = list.style.display === 'none' || list.style.display === '';
+    
+    if (isHidden) {
+        let rect = container.getBoundingClientRect();
+        let midX = window.innerWidth / 2;
 
-            const isHidden = exportMenu.style.display === 'none' || exportMenu.style.display === '';
-            if (isHidden) {
-                let rect = exportFabContainer.getBoundingClientRect();
-                exportMenu.style.left = (rect.left - 120) + 'px'; exportMenu.style.top = (rect.top - 310) + 'px'; exportMenu.style.display = 'flex';
-            } else { exportMenu.style.display = 'none'; }
-        });
-    }
+        // CỐ ĐỊNH MENU SỔ LÊN (V26.2 - ABSOLUTE)
+        // Khi list dùng position: absolute; bottom: 70px;
+        // nó sẽ luôn hiển thị phía trên nút bấm chính.
 
-    document.addEventListener('click', (e) => {
-        if (exportMenu && exportMenu.style.display === 'flex') {
-            if (!exportFabBtn.contains(e.target) && !exportMenu.contains(e.target)) { exportMenu.style.display = 'none'; }
+        // Căn ngang (Trái / Phải) dựa trên vị trí màn hình
+        if (rect.left < midX) {
+            container.style.alignItems = 'flex-start';
+            list.style.alignItems = 'flex-start';
+            list.style.right = 'auto';
+            list.style.left = '0';
+        } else {
+            container.style.alignItems = 'flex-end';
+            list.style.alignItems = 'flex-end';
+            list.style.left = 'auto';
+            list.style.right = '0';
         }
-    });
-});
 
-window.openHelpModal = function() { let helpOverlay = document.getElementById('helpModalOverlay'); if (helpOverlay) helpOverlay.style.display = 'flex'; let exportMenu = document.getElementById('exportMenu'); if (exportMenu) exportMenu.style.display = 'none'; };
-window.closeHelpModal = function() { let helpOverlay = document.getElementById('helpModalOverlay'); if (helpOverlay) helpOverlay.style.display = 'none'; };
-document.addEventListener('click', function(e) { let helpOverlay = document.getElementById('helpModalOverlay'); if (helpOverlay && e.target === helpOverlay) { window.closeHelpModal(); } });
+        list.style.display = 'flex';
+    } else {
+        list.style.display = 'none';
+        let exp = document.getElementById('exportSubMenu');
+        if (exp) exp.style.display = 'none';
+    }
+};
+
+window.toggleExportSubMenu = function() {
+    let container = document.getElementById('unifiedMenuContainer');
+    let exp = document.getElementById('exportSubMenu');
+    if (!container || !exp) return;
+    
+    let isHidden = exp.style.display === 'none' || exp.style.display === '';
+    
+    if (isHidden) {
+        let rect = container.getBoundingClientRect();
+        let midX = window.innerWidth / 2;
+
+        if (rect.left < midX) {
+            // Bên trái -> Sổ menu con ra bên phải (margin-left)
+            exp.style.alignItems = 'flex-start';
+            exp.style.marginRight = '0';
+            exp.style.marginLeft = '15px';
+            exp.style.borderRight = 'none';
+            exp.style.borderLeft = '2px solid #ddd';
+            exp.style.paddingRight = '0';
+            exp.style.paddingLeft = '15px';
+            exp.style.textAlign = 'left';
+        } else {
+            // Bên phải -> Sổ menu con ra bên trái (margin-right)
+            exp.style.alignItems = 'flex-end';
+            exp.style.marginRight = '15px';
+            exp.style.marginLeft = '0';
+            exp.style.borderRight = '2px solid #ddd';
+            exp.style.borderLeft = 'none';
+            exp.style.paddingRight = '15px';
+            exp.style.paddingLeft = '0';
+            exp.style.textAlign = 'right';
+        }
+        exp.style.display = 'flex';
+    } else {
+        exp.style.display = 'none';
+    }
+};
+
+window.openHelpModal = function() { 
+    let helpOverlay = document.getElementById('helpModalOverlay'); 
+    if (helpOverlay) helpOverlay.style.display = 'flex'; 
+    // Đóng menu chính khi mở hướng dẫn
+    let list = document.getElementById('subMenuList');
+    if (list) list.style.display = 'none';
+};
+
+window.closeHelpModal = function() { 
+    let helpOverlay = document.getElementById('helpModalOverlay'); 
+    if (helpOverlay) helpOverlay.style.display = 'none'; 
+};
+
+window.openTemplateManager = function() {
+    // Đóng menu trước
+    let list = document.getElementById('subMenuList');
+    if (list) list.style.display = 'none';
+    
+    // Gọi hàm mở giao diện mẫu chính thức trong index.html
+    if (typeof window.openThemeModal === 'function') {
+        window.openThemeModal();
+    } else {
+        let modal = document.getElementById('themeModalOverlay');
+        if (modal) {
+            modal.style.display = 'flex';
+            if (typeof window.loadCloudTemplates === 'function') window.loadCloudTemplates();
+        } else {
+            alert("Không tìm thấy giao diện Quản Lý Mẫu!");
+        }
+    }
+};
+
+
+// Đóng menu khi click ra ngoài
+document.addEventListener('click', (e) => {
+    let container = document.querySelector('.unified-menu-container');
+    let list = document.getElementById('subMenuList');
+    if (container && list && list.style.display === 'flex') {
+        if (!container.contains(e.target)) {
+            list.style.display = 'none';
+            let exp = document.getElementById('exportSubMenu');
+            if (exp) exp.style.display = 'none';
+        }
+    }
+    
+    let helpOverlay = document.getElementById('helpModalOverlay'); 
+    if (helpOverlay && e.target === helpOverlay) { window.closeHelpModal(); } 
+});
 
 // ============================================================================
 // HỆ THỐNG PHÂN TRANG (PREVIEW TỚI / LUI / NHẬP SỐ TRANG) 

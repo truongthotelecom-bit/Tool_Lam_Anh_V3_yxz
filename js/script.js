@@ -275,16 +275,63 @@ window.exportToPDF = async function() {
 
 // Kéo thả & DRM
 function setupDrag(elementId, handleId) {
-    const el = document.getElementById(elementId); const handle = document.getElementById(handleId) || el;
-    if(!el || !handle) return; let isDragging = false, moved = false, startX, startY, initX, initY;
-    const start = (e) => { if(['BUTTON','INPUT','SELECT'].includes(e.target.tagName)) return; isDragging = true; moved = false; let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; startX = clientX; startY = clientY; let rect = el.getBoundingClientRect(); initX = rect.left; initY = rect.top; el.style.bottom = 'auto'; el.style.right = 'auto'; el.style.transform = 'none'; el.style.left = initX + 'px'; el.style.top = initY + 'px'; };
-    const move = (e) => { if(!isDragging) return; let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; let dx = clientX - startX; let dy = clientY - startY; if(Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true; if(moved) { e.preventDefault(); let maxX = window.innerWidth - el.offsetWidth; let maxY = window.innerHeight - el.offsetHeight; el.style.left = Math.max(0, Math.min(initX + dx, maxX)) + 'px'; el.style.top = Math.max(0, Math.min(initY + dy, maxY)) + 'px'; if(elementId === 'exportFabContainer') { let expMenu = document.getElementById('exportMenu'); if(expMenu) { expMenu.style.left = (Math.max(0, Math.min(initX + dx, maxX)) - 110) + 'px'; expMenu.style.top = (Math.max(0, Math.min(initY + dy, maxY)) - 300) + 'px'; } } } };
-    const end = () => { setTimeout(() => isDragging = false, 50); };
-    handle.addEventListener('mousedown', start); handle.addEventListener('touchstart', start, {passive: false}); window.addEventListener('mousemove', move, {passive: false}); window.addEventListener('touchmove', move, {passive: false}); window.addEventListener('mouseup', end); window.addEventListener('touchend', end);
+    const el = document.getElementById(elementId); 
+    const handle = document.getElementById(handleId) || el;
+    if(!el || !handle) return; 
+    let isDragging = false, moved = false, startX, startY, initX, initY;
+    
+    const start = (e) => { 
+        if(['BUTTON','INPUT','SELECT','A'].includes(e.target.tagName)) return; 
+        isDragging = true; moved = false; 
+        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
+        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
+        startX = clientX; startY = clientY; 
+        
+        let rect = el.getBoundingClientRect();
+        initX = rect.left; 
+        initY = rect.top; 
+        
+        // Cố định vị trí hiện tại bằng left/top để tránh nhảy khi gỡ bottom/right
+        el.style.left = initX + 'px'; 
+        el.style.top = initY + 'px';
+        el.style.bottom = 'auto'; 
+        el.style.right = 'auto'; 
+        el.style.margin = '0';
+        el.style.transform = 'none'; 
+    };
+    
+    const move = (e) => { 
+        if(!isDragging) return; 
+        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
+        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
+        let dx = clientX - startX; 
+        let dy = clientY - startY; 
+        
+        if(Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true; 
+        if(moved) { 
+            e.preventDefault(); 
+            let maxX = window.innerWidth - el.offsetWidth; 
+            let maxY = window.innerHeight - el.offsetHeight; 
+            let newX = Math.max(0, Math.min(initX + dx, maxX));
+            let newY = Math.max(0, Math.min(initY + dy, maxY));
+            el.style.left = newX + 'px'; 
+            el.style.top = newY + 'px'; 
+        } 
+    };
+    
+    const end = () => { 
+        isDragging = false; 
+    };
+    
+    handle.addEventListener('mousedown', start); 
+    handle.addEventListener('touchstart', start, {passive: false}); 
+    window.addEventListener('mousemove', move, {passive: false}); 
+    window.addEventListener('touchmove', move, {passive: false}); 
+    window.addEventListener('mouseup', end); 
+    window.addEventListener('touchend', end);
     return () => moved;
 }
-const checkFab1Moved = setupDrag('fabContainer', 'fabBtn');
-const checkFab2Moved = setupDrag('exportFabContainer', 'exportFabBtn');
+setupDrag('unifiedMenuContainer', 'unifiedMenuBtn'); 
 
 const STORAGE_ID_KEY = 'SYSTEM_LOG_DATA_CACHED'; const LICENSE_KEY = 'SYSTEM_LICENSE_ACTIVE'; const POS = [2, 5, 9, 14, 20, 27, 35, 44, 54, 59];
 document.addEventListener('contextmenu', function(e) { if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.id === 'displayMac') return; e.preventDefault(); }, false);

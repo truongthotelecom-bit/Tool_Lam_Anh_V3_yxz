@@ -61,6 +61,24 @@
     .local-loading-text { font-size: 11px; font-weight: bold; letter-spacing: 1px; }
     .dots::after { content: ''; animation: local-dots 1.5s steps(4, end) infinite; }
     @keyframes local-dots { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } }
+    /* MENU THỐNG NHẤT (V26) */
+    .unified-menu-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000000; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+    .main-menu-btn { width: 55px; height: 55px; background: #2c3e50; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; box-shadow: 0 8px 30px rgba(0,0,0,0.3); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000001; }
+    .main-menu-btn:hover { transform: scale(1.1) rotate(180deg); background: #34495e; }
+    .sub-menu-list { display: none; position: absolute; bottom: 70px; flex-direction: column; gap: 10px; align-items: flex-end; animation: slideUpV26 0.3s ease-out; }
+    @keyframes slideUpV26 { from { opacity: 0; transform: translateY(30px) scale(0.8); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .sub-menu-item { background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%); color: #2c3e50; padding: 12px 22px; border-radius: 35px; font-weight: bold; font-size: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; gap: 10px; border: 1px solid #ddd; transition: 0.3s; white-space: nowrap; }
+    .sub-menu-item:hover { background: #2c3e50; color: #fff; transform: translateX(-8px); box-shadow: 0 8px 25px rgba(44, 62, 80, 0.3); }
+    .sub-menu-item.active { background: #3498db; color: #fff; border-color: #2980b9; }
+
+
+    /* HELP MODAL (V26) */
+    .help-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000000; justify-content: center; align-items: center; padding: 20px; }
+    .help-modal-content { background: #fff; border-radius: 12px; width: 100%; max-width: 600px; max-height: 80vh; overflow-y: auto; padding: 25px; position: relative; }
+    .help-close { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #e74c3c; cursor: pointer; }
+    .status-info { font-size: 11px; color: #666; font-style: italic; margin-top: 2px; display: block; width: 100%; }
+    .btn-remove { background: #ff4757 !important; color: white !important; border: none; padding: 0 8px; border-radius: 4px; cursor: pointer; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; }
+    .btn-remove:hover { background: #ff6b81 !important; }
 </style>
 </head>
 <body>
@@ -82,24 +100,25 @@
     </div>
 </div>
 
-<div id="fabContainer"><div id="fabBtn" title="Mở Menu Mẫu Thiết Kế">🎨</div></div>
-<div id="exportFabContainer" style="position: fixed; bottom: 100px; right: 20px; z-index: 999997; width: 55px; height: 55px;">
-    <div id="exportFabBtn" title="Menu Xuất File" style="background: var(--success); color: white; width: 100%; height: 100%; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4); font-size: 24px; cursor: pointer;">💾</div>
+<div id="unifiedMenuContainer" class="unified-menu-container">
+    <div id="subMenuList" class="sub-menu-list">
+        <div class="sub-menu-item" onclick="openTemplateManager();">🎨 Quản Lý Mẫu</div>
+        <div class="sub-menu-item" onclick="toggleExportSubMenu();">💾 Chức Năng Xuất</div>
+        <div id="exportSubMenu" style="display:none; flex-direction:column; gap:8px; align-items:flex-end; margin-right:15px; border-right:2px solid #ddd; padding-right:15px;">
+            <button onclick="downloadSingleImage()" class="btn-mini" style="background:#17a2b8; border-radius:15px;">🖼️ Lưu 1 Ảnh</button>
+            <button onclick="generateAllImages()" class="btn-mini" style="background:#28a745; border-radius:15px;">📦 Tải ZIP (Tất cả)</button>
+            <button onclick="exportToPDF()" class="btn-mini" style="background:#e84393; border-radius:15px;">📄 Xuất PDF</button>
+            <button onclick="printAllPages()" class="btn-mini" style="background:#9b59b6; border-radius:15px;">🖨️ In A4 (Dành cho in)</button>
+            <button onclick="copyCanvas()" class="btn-mini" style="background:#3498db; border-radius:15px;">📋 Copy Ảnh</button>
+            <button onclick="exportToExcel()" class="btn-mini" style="background:#20c997; border-radius:15px;">📊 Xuất Excel</button>
+        </div>
+        <div class="sub-menu-item" onclick="openHelpModal();">📖 Hướng Dẫn</div>
+        <div class="sub-menu-item" onclick="undo(); toggleUnifiedMenu();" id="btnUndo">↩ Hoàn tác (0)</div>
+    </div>
+    <div class="main-menu-btn" id="unifiedMenuBtn" onclick="toggleUnifiedMenu()" title="Mở Danh Mục Chức Năng">☰</div>
 </div>
 
-<div id="exportMenu" style="display: none; position: fixed; z-index: 999998; flex-direction: column; gap: 10px; align-items: flex-end;">
-    <button onclick="openHelpModal()" class="btn-primary" style="background:#f39c12; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📖 Hướng Dẫn Nhập</button>
-    <button onclick="toggleBlueprintMode()" class="btn-primary" style="background:#8e44ad; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📐 Hiện/Ẩn Khung</button>
-    <button onclick="undo()" class="btn-danger" style="background:#636e72; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);" id="btnUndo">↩ Hoàn tác (0)</button>
-    <button onclick="copyCanvas()" class="btn-primary" style="border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📋 Copy Màn Hình</button>
-    <button onclick="downloadSingleImage()" class="btn-primary" style="background:#17a2b8; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">💾 Lưu 1 Ảnh</button>
-    <button onclick="printAllPages()" class="btn-purple" style="border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">🖨️ In A4</button>
-    <button onclick="generateAllImages()" class="btn-success" style="border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📦 Tải ZIP</button>
-    <button onclick="exportToPDF()" class="btn-purple" style="background:#e84393; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📄 Xuất PDF</button>
-    <button onclick="exportToExcel()" class="btn-excel" style="background:#20c997; color:#fff; border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📊 Xuất Excel</button>
-</div>
-
-<div id="themeModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center; padding: 15px;">
+<div id="themeModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 3000000; justify-content: center; align-items: center; padding: 15px;">
     <div id="themeModalContent" style="background: #fff; padding: 20px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
         <div class="theme-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--success); padding-bottom: 10px; margin-bottom: 15px;">
             <span style="font-weight: bold; color: var(--success); font-size: 16px;">🎨 QUẢN LÝ MẪU THIẾT KẾ</span>
@@ -209,7 +228,7 @@
             <div class="setting-box"><div class="setting-title">📐 Vị Trí & Kích Thước</div>
             <div class="setting-row"><label>Kích thước</label><div class="setting-inputs"><span>W:</span><input type="number" id="${prefix}W" value="${defW}"><span>H:</span><input type="number" id="${prefix}H" value="50"></div></div>
             <div class="setting-row"><label>Lệch vị trí</label><div class="setting-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="0"></div></div>
-            <div class="setting-row"><label>Xoay (Góc)</label><div class="setting-inputs"><span>∠:</span><input type="number" id="${prefix}Angle" value="0" style="width:45px;"> <input type="range" min="0" max="360" value="0" oninput="document.getElementById('${prefix}Angle').value=this.value; typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="flex:1;"></div></div>
+            <div class="setting-row"><label>Xoay (Góc)</label><div class="setting-inputs"><span>∠:</span><input type="number" id="${prefix}Angle" value="0" style="width:45px;"> <input type="range" min="-180" max="180" value="0" oninput="document.getElementById('${prefix}Angle').value=this.value; typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="flex:1;"></div></div>
             <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs"><select id="${prefix}AlignX"><option value="left" ${prefix==='num'?'selected':''}>Trái</option><option value="center" ${prefix==='price'||prefix==='data1'||prefix==='data2'?'selected':''}>Giữa</option><option value="right" ${prefix==='menh'||prefix==='mang'?'selected':''}>Phải</option></select><select id="${prefix}AlignY"><option value="top">Trên</option><option value="middle" selected>Giữa</option><option value="bottom">Dưới</option></select><label style="color:red;"><input type="checkbox" id="${prefix}Locked">🔒 Khóa</label></div></div>
             </div>
         </div>
@@ -220,13 +239,16 @@
             <div class="setting-row"><label>Canh & Lệch</label><div class="setting-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
             <div class="setting-row"><label>Màu Chữ</label><div class="setting-inputs">
                 <select id="${prefix}ColorMode" onchange="document.getElementById('${prefix}ColorSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}ColorGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}ColorImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select>
-                <button type="button" class="btn-mini" style="background:#8e44ad; color:white; margin-left:5px;" onclick="if(typeof applyAIColor==='function') applyAIColor('${prefix}')">✨ AI</button>
             </div></div>
             <div class="setting-row" id="${prefix}ColorSolidGrp"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="${prefix}Color" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
             <div class="setting-row" id="${prefix}ColorGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}ColorGradient1" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}ColorGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}ColorGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
-            <div class="setting-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;">
-                <input type="file" id="${prefix}ColorInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}ColorImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
-                <button type="button" onclick="openBgCloudModal('${prefix}ColorImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+            <div class="setting-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                <div style="display:flex; gap:5px; width:100%;">
+                    <input type="file" id="${prefix}ColorInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}ColorImage', '${prefix}ColorStatus')">
+                    <button type="button" onclick="openBgCloudModal('${prefix}ColorImage', '${prefix}ColorStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                    <button type="button" onclick="removeImage('${prefix}ColorImage', '${prefix}ColorInput', '${prefix}ColorStatus')" class="btn-remove">✕</button>
+                </div>
+                <div id="${prefix}ColorStatus" class="status-info">❌ Chưa có ảnh</div>
             </div></div>
             <div class="setting-row"><label>Trang trí</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}Bold" checked><b>B</b></label><label><input type="checkbox" id="${prefix}Italic"><i>I</i></label><label><input type="checkbox" id="${prefix}Underline"><u>U</u></label><label><input type="checkbox" id="${prefix}Stroke">Viền</label><input type="color" id="${prefix}StrokeColor" value="#ffffff"><input type="number" id="${prefix}StrokeWidth" value="1"></div></div>
             </div>
@@ -266,9 +288,13 @@
                 </div></div>
                 <div class="setting-row" id="${prefix}BgSolidGrp"><label>Màu lót</label><div class="setting-inputs"><input type="color" id="${prefix}Bg" value="${defBg}" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
                 <div class="setting-row" id="${prefix}BgGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BgGradient1" value="${defBg}" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}BgGradient2" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}BgGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
-                <div class="setting-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;">
-                    <input type="file" id="${prefix}BgInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}BgImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
-                    <button type="button" onclick="openBgCloudModal('${prefix}BgImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                <div class="setting-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                    <div style="display:flex; gap:5px; width:100%;">
+                        <input type="file" id="${prefix}BgInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}BgImage', '${prefix}BgStatus')">
+                        <button type="button" onclick="openBgCloudModal('${prefix}BgImage', '${prefix}BgStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                        <button type="button" onclick="removeImage('${prefix}BgImage', '${prefix}BgInput', '${prefix}BgStatus')" class="btn-remove">✕</button>
+                    </div>
+                    <div id="${prefix}BgStatus" class="status-info">❌ Chưa có ảnh</div>
                 </div></div>
             </div>
             <div class="setting-box">
@@ -279,9 +305,13 @@
                 </div></div>
                 <div class="setting-row" id="${prefix}BorderSolidGrp"><label>Màu viền</label><div class="setting-inputs"><input type="color" id="${prefix}BorderColor" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
                 <div class="setting-row" id="${prefix}BorderGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BorderGradient1" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}BorderGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}BorderGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
-                <div class="setting-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;">
-                    <input type="file" id="${prefix}BorderInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}BorderImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
-                    <button type="button" onclick="openBgCloudModal('${prefix}BorderImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                <div class="setting-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                    <div style="display:flex; gap:5px; width:100%;">
+                        <input type="file" id="${prefix}BorderInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}BorderImage', '${prefix}BorderStatus')">
+                        <button type="button" onclick="openBgCloudModal('${prefix}BorderImage', '${prefix}BorderStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                        <button type="button" onclick="removeImage('${prefix}BorderImage', '${prefix}BorderInput', '${prefix}BorderStatus')" class="btn-remove">✕</button>
+                    </div>
+                    <div id="${prefix}BorderStatus" class="status-info">❌ Chưa có ảnh</div>
                 </div></div>
                 <div class="setting-row"><label>Dày/Bo</label><div class="setting-inputs"><span>Dày:</span><input type="number" id="${prefix}BorderW" value="2" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Bo(R):</span><input type="number" id="${prefix}Radius" value="8" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><select id="${prefix}BorderStyle" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div>
             </div>
@@ -378,9 +408,13 @@
 
                         <div class="setting-row" id="${prefix}ShapeBorderImgGrp" style="display:none;">
                             <label>Ảnh lồng</label>
-                            <div class="setting-inputs" style="display:flex; gap:5px; width:100%;">
-                                <input type="file" id="${prefix}ShapeBorderInput" accept="image/*" class="mini" style="flex:1;" onchange="if(this.files[0]){ let r = new FileReader(); r.onload = e => { let img = new Image(); img.onload = () => { window['${prefix}ShapeBorderImage'] = img; typeof updatePreview === 'function' ? updatePreview() : drawCanvas(); }; img.src = e.target.result; }; r.readAsDataURL(this.files[0]); }">
-                                <button type="button" onclick="openBgCloudModal('${prefix}ShapeBorderImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                            <div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                                <div style="display:flex; gap:5px; width:100%;">
+                                    <input type="file" id="${prefix}ShapeBorderInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}ShapeBorderImage', '${prefix}ShapeBorderStatus')">
+                                    <button type="button" onclick="openBgCloudModal('${prefix}ShapeBorderImage', '${prefix}ShapeBorderStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                                    <button type="button" onclick="removeImage('${prefix}ShapeBorderImage', '${prefix}ShapeBorderInput', '${prefix}ShapeBorderStatus')" class="btn-remove">✕</button>
+                                </div>
+                                <div id="${prefix}ShapeBorderStatus" class="status-info">❌ Chưa có ảnh</div>
                             </div>
                         </div>
 
@@ -445,10 +479,17 @@
                 <div class="setting-row"><label style="color:#e74c3c;">Tên hiển thị</label><div class="setting-inputs"><input type="text" id="${prefix}Text" value="${title}" class="flex-1"></div></div>
                 <div class="setting-row"><label>Font & Cỡ</label><div class="setting-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
                 <div class="setting-row"><label>Canh & Lệch</label><div class="setting-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
-                <div class="setting-row"><label>Màu Chữ</label><div class="setting-inputs"><select id="${prefix}ColorMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select><button type="button" class="btn-mini" style="background:#8e44ad; color:white; margin-left:5px;" onclick="if(typeof applyAIColor==='function') applyAIColor('${prefix}')">✨ AI</button></div></div>
+                <div class="setting-row"><label>Màu Chữ</label><div class="setting-inputs"><select id="${prefix}ColorMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select></div></div>
                 <div class="setting-row" id="${prefix}ColorSolidGrp"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="${prefix}Color" value="#000000"></div></div>
                 <div class="setting-row" id="${prefix}ColorGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}ColorGradient1" value="#000000"><span>➔</span><input type="color" id="${prefix}ColorGradient2" value="#ff0000"><span>Góc:</span><input type="number" id="${prefix}ColorGradAngle" value="0" style="width:40px;"></div></div>
-                <div class="setting-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}ColorInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}ColorImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
+                <div class="setting-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                    <div style="display:flex; gap:5px; width:100%;">
+                        <input type="file" id="${prefix}ColorInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}ColorImage', '${prefix}ColorStatus')">
+                        <button type="button" onclick="openBgCloudModal('${prefix}ColorImage', '${prefix}ColorStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                        <button type="button" onclick="removeImage('${prefix}ColorImage', '${prefix}ColorInput', '${prefix}ColorStatus')" class="btn-remove">✕</button>
+                    </div>
+                    <div id="${prefix}ColorStatus" class="status-info">❌ Chưa có ảnh</div>
+                </div></div>
                 <div class="setting-row"><label>Trang trí</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}Bold" checked><b>B</b></label><label><input type="checkbox" id="${prefix}Italic"><i>I</i></label><label><input type="checkbox" id="${prefix}Underline"><u>U</u></label><label><input type="checkbox" id="${prefix}Stroke">Viền</label><input type="color" id="${prefix}StrokeColor" value="#ffffff"><input type="number" id="${prefix}StrokeWidth" value="1"></div></div>
                 </div>
                 <div class="setting-box" style="border: 1px solid #27ae60;"><div class="setting-title" style="background:#e8f4e8; color:#27ae60;">⛅ BÓNG CHỮ (ObjShadow)</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}ObjShadow"> Bật bóng chữ</label><span>X:</span><input type="number" id="${prefix}ObjShadowX" value="3"><span>Y:</span><input type="number" id="${prefix}ObjShadowY" value="3"><span>Mờ:</span><input type="number" id="${prefix}ObjShadowBlur" value="5"><input type="color" id="${prefix}ObjShadowColor" value="#000000"></div></div></div>
@@ -457,7 +498,7 @@
                 <div class="setting-box"><div class="setting-title">📐 Vị Trí & Kích Thước</div>
                 <div class="setting-row"><label>Kích thước</label><div class="setting-inputs"><span>W:</span><input type="number" id="${prefix}W" value="${defW}"><span>H:</span><input type="number" id="${prefix}H" value="40"></div></div>
                 <div class="setting-row"><label>Lệch khối</label><div class="setting-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="${defY}"></div></div>
-                <div class="setting-row"><label>Xoay (Góc)</label><div class="setting-inputs"><span>∠:</span><input type="number" id="${prefix}Angle" value="0" style="width:45px;"> <input type="range" min="0" max="360" value="0" oninput="document.getElementById('${prefix}Angle').value=this.value; typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="flex:1;"></div></div>
+                <div class="setting-row"><label>Xoay (Góc)</label><div class="setting-inputs"><span>∠:</span><input type="number" id="${prefix}Angle" value="0" style="width:45px;"> <input type="range" min="-180" max="180" value="0" oninput="document.getElementById('${prefix}Angle').value=this.value; typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="flex:1;"></div></div>
                 <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs">
                     <select id="${prefix}AlignX"><option value="left" ${ax==='left'?'selected':''}>Trái</option><option value="center" ${ax==='center'?'selected':''}>Giữa</option><option value="right" ${ax==='right'?'selected':''}>Phải</option></select>
                     <select id="${prefix}AlignY"><option value="top" ${ay==='top'?'selected':''}>Trên</option><option value="middle" ${ay==='middle'?'selected':''}>Giữa</option><option value="bottom" ${ay==='bottom'?'selected':''}>Dưới</option></select>
@@ -470,13 +511,27 @@
                 <div class="setting-row"><label>Kiểu nền</label><div class="setting-inputs"><select id="${prefix}BgMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh lót</option></select><label><input type="checkbox" id="${prefix}BgTrans" checked>Ẩn</label></div></div>
                 <div class="setting-row" id="${prefix}BgSolidGrp"><label>Màu lót</label><div class="setting-inputs"><input type="color" id="${prefix}Bg" value="#ffffff"></div></div>
                 <div class="setting-row" id="${prefix}BgGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BgGradient1" value="#ffffff"><span>➔</span><input type="color" id="${prefix}BgGradient2" value="#007bff"><span>Góc:</span><input type="number" id="${prefix}BgGradAngle" value="0" style="width:40px;"></div></div>
-                <div class="setting-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}BgInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}BgImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
+                <div class="setting-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                    <div style="display:flex; gap:5px; width:100%;">
+                        <input type="file" id="${prefix}BgInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}BgImage', '${prefix}BgStatus')">
+                        <button type="button" onclick="openBgCloudModal('${prefix}BgImage', '${prefix}BgStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                        <button type="button" onclick="removeImage('${prefix}BgImage', '${prefix}BgInput', '${prefix}BgStatus')" class="btn-remove">✕</button>
+                    </div>
+                    <div id="${prefix}BgStatus" class="status-info">❌ Chưa có ảnh</div>
+                </div></div>
                 </div>
                 <div class="setting-box"><div class="setting-title" style="background:#f39c12;">🔲 VIỀN Ô KHUNG</div>
                 <div class="setting-row"><label>Kiểu viền</label><div class="setting-inputs"><select id="${prefix}BorderMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh</option></select><label><input type="checkbox" id="${prefix}BorderTrans" checked>Ẩn</label></div></div>
                 <div class="setting-row" id="${prefix}BorderSolidGrp"><label>Màu viền</label><div class="setting-inputs"><input type="color" id="${prefix}BorderColor" value="#007bff"></div></div>
                 <div class="setting-row" id="${prefix}BorderGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BorderGradient1" value="#007bff"><span>➔</span><input type="color" id="${prefix}BorderGradient2" value="#ff0000"><span>Góc:</span><input type="number" id="${prefix}BorderGradAngle" value="0" style="width:40px;"></div></div>
-                <div class="setting-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="setting-inputs" style="display:flex; gap:5px; width:100%;"><input type="file" id="${prefix}BorderInput" accept="image/*" class="mini" style="flex:1;"><button type="button" onclick="openBgCloudModal('${prefix}BorderImage')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button></div></div>
+                <div class="setting-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                    <div style="display:flex; gap:5px; width:100%;">
+                        <input type="file" id="${prefix}BorderInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}BorderImage', '${prefix}BorderStatus')">
+                        <button type="button" onclick="openBgCloudModal('${prefix}BorderImage', '${prefix}BorderStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                        <button type="button" onclick="removeImage('${prefix}BorderImage', '${prefix}BorderInput', '${prefix}BorderStatus')" class="btn-remove">✕</button>
+                    </div>
+                    <div id="${prefix}BorderStatus" class="status-info">❌ Chưa có ảnh</div>
+                </div></div>
                 <div class="setting-row"><label>Dày/Bo</label><div class="setting-inputs"><span>Dày:</span><input type="number" id="${prefix}BorderW" value="2"><span>Bo(R):</span><input type="number" id="${prefix}Radius" value="8"><select id="${prefix}BorderStyle"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div></div>
                 <div class="setting-box" style="border: 1px solid #d35400;"><div class="setting-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG NỀN Ô</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}BoxShadow"> Bật bóng Nền</label><span>X:</span><input type="number" id="${prefix}BoxShadowX" value="5"><span>Y:</span><input type="number" id="${prefix}BoxShadowY" value="5"><span>Mờ:</span><input type="number" id="${prefix}BoxShadowBlur" value="10"><input type="color" id="${prefix}BoxShadowColor" value="#000000"></div></div></div>
                 <div class="setting-box" style="border: 1px solid #e67e22;"><div class="setting-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}BorderShadow"> Bật bóng Viền</label><span>X:</span><input type="number" id="${prefix}BorderShadowX" value="2"><span>Y:</span><input type="number" id="${prefix}BorderShadowY" value="2"><span>Mờ:</span><input type="number" id="${prefix}BorderShadowBlur" value="4"><input type="color" id="${prefix}BorderShadowColor" value="#000000"></div></div></div>
@@ -487,8 +542,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         let layoutHtml = `<div id="tab-layout" class="tab-content active"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-luoi-chung', this)">Lưới Chung</button><button class="sub-tab-btn" onclick="switchSubTab('sub-num', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-price', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-menh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-mang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data2', this)">DL 2</button></div>`;
-        
-layoutHtml += `<div id="sub-luoi-chung" class="sub-tab-content active"><div class="setting-box"><div class="setting-title" style="display:flex; justify-content:space-between; align-items:center;"><span>📐 Kích Thước Lưới</span><button onclick="applyAIColor('all')" class="btn-mini" style="background:#8e44ad; color:white; padding: 2px 10px;">✨ BỘ MÀU AI</button></div><div class="setting-row"><label>Cột hiển thị</label><div class="setting-inputs"><label><input type="checkbox" id="chkNum" checked onchange="updateUI()">Số</label><label><input type="checkbox" id="chkPrice" checked onchange="updateUI()">Giá</label><label><input type="checkbox" id="chkMenh" checked onchange="updateUI()">Mệnh</label><label><input type="checkbox" id="chkMang" checked onchange="updateUI()">Mạng</label><label><input type="checkbox" id="chkData1" checked onchange="updateUI()">DL1</label><label><input type="checkbox" id="chkData2" checked onchange="updateUI()">DL2</label></div></div><div class="setting-row"><label>Ô Lưới</label><div class="setting-inputs"><span>W:</span><input type="number" id="cellW" value="380"><span>H:</span><input type="number" id="cellH" value="60"></div></div><div class="setting-row"><label>Số lượng</label><div class="setting-inputs"><span>Cột:</span><input type="number" id="tableCols" value="2"><span>Dòng:</span><input type="number" id="tableRows" value="10"></div></div><div class="setting-row"><label>Cách nhau</label><div class="setting-inputs"><span>Cột:</span><input type="number" id="tableGap" value="15"><span>Dòng:</span><input type="number" id="rowGap" value="10"></div></div></div>`;
+        layoutHtml += `<div id="sub-luoi-chung" class="sub-tab-content active"><div class="setting-box"><div class="setting-title">📏 Kích Thước Lưới</div><div class="setting-row"><label>Cột hiển thị</label><div class="setting-inputs"><label><input type="checkbox" id="chkNum" checked onchange="updateUI()">Số</label><label><input type="checkbox" id="chkPrice" checked onchange="updateUI()">Giá</label><label><input type="checkbox" id="chkMenh" checked onchange="updateUI()">Mệnh</label><label><input type="checkbox" id="chkMang" checked onchange="updateUI()">Mạng</label><label><input type="checkbox" id="chkData1" checked onchange="updateUI()">DL1</label><label><input type="checkbox" id="chkData2" checked onchange="updateUI()">DL2</label></div></div><div class="setting-row"><label>Ô Lưới</label><div class="setting-inputs"><span>W:</span><input type="number" id="cellW" value="380"><span>H:</span><input type="number" id="cellH" value="60"></div></div><div class="setting-row"><label>Số lượng</label><div class="setting-inputs"><span>Cột:</span><input type="number" id="tableCols" value="2"><span>Dòng:</span><input type="number" id="tableRows" value="10"></div></div><div class="setting-row"><label>Cách nhau</label><div class="setting-inputs"><span>Cột:</span><input type="number" id="tableGap" value="15"><span>Dòng:</span><input type="number" id="rowGap" value="10"></div></div></div>`;
 
 layoutHtml += `<div class="setting-box">
     <div class="setting-title" style="background:#f39c12;">🎨 Nền Ô Lưới & Bóng Cell</div>
@@ -514,11 +568,11 @@ layoutHtml += `<div class="setting-box">
             <div style="display:flex; gap:5px; width:100%;">
                 <input type="file" id="cellBgInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, 'cellBgImage', 'cellBgStatus')">
                 
-                <button type="button" onclick="document.getElementById('cellBgInput').value=''; document.getElementById('cellBgStatus').innerHTML='☁️ Đang dùng ảnh Mây'; openBgCloudModal('cellBgImage');" class="btn-mini" style="background:var(--success); color:white; border:none; padding:0 10px; border-radius:4px; cursor:pointer; height:28px;">☁️ MÂY</button>
+                <button type="button" onclick="document.getElementById('cellBgInput').value=''; document.getElementById('cellBgStatus').innerHTML='☁️ Đang dùng ảnh Mây'; openBgCloudModal('cellBgImage', 'cellBgStatus');" class="btn-mini" style="background:var(--success); color:white; border:none; padding:0 10px; border-radius:4px; cursor:pointer; height:28px;">☁️ MÂY</button>
                 
-                <button type="button" onclick="removeImage('cellBgImage', 'cellBgInput', 'cellBgStatus')" class="btn-mini" style="background:#e74c3c; padding:0 10px; border:none; border-radius:4px; color:white; cursor:pointer; height:28px;">❌</button>
+                <button type="button" onclick="removeImage('cellBgImage', 'cellBgInput', 'cellBgStatus')" class="btn-remove">✕</button>
             </div>
-            <div id="cellBgStatus" style="font-size:11px; color:#666; font-style:italic;">❌ Chưa có ảnh</div>
+            <div id="cellBgStatus" class="status-info">❌ Chưa có ảnh</div>
         </div>
     </div>
 
@@ -543,11 +597,11 @@ layoutHtml += `<div class="setting-box">
             <div style="display:flex; gap:5px; width:100%;">
                 <input type="file" id="cellBorderInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, 'cellBorderImage', 'cellBorderStatus')">
                 
-                <button type="button" onclick="document.getElementById('cellBorderInput').value=''; document.getElementById('cellBorderStatus').innerHTML='☁️ Đang dùng ảnh Mây'; openBgCloudModal('cellBorderImage');" class="btn-mini" style="background:var(--success); color:white; border:none; padding:0 10px; border-radius:4px; cursor:pointer; height:28px;">☁️ MÂY</button>
+                <button type="button" onclick="document.getElementById('cellBorderInput').value=''; document.getElementById('cellBorderStatus').innerHTML='☁️ Đang dùng ảnh Mây'; openBgCloudModal('cellBorderImage', 'cellBorderStatus');" class="btn-mini" style="background:var(--success); color:white; border:none; padding:0 10px; border-radius:4px; cursor:pointer; height:28px;">☁️ MÂY</button>
                 
-                <button type="button" onclick="removeImage('cellBorderImage', 'cellBorderInput', 'cellBorderStatus')" class="btn-mini" style="background:#e74c3c; padding:0 10px; border:none; border-radius:4px; color:white; cursor:pointer; height:28px;">❌</button>
+                <button type="button" onclick="removeImage('cellBorderImage', 'cellBorderInput', 'cellBorderStatus')" class="btn-remove">✕</button>
             </div>
-            <div id="cellBorderStatus" style="font-size:11px; color:#666; font-style:italic;">❌ Chưa có ảnh</div>
+            <div id="cellBorderStatus" class="status-info">❌ Chưa có ảnh</div>
         </div>
     </div>
 
@@ -600,12 +654,12 @@ layoutHtml += `<div class="setting-box">
     </div>
 
     <div id="sub-general-bg" class="sub-tab-content active">
-        <div class="pro-box">
-            <div class="pro-title" style="background:#8e44ad;">🌄 KHỔ GIẤY & NỀN TỔNG</div>
+        <div class="setting-box">
+            <div class="setting-title" style="background:#8e44ad;">🌄 KHỔ GIẤY & NỀN TỔNG</div>
             
-            <div class="pro-row" style="background:#f4f9ff; align-items: flex-start; padding-top: 10px;">
+            <div class="setting-row" style="background:#f4f9ff; align-items: flex-start; padding-top: 10px;">
                 <label>Khổ Giấy</label>
-                <div class="pro-inputs" style="flex-wrap: wrap; gap: 8px;">
+                <div class="setting-inputs" style="flex-wrap: wrap; gap: 8px;">
                     <select id="canvasSizeMode" onchange="
                         let wrap = document.getElementById('customCanvasSizeWrapper');
                         let pre = document.getElementById('fixedSizePreset');
@@ -641,9 +695,9 @@ layoutHtml += `<div class="setting-box">
                 </div>
             </div>
 
-            <div class="pro-row">
+            <div class="setting-row">
                 <label>Loại Nền</label>
-                <div class="pro-inputs">
+                <div class="setting-inputs">
                     <select id="bgMode" onchange="document.getElementById('bgSolidGrp').style.display = (this.value === 'solid' ? 'flex' : 'none'); document.getElementById('bgGradGrp').style.display = (this.value === 'gradient' ? 'flex' : 'none'); document.getElementById('bgImgGrp').style.display = (this.value === 'image' ? 'flex' : 'none'); if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();">
                         <option value="solid">Màu trơn</option>
                         <option value="gradient" selected>Chuyển màu</option> 
@@ -652,12 +706,12 @@ layoutHtml += `<div class="setting-box">
                 </div>
             </div>
 
-            <div class="pro-row" id="bgSolidGrp" style="display:none;"><label>Màu trơn</label><div class="pro-inputs"><input type="color" id="bgColor" value="#000000" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
-            <div class="pro-row" id="bgGradGrp"><label>Màu 1 ➔ 2</label><div class="pro-inputs"><input type="color" id="bgGradient1" value="#ffffff" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>➔</span><input type="color" id="bgGradient2" value="#006680" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Góc:</span><input type="number" id="bgGradAngle" value="0" style="width:45px;" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
+            <div class="setting-row" id="bgSolidGrp" style="display:none;"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="bgColor" value="#000000" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
+            <div class="setting-row" id="bgGradGrp"><label>Màu 1 ➔ 2</label><div class="setting-inputs"><input type="color" id="bgGradient1" value="#ffffff" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>➔</span><input type="color" id="bgGradient2" value="#006680" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Góc:</span><input type="number" id="bgGradAngle" value="0" style="width:45px;" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
             
-            <div class="pro-row" id="bgImgGrp" style="display:none; align-items: flex-start;">
+            <div class="setting-row" id="bgImgGrp" style="display:none; align-items: flex-start;">
                 <label style="margin-top: 8px;">Úp Ảnh Nền</label>
-                <div class="pro-inputs" style="flex-direction: column; align-items: flex-start; width: 100%; gap: 8px;">
+                <div class="setting-inputs" style="flex-direction: column; align-items: flex-start; width: 100%; gap: 8px;">
                     <select id="bgFitMode" style="width: 100%; padding: 6px; font-weight: bold; border: 2px solid #f1c40f; border-radius: 4px; outline: none;" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();">
                         <option value="cover">✂️ Cắt xén lấp đầy (Cover)</option>
                         <option value="stretch" selected>↔️ Kéo giãn (Stretch)</option>
@@ -665,22 +719,22 @@ layoutHtml += `<div class="setting-box">
                     </select>
                     <div style="display:flex; gap:5px; width:100%;">
                         <input type="file" id="bgInput" accept="image/*" class="mini" style="flex:1;" onchange="if(typeof setLocalImage==='function') setLocalImage(this, 'globalBgImage', 'mainBgStatus');">
-                        <button type="button" onclick="document.getElementById('bgInput').value=''; document.getElementById('mainBgStatus').innerHTML='☁️ Mây'; if(typeof openBgCloudModal==='function') openBgCloudModal('global');" class="btn-mini" style="background:var(--success); color:white; border:none; padding:0 10px; border-radius:4px;">☁️ MÂY</button>
-                        <button type="button" onclick="if(typeof removeImage==='function') removeImage('globalBgImage', 'bgInput', 'mainBgStatus');" class="btn-mini" style="background:#e74c3c; color:white; border:none; padding:0 10px; border-radius:4px;">❌</button>
+                        <button type="button" onclick="document.getElementById('bgInput').value=''; document.getElementById('mainBgStatus').innerHTML='☁️ Đang dùng ảnh Mây'; if(typeof openBgCloudModal==='function') openBgCloudModal('global', 'mainBgStatus');" class="btn-mini" style="background:var(--success); color:white; border:none; padding:0 10px; border-radius:4px;">☁️ MÂY</button>
+                        <button type="button" onclick="if(typeof removeImage==='function') removeImage('globalBgImage', 'bgInput', 'mainBgStatus');" class="btn-remove">✕</button>
                     </div>
-                    <div id="mainBgStatus" style="font-size:11px; color:#666; font-style:italic;">❌ Chưa có ảnh</div>
+                    <div id="mainBgStatus" class="status-info">❌ Chưa có ảnh</div>
                     <input type="text" id="bgDriveLink" placeholder="Dán Link Drive..." style="width:100%; padding:6px; border-radius: 4px;" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();">
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="sub-general-margin" class="sub-tab-content"><div class="pro-box"><div class="pro-title" style="background:#8e44ad;">📏 CĂN LỀ & ĐÓNG GÁY</div><div class="pro-row"><label>Lề Dọc</label><div class="pro-inputs"><span>Trán:</span><input type="number" id="tZoneH" value="100" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Chân:</span><input type="number" id="fZoneH" value="80" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div><div class="pro-row" style="background:#fff4f4;"><label style="color:var(--danger)">Đóng gáy in</label><div class="pro-inputs"><select id="bindingMode" class="flex-1" onchange="document.getElementById('grpMarginNormal').style.display = (this.value === 'none' ? 'flex' : 'none'); document.getElementById('grpMarginBinding').style.display = (this.value === 'none' ? 'none' : 'flex'); if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><option value="none">1. Không đóng gáy</option><option value="single">2. Đóng gáy 1 mặt</option><option value="double">3. Đóng gáy 2 mặt (Lẻ/Chẵn)</option></select></div></div><div class="pro-row" id="grpMarginNormal"><label>Lề Ngang</label><div class="pro-inputs"><span>Trái:</span><input type="number" id="mLeft" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Phải:</span><input type="number" id="mRight" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div><div class="pro-row" id="grpMarginBinding" style="display:none; background:#fff4f4;"><label style="color:var(--danger)">Lề Đóng Gáy</label><div class="pro-inputs"><span>Gáy:</span><input type="number" id="marginBinding" value="80" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Lề:</span><input type="number" id="marginNonBinding" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div></div></div>
+    <div id="sub-general-margin" class="sub-tab-content"><div class="setting-box"><div class="setting-title" style="background:#8e44ad;">📏 CĂN LỀ & ĐÓNG GÁY</div><div class="setting-row"><label>Lề Dọc</label><div class="setting-inputs"><span>Trán:</span><input type="number" id="tZoneH" value="100" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Chân:</span><input type="number" id="fZoneH" value="80" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div><div class="setting-row" style="background:#fff4f4;"><label style="color:var(--danger)">Đóng gáy in</label><div class="setting-inputs"><select id="bindingMode" class="flex-1" onchange="document.getElementById('grpMarginNormal').style.display = (this.value === 'none' ? 'flex' : 'none'); document.getElementById('grpMarginBinding').style.display = (this.value === 'none' ? 'none' : 'flex'); if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><option value="none">1. Không đóng gáy</option><option value="single">2. Đóng gáy 1 mặt</option><option value="double">3. Đóng gáy 2 mặt (Lẻ/Chẵn)</option></select></div></div><div class="setting-row" id="grpMarginNormal"><label>Lề Ngang</label><div class="setting-inputs"><span>Trái:</span><input type="number" id="mLeft" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Phải:</span><input type="number" id="mRight" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div><div class="setting-row" id="grpMarginBinding" style="display:none; background:#fff4f4;"><label style="color:var(--danger)">Lề Đóng Gáy</label><div class="setting-inputs"><span>Gáy:</span><input type="number" id="marginBinding" value="80" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Lề:</span><input type="number" id="marginNonBinding" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div></div></div>
     <div id="sub-general-export" class="sub-tab-content">
-        <div class="pro-box"><div class="pro-title" style="background:#27ae60;">📦 CHẤT LƯỢNG XUẤT FILE PRO</div>
-        <div class="pro-row"><label>Độ nét</label><div class="pro-inputs"><select id="exportScale" class="flex-1" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><option value="1">1x (Web)</option><option value="2" selected>2x (HD)</option><option value="3">3x (In Ấn)</option><option value="4">4x (Ultra Pro)</option></select></div></div>
-        <div class="pro-row"><label>Watermark</label><div class="pro-inputs"><label><input type="checkbox" id="useWatermark" onchange="drawCanvas()"> Bật chữ ký</label><input type="text" id="watermarkText" value="VIP SIM TOOL" placeholder="Nội dung..." oninput="drawCanvas()"></div></div>
-        <div class="pro-row"><label>Định dạng</label><div class="pro-inputs"><select id="exportFormat" class="flex-1"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option></select></div></div></div>
+        <div class="setting-box"><div class="setting-title" style="background:#27ae60;">📦 CHẤT LƯỢNG XUẤT FILE PRO</div>
+        <div class="setting-row"><label>Độ nét</label><div class="setting-inputs"><select id="exportScale" class="flex-1" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><option value="1">1x (Web)</option><option value="2" selected>2x (HD)</option><option value="3">3x (In Ấn)</option><option value="4">4x (Ultra Pro)</option></select></div></div>
+        <div class="setting-row"><label>Watermark</label><div class="setting-inputs"><label><input type="checkbox" id="useWatermark" onchange="drawCanvas()"> Bật chữ ký</label><input type="text" id="watermarkText" value="VIP SIM TOOL" placeholder="Nội dung..." oninput="drawCanvas()"></div></div>
+        <div class="setting-row"><label>Định dạng</label><div class="setting-inputs"><select id="exportFormat" class="flex-1"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option></select></div></div></div>
     </div>
 </div>
 `;
@@ -747,6 +801,18 @@ layoutHtml += `<div class="setting-box">
 </div>
 
 <div id="drmOverlay"><div class="drm-box"><h2>⚠ PHẦN MỀM ĐÃ BỊ KHÓA</h2><div class="drm-mac" id="displayMac">ĐANG TẠO MÃ...</div><button onclick="copyMac()" class="drm-btn" style="background:#007bff; margin-bottom:20px;">📋 COPY MÃ MÁY NÀY</button><input type="text" id="licenseKeyInput" class="drm-input" placeholder="Nhập Key..."><button class="drm-btn" onclick="activateLicense()">🔓 KÍCH HOẠT NGAY</button><div id="drmMessage"></div></div></div>
+<div id="paletteModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2100000; justify-content: center; align-items: center; padding: 15px; backdrop-filter: blur(4px);">
+    <div style="background: #fff; padding: 20px; border-radius: 15px; width: 100%; max-width: 450px; position: relative; box-shadow: 0 15px 50px rgba(0,0,0,0.4);">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #8e44ad; padding-bottom:10px; margin-bottom:15px;">
+            <h3 style="margin:0; color:#8e44ad; font-size:16px;">🎨 BẢNG MÀU GỢI Ý CHUYÊN NGHIỆP</h3>
+            <span style="cursor:pointer; font-size:24px; color:#999;" onclick="document.getElementById('paletteModalOverlay').style.display='none'">✖</span>
+        </div>
+        <div id="paletteContainer" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; max-height:400px; overflow-y:auto; padding:5px;">
+            <!-- Palette items injected by JS -->
+        </div>
+        <div style="text-align:center; margin-top:15px; font-size:11px; color:#888;">Chọn bộ màu để áp dụng ngay cho thành phần đang được chọn!</div>
+    </div>
+</div>
 <div id="printArea"></div>
 
 <script src="https://stuk.github.io/jszip/dist/jszip.min.js"></script>
@@ -1163,8 +1229,9 @@ window.liveSearch = function(inputId, listId) {
     }
 };
 
-window.openBgCloudModal = function(target) {
+window.openBgCloudModal = function(target, statusId = null) {
     window.currentBgTarget = target; 
+    window.currentStatusId = statusId;
     const modal = document.getElementById('modal-bg-cloud');
     if (modal) { modal.style.display = 'flex'; loadCloudBackgrounds(); }
 };
@@ -1233,6 +1300,11 @@ async function applyCloudBackground(fileId, loaderOverlay, galleryElement) {
             else if (target === 'cellBgImage') window.cellBgImage = img;
             else if (target === 'cellBorderImage') window.cellBorderImage = img;
             else window[target] = img;
+
+            if (window.currentStatusId) {
+                let st = document.getElementById(window.currentStatusId);
+                if (st) st.innerHTML = '☁️ Đang dùng ảnh Mây';
+            }
 
             drawCanvas();
             if (loaderOverlay) loaderOverlay.style.display = 'none';
@@ -1582,5 +1654,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500); // Tự động quét và cập nhật mỗi 0.5 giây
 });
 </script>
+
+<div id="helpModalOverlay" class="help-modal-overlay">
+    <div class="help-modal-content">
+        <span class="help-close" onclick="closeHelpModal()">✖</span>
+        <h2 style="color:#2c3e50; border-bottom:2px solid #3498db; padding-bottom:10px;">📖 HƯỚNG DẪN SỬ DỤNG</h2>
+        <div style="line-height:1.6; font-size:14px; margin-top:15px;">
+            <p><b>1. Nhập liệu Sim:</b> Dán danh sách sim vào ô bên trái theo định dạng (Số|Giá|Mệnh|Mạng|Dữ liệu 1|Dữ liệu 2).</p>
+            <p><b>2. Thiết kế Lưới:</b> Chỉnh sửa kích thước, số cột/dòng, màu sắc và độ dày viền tại tab "Lưới & Cột".</p>
+            <p><b>3. Phối màu thông minh:</b> Sử dụng nút "🎨 Phối màu" tại các ô màu để xem các gợi ý tông màu chuyên nghiệp.</p>
+            <p><b>4. Xuất ảnh:</b> Sử dụng menu ở góc dưới bên phải để tải ảnh đơn, file ZIP hoặc file PDF.</p>
+            <p><b>5. Quản lý mẫu:</b> Bạn có thể lưu mẫu thiết kế vào file .lite hoặc nạp từ kho mây đám mây.</p>
+        </div>
+    </div>
+</div>
 </body>
-</html>
+</html>
