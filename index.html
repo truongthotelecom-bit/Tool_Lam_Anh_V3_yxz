@@ -6,6 +6,7 @@
 <title>Tool Bảng Số VIP - Bản Quyền Giao Khách (UPGRADED)</title>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Oswald:wght@400;700&family=Pattaya&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;700&family=Outfit:wght@400;700&family=Playfair+Display:wght@400;700&family=Bungee&family=Lobster&family=Pacifico&family=Saira+Stencil+One&family=Charm:wght@400;700&family=Sedgwick+Ave+Display&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<script src="js/fonts_config.js"></script>
 <style>
     /* CSS GIAO DIỆN PRO-BOX MỚI TỪ BẢN THAM KHẢO */
     .setting-box { border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px; overflow: hidden; border: 1px solid #eaeaea; }
@@ -235,7 +236,7 @@
 
         <div id="ssub-${prefix}-format" class="sub-sub-tab-content">
             <div class="setting-box"><div class="setting-title" style="background:#2ecc71;">🔠 Định Dạng Chữ</div>
-            <div class="setting-row"><label>Font & Cỡ</label><div class="setting-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
+            <div class="setting-row"><label>Font & Cỡ</label><div class="setting-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><button type="button" class="btn-mini" style="background:#8e44ad; padding:2px 8px; font-weight:bold;" onclick="document.getElementById('globalFontInput').click()" title="Tải font riêng (.ttf, .otf)">+ Font</button><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
             <div class="setting-row"><label>Canh & Lệch</label><div class="setting-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
             <div class="setting-row"><label>Màu Chữ</label><div class="setting-inputs">
                 <select id="${prefix}ColorMode" onchange="document.getElementById('${prefix}ColorSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}ColorGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}ColorImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select>
@@ -477,7 +478,7 @@
             <div id="ssub-${prefix}-format" class="sub-sub-tab-content">
                 <div class="setting-box"><div class="setting-title" style="background:#2ecc71;">🔠 Định Dạng Chữ</div>
                 <div class="setting-row"><label style="color:#e74c3c;">Tên hiển thị</label><div class="setting-inputs"><input type="text" id="${prefix}Text" value="${title}" class="flex-1"></div></div>
-                <div class="setting-row"><label>Font & Cỡ</label><div class="setting-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
+                <div class="setting-row"><label>Font & Cỡ</label><div class="setting-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><button type="button" class="btn-mini" style="background:#8e44ad; padding:2px 8px; font-weight:bold;" onclick="document.getElementById('globalFontInput').click()" title="Tải font riêng (.ttf, .otf)">+ Font</button><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
                 <div class="setting-row"><label>Canh & Lệch</label><div class="setting-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
                 <div class="setting-row"><label>Màu Chữ</label><div class="setting-inputs"><select id="${prefix}ColorMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select></div></div>
                 <div class="setting-row" id="${prefix}ColorSolidGrp"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="${prefix}Color" value="#000000"></div></div>
@@ -918,23 +919,68 @@ document.addEventListener('DOMContentLoaded', () => {
         return isNaN(val) ? def : val; 
     };
 
-    const sysFonts = [
-        'Arial','Verdana','Tahoma','Times New Roman','Courier New','Segoe UI','Impact',
-        'Roboto','Montserrat','Oswald','Dancing Script','Pattaya','Inter','Outfit',
-        'Playfair Display','Bungee','Lobster','Pacifico','Saira Stencil One','Charm',
-        'Sedgwick Ave Display','Century','Century-Bold','UVN Saigon','UVN Dam Cuoi','HL Thu phap'
-    ];
-    window.initFontSelectors = function() {
+    // sysFonts nay duoc nạp từ file js/fonts_config.js
+    window.customFonts = [];
+    window.initFontSelectors = function(forceRefresh = false) {
         document.querySelectorAll('.font-selector').forEach(sel => {
-            if (sel.children.length > 0) return; // Tránh nạp trùng
-            sysFonts.forEach(f => {
+            if (!forceRefresh && sel.children.length > 0) return; 
+            
+            // Lưu giá trị hiện tại để khôi phục sau khi refresh
+            let currentVal = sel.value;
+            sel.innerHTML = ''; 
+            
+            // Gộp font hệ thống (từ fonts_config.js) và font tự tải
+            const allFonts = [...(window.sysFonts || []), ...window.customFonts];
+            allFonts.forEach(f => {
                 let opt = document.createElement('option');
                 opt.value = f; opt.innerText = f;
                 opt.style.fontFamily = `"${f}", sans-serif`;
                 sel.appendChild(opt);
             });
+            
+            // Khôi phục giá trị hoặc chọn font cuối cùng nếu vừa upload
+            if (forceRefresh && sel.dataset.lastUpload) {
+                sel.value = sel.dataset.lastUpload;
+                delete sel.dataset.lastUpload;
+            } else {
+                sel.value = currentVal || allFonts[0];
+            }
         });
     };
+
+    window.handleGlobalFontUpload = function(event) {
+        let file = event.target.files[0];
+        if (!file) return;
+        
+        let fontName = file.name.split('.')[0].replace(/[^a-z0-9]/gi, '_');
+        let reader = new FileReader();
+        
+        reader.onload = async function(e) {
+            try {
+                let fontFace = new FontFace(fontName, e.target.result);
+                await fontFace.load();
+                document.fonts.add(fontFace);
+                
+                if (!window.customFonts.includes(fontName)) {
+                    window.customFonts.push(fontName);
+                }
+                
+                // Đánh dấu để các select tự chọn font này sau khi refresh
+                document.querySelectorAll('.font-selector').forEach(sel => {
+                     sel.dataset.lastUpload = fontName;
+                });
+                
+                window.initFontSelectors(true);
+                if (typeof drawCanvas === 'function') drawCanvas();
+                alert("✅ Đã nạp font: " + fontName);
+            } catch (err) {
+                alert("❌ Lỗi nạp font: " + err.message);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+        event.target.value = ''; // Reset để chọn lại cùng file nếu cần
+    };
+
     initFontSelectors();
 
     window.setupAdvancedUploader = function(inputId, globalVarName) {
@@ -1668,5 +1714,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     </div>
 </div>
+<input type="file" id="globalFontInput" style="display:none" accept=".ttf,.otf,.woff,.woff2" onchange="handleGlobalFontUpload(event)">
 </body>
 </html>
