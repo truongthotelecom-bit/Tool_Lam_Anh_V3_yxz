@@ -571,9 +571,6 @@ function handleInteractStart(clientX, clientY) {
     isDragMoved = false; let pos = getPointerPos(canvas, clientX, clientY); let clickedOnObject = false;
 
     let currentTime = new Date().getTime();
-    if (currentTime - lastClickTime < 300) { 
-        if (typeof openBgCloudModal === 'function') { openBgCloudModal('bgImage'); lastClickTime = 0; return true; }
-    }
     lastClickTime = currentTime;
 
     for (let i = hitBoxes.length - 1; i >= 0; i--) {
@@ -732,7 +729,10 @@ if(canvas) {
         }
     });
 
-    canvas.addEventListener('mousedown', function(e) { handleInteractStart(e.clientX, e.clientY); });
+    canvas.addEventListener('mousedown', function(e) { 
+        let handled = handleInteractStart(e.clientX, e.clientY); 
+        if(handled) e.preventDefault();
+    });
     window.addEventListener('mouseup', function(e) { handleInteractEnd(); });
 }
 
@@ -920,7 +920,16 @@ window.openMobileModal = function(tid) {
         bodyEl.appendChild(el); 
     }
     
-    el.classList.add('active'); modalEl.style.display = 'flex';
+    el.classList.add('active');
+    
+    // V26.5: Áp dụng GUARD để chống click nhầm (double-click từ canvas nhảy vào modal)
+    let contentEl = modalEl.querySelector('.mobile-modal-content');
+    if (contentEl) {
+        contentEl.classList.add('modal-guarding');
+        setTimeout(() => { contentEl.classList.remove('modal-guarding'); }, 300);
+    }
+    
+    modalEl.style.display = 'flex';
 };
 
 window.focusDesktopTab = function(tid) {
