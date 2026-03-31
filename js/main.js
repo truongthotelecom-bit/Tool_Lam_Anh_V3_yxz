@@ -372,8 +372,8 @@ window.drawCanvas = function() {
         }
         ctx.restore();
     } else {
-        let c1 = document.getElementById('bgGradient1')?.value || document.getElementById('bgColor')?.value;
-        let c2 = document.getElementById('bgGradient2')?.value;
+        let c1 = (bgMode === 'solid') ? (document.getElementById('bgColor')?.value || '#ffffff') : (document.getElementById('bgGradient1')?.value || '#ffffff');
+        let c2 = document.getElementById('bgGradient2')?.value || '#ffffff';
         ctx.fillStyle = window.getAdvancedStyle(ctx, bgMode, c1, c2, null, 0, 0, cw, ch, window.getVal('bgGradAngle', 0));
         ctx.fillRect(0, 0, cw, ch);
     }
