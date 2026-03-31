@@ -17,12 +17,30 @@ window.fitZoom = function() {
 
 window.toggleFullscreen = function() {
     let col = document.getElementById('previewColumn'); let btn = document.getElementById('toggleFullBtn');
-    if(!col) return; col.classList.toggle('fullscreen');
-    window.isFullscreen = col.classList.contains('fullscreen');
-    if(window.isFullscreen) { if(btn) btn.innerText = '↙ Thu nhỏ'; } 
-    else { 
-        if(btn) btn.innerText = '🔲 TOÀN MÀN HÌNH'; 
-        if(typeof window.closeMobileModal === 'function') window.closeMobileModal(); 
+    if(!col) return;
+    
+    // Kiểm tra mobile
+    let isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        document.body.classList.toggle('studio-mode');
+        window.isFullscreen = document.body.classList.contains('studio-mode');
+        if (window.isFullscreen) {
+            if (btn) btn.innerText = '↙ Thu nhỏ';
+            // Tự động nạp mẫu cài đặt khi vào Studio Mode
+            if (typeof window.openMobileModal === 'function') window.openMobileModal('layout');
+        } else {
+            if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH';
+            if (typeof window.closeMobileModal === 'function') window.closeMobileModal();
+        }
+    } else {
+        col.classList.toggle('fullscreen');
+        window.isFullscreen = col.classList.contains('fullscreen');
+        if (window.isFullscreen) { if (btn) btn.innerText = '↙ Thu nhỏ'; } 
+        else { 
+            if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH'; 
+            if (typeof window.closeMobileModal === 'function') window.closeMobileModal(); 
+        }
     }
     setTimeout(window.fitZoom, 300);
 };

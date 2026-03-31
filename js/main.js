@@ -855,6 +855,16 @@ if(canvas) {
 
 window.closeMobileModal = function() {
     let modalEl = document.getElementById('mobileSettingModal'); if (modalEl) modalEl.style.display = 'none';
+    
+    // Nếu đang ở Studio Mode thì thoát ra luôn
+    if (document.body.classList.contains('studio-mode')) {
+        document.body.classList.remove('studio-mode');
+        window.isFullscreen = false;
+        let btn = document.getElementById('toggleFullBtn');
+        if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH';
+        setTimeout(window.fitZoom, 300);
+    }
+
     document.querySelectorAll('.m-tab-lvl1').forEach(btn => btn.classList.remove('active'));
     if (window.activeMobileElement && window.placeholderNode && window.placeholderNode.parentNode) {
         window.placeholderNode.parentNode.insertBefore(window.activeMobileElement, window.placeholderNode);

@@ -1,255 +1,840 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
-<title>Tool Bảng Số VIP - Bản Quyền Giao Khách (UPGRADED)</title>
-<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Oswald:wght@400;700&family=Pattaya&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;700&family=Outfit:wght@400;700&family=Playfair+Display:wght@400;700&family=Bungee&family=Lobster&family=Pacifico&family=Saira+Stencil+One&family=Charm:wght@400;700&family=Sedgwick+Ave+Display&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-<script src="js/fonts_config.js"></script>
-<style>
-    /* CSS GIAO DIỆN PRO-BOX MỚI TỪ BẢN THAM KHẢO */
-    .setting-box { border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px; overflow: hidden; border: 1px solid #eaeaea; }
-    .setting-title { padding: 10px 15px; font-weight: bold; font-size: 13px; text-transform: uppercase; color: #fff; background: #34495e; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
-    .setting-row { display: flex; padding: 10px 15px; border-bottom: 1px solid #fcfcfc; align-items: center; }
-    .setting-row:last-child { border-bottom: none; }
-    .setting-row > label { width: 90px; font-size: 12px; font-weight: 600; color: #555; flex-shrink: 0; margin:0; }
-    .setting-inputs { display: flex; flex: 1; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; }
-    .setting-inputs input[type="number"], .setting-inputs input[type="text"] { width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; text-align: center; outline: none; }
-    .setting-inputs input[type="text"] { width: 100%; text-align: left; }
-    .setting-inputs select { flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
-    .setting-inputs input[type="color"] { padding: 0; width: 28px; height: 28px; border: none; border-radius: 4px; cursor: pointer; }
-    .setting-inputs label { display: flex; align-items: center; gap: 4px; cursor: pointer; margin:0; font-weight:bold; }
-    .btn-mini { background: #007bff; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
-    .column.fullscreen { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: #fff !important; margin: 0 !important; padding: 20px !important; box-sizing: border-box; overflow-y: auto; }
-    
-    /* Khung chứa preview */
-    #canvasWrapper {
-        width: 100%;
-        height: 85vh; 
-        background: #e9ecef;
-        overflow: auto;      
-        display: flex;
-        padding: 20px;       
-        box-sizing: border-box;
-        cursor: grab;        
-    }
-    #canvasWrapper:active { cursor: grabbing; }
-    #preview {
-        display: block;
-        flex-shrink: 0; 
-        margin: auto;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+    <title>Tool Bảng Số VIP - Bản Quyền Giao Khách (UPGRADED)</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Oswald:wght@400;700&family=Pattaya&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;700&family=Outfit:wght@400;700&family=Playfair+Display:wght@400;700&family=Bungee&family=Lobster&family=Pacifico&family=Saira+Stencil+One&family=Charm:wght@400;700&family=Sedgwick+Ave+Display&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/fonts_config.js"></script>
+    <style>
+        /* CSS GIAO DIỆN PRO-BOX MỚI TỪ BẢN THAM KHẢO */
+        .setting-box {
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 12px;
+            overflow: hidden;
+            border: 1px solid #eaeaea;
+        }
 
-    /* CSS Đám Mây - Vòng Xoay & Item */
-    .loading-box { text-align: center; background: rgba(20, 20, 20, 0.9); padding: 40px 60px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-    .loader-double { width: 60px; height: 60px; border: 3px solid transparent; border-top-color: #007bff; border-bottom-color: #007bff; border-radius: 50%; position: relative; animation: spin-v16 2s linear infinite; margin: 0 auto 25px; }
-    .loader-double::before { content: ""; position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px; border: 3px solid transparent; border-left-color: #2ecc71; border-right-color: #2ecc71; border-radius: 50%; animation: spin-reverse 1.5s linear infinite; }
-    @keyframes spin-v16 { to { transform: rotate(360deg); } }
-    @keyframes spin-reverse { to { transform: rotate(-360deg); } }
-    .progress-dots span { font-size: 30px; color: #007bff; display: inline-block; animation: dots-jump 1.4s infinite; }
-    .progress-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .progress-dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes dots-jump { 0%, 20% { transform: translateY(0); opacity: 0.2; } 50% { transform: translateY(-10px); opacity: 1; } 100% { transform: translateY(0); opacity: 0.2; } }
-    #globalLoading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(7px); z-index: 2147483647; flex-direction: column; align-items: center; justify-content: center; }
-    .cloud-item-wrapper { position: relative; display: inline-block; overflow: hidden; border-radius: 10px; border: 1px solid #ddd; transition: 0.3s; cursor: pointer; background: #fff; width: 100%; }
-    .cloud-item-wrapper:hover { border-color: #007bff; box-shadow: 0 5px 15px rgba(0,123,255,0.2); }
-    .local-loading-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); color: white; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
-    .local-spinner { width: 20px; height: 20px; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: #fff; animation: local-spin 1s linear infinite; margin-bottom: 5px; }
-    @keyframes local-spin { to { transform: rotate(360deg); } }
-    .local-loading-text { font-size: 11px; font-weight: bold; letter-spacing: 1px; }
-    .dots::after { content: ''; animation: local-dots 1.5s steps(4, end) infinite; }
-    @keyframes local-dots { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } }
-    /* MENU THỐNG NHẤT (V26) */
-    .unified-menu-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000000; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
-    .main-menu-btn { width: 55px; height: 55px; background: #2c3e50; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; box-shadow: 0 8px 30px rgba(0,0,0,0.3); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000001; }
-    .main-menu-btn:hover { transform: scale(1.1) rotate(180deg); background: #34495e; }
-    .sub-menu-list { display: none; position: absolute; bottom: 70px; flex-direction: column; gap: 10px; align-items: flex-end; animation: slideUpV26 0.3s ease-out; }
-    @keyframes slideUpV26 { from { opacity: 0; transform: translateY(30px) scale(0.8); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    .sub-menu-item { background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%); color: #2c3e50; padding: 12px 22px; border-radius: 35px; font-weight: bold; font-size: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; gap: 10px; border: 1px solid #ddd; transition: 0.3s; white-space: nowrap; }
-    .sub-menu-item:hover { background: #2c3e50; color: #fff; transform: translateX(-8px); box-shadow: 0 8px 25px rgba(44, 62, 80, 0.3); }
-    .sub-menu-item.active { background: #3498db; color: #fff; border-color: #2980b9; }
+        .setting-title {
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            color: #fff;
+            background: #34495e;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .setting-row {
+            display: flex;
+            padding: 10px 15px;
+            border-bottom: 1px solid #fcfcfc;
+            align-items: center;
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-row>label {
+            width: 90px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            flex-shrink: 0;
+            margin: 0;
+        }
+
+        .setting-inputs {
+            display: flex;
+            flex: 1;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            font-size: 12px;
+        }
+
+        .setting-inputs input[type="number"],
+        .setting-inputs input[type="text"] {
+            width: 50px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+            outline: none;
+        }
+
+        .setting-inputs input[type="text"] {
+            width: 100%;
+            text-align: left;
+        }
+
+        .setting-inputs select {
+            flex: 1;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .setting-inputs input[type="color"] {
+            padding: 0;
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .setting-inputs label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .btn-mini {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .column.fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 999999 !important;
+            background: #fff !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        /* [STUDIO MODE] - CHẾ ĐỘ THIẾT KẾ 50/50 TRÊN MOBILE */
+        body.studio-mode {
+            overflow: hidden !important;
+            height: 100vh !important;
+            width: 100vw !important;
+        }
+        body.studio-mode .col-data, 
+        body.studio-mode .preview-header,
+        body.studio-mode .preview-pagination,
+        body.studio-mode .preview-actions {
+            display: none !important;
+        }
+        body.studio-mode #previewColumn {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 50vh !important;
+            z-index: 1000 !important;
+            background: #fff !important;
+            margin: 0 !important;
+            padding: 5px !important;
+            border: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        body.studio-mode #canvasWrapper {
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 5px !important;
+        }
+        body.studio-mode #mobileSettingModal {
+            display: block !important;
+            position: fixed !important;
+            top: 50vh !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 50vh !important;
+            z-index: 1001 !important;
+            background: #fff !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: none !important;
+        }
+        body.studio-mode .mobile-modal-content {
+            height: 100% !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            max-width: none !important;
+        }
+        body.studio-mode .mobile-modal-drag-handle {
+            display: none !important;
+        }
+        body.studio-mode .mobile-modal-header-area {
+            padding: 5px 0 !important;
+        }
+
+        /* Fix trượt cuối trang và tối ưu mobile */
+        .mobile-modal-body {
+            padding-bottom: 200px !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        .col-settings {
+            padding-bottom: 120px !important;
+        }
+        #themeModalContent {
+            max-height: 90vh;
+            overflow-y: auto;
+            padding-bottom: 100px !important;
+        }
+
+        /* Khung chứa preview */
+        #canvasWrapper {
+            width: 100%;
+            height: 85vh;
+            background: #e9ecef;
+            overflow: auto;
+            display: flex;
+            padding: 20px;
+            box-sizing: border-box;
+            cursor: grab;
+        }
+
+        #canvasWrapper:active {
+            cursor: grabbing;
+        }
+
+        #preview {
+            display: block;
+            flex-shrink: 0;
+            margin: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* CSS Đám Mây - Vòng Xoay & Item */
+        .loading-box {
+            text-align: center;
+            background: rgba(20, 20, 20, 0.9);
+            padding: 40px 60px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .loader-double {
+            width: 60px;
+            height: 60px;
+            border: 3px solid transparent;
+            border-top-color: #007bff;
+            border-bottom-color: #007bff;
+            border-radius: 50%;
+            position: relative;
+            animation: spin-v16 2s linear infinite;
+            margin: 0 auto 25px;
+        }
+
+        .loader-double::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 3px solid transparent;
+            border-left-color: #2ecc71;
+            border-right-color: #2ecc71;
+            border-radius: 50%;
+            animation: spin-reverse 1.5s linear infinite;
+        }
+
+        @keyframes spin-v16 {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spin-reverse {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
+        .progress-dots span {
+            font-size: 30px;
+            color: #007bff;
+            display: inline-block;
+            animation: dots-jump 1.4s infinite;
+        }
+
+        .progress-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .progress-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dots-jump {
+
+            0%,
+            20% {
+                transform: translateY(0);
+                opacity: 0.2;
+            }
+
+            50% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 0.2;
+            }
+        }
+
+        #globalLoading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(7px);
+            z-index: 2147483647;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cloud-item-wrapper {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            transition: 0.3s;
+            cursor: pointer;
+            background: #fff;
+            width: 100%;
+        }
+
+        .cloud-item-wrapper:hover {
+            border-color: #007bff;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.2);
+        }
+
+        .local-loading-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .local-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: local-spin 1s linear infinite;
+            margin-bottom: 5px;
+        }
+
+        @keyframes local-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .local-loading-text {
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .dots::after {
+            content: '';
+            animation: local-dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes local-dots {
+
+            0%,
+            20% {
+                content: '';
+            }
+
+            40% {
+                content: '.';
+            }
+
+            60% {
+                content: '..';
+            }
+
+            80%,
+            100% {
+                content: '...';
+            }
+        }
+
+        /* MENU THỐNG NHẤT (V26) */
+        .unified-menu-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .main-menu-btn {
+            width: 55px;
+            height: 55px;
+            background: #2c3e50;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2000001;
+        }
+
+        .main-menu-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+            background: #34495e;
+        }
+
+        .sub-menu-list {
+            display: none;
+            position: absolute;
+            bottom: 70px;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-end;
+            animation: slideUpV26 0.3s ease-out;
+        }
+
+        @keyframes slideUpV26 {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.8);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .sub-menu-item {
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+            color: #2c3e50;
+            padding: 12px 22px;
+            border-radius: 35px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #ddd;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+
+        .sub-menu-item:hover {
+            background: #2c3e50;
+            color: #fff;
+            transform: translateX(-8px);
+            box-shadow: 0 8px 25px rgba(44, 62, 80, 0.3);
+        }
+
+        .sub-menu-item.active {
+            background: #3498db;
+            color: #fff;
+            border-color: #2980b9;
+        }
 
 
-    /* HELP MODAL (V26) */
-    .help-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000000; justify-content: center; align-items: center; padding: 20px; }
-    .help-modal-content { background: #fff; border-radius: 12px; width: 100%; max-width: 600px; max-height: 80vh; overflow-y: auto; padding: 25px; position: relative; }
-    .help-close { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #e74c3c; cursor: pointer; }
-    .status-info { font-size: 11px; color: #666; font-style: italic; margin-top: 2px; display: block; width: 100%; }
-    .btn-remove { background: #ff4757 !important; color: white !important; border: none; padding: 0 8px; border-radius: 4px; cursor: pointer; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; }
-    .btn-remove:hover { background: #ff6b81 !important; }
+        /* HELP MODAL (V26) */
+        .help-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 3000000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-    /* UI Tối ưu: Thanh Tab Trượt Ngang (V26.6) */
-    .sub-tabs { 
-        display: flex; 
-        gap: 5px; 
-        background: #f8f9fa; 
-        padding: 8px; 
-        border-radius: 8px; 
-        margin-bottom: 12px; 
-        overflow-x: auto; 
-        white-space: nowrap; 
-        -webkit-overflow-scrolling: touch; 
-        scrollbar-width: thin; 
-        scrollbar-color: #3498db #f1f1f1;
-        border: 1px solid #eee;
-    }
-    .sub-tabs::-webkit-scrollbar { height: 6px; }
-    .sub-tabs::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-    .sub-tabs::-webkit-scrollbar-thumb { background: #3498db; border-radius: 10px; }
-    .sub-tab-btn { 
-        padding: 8px 16px; 
-        border: none; 
-        background: #eee; 
-        border-radius: 6px; 
-        cursor: pointer; 
-        font-size: 11px; 
-        font-weight: bold; 
-        color: #555; 
-        flex-shrink: 0; 
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-    }
-    .sub-tab-btn:hover { background: #e0e0e0; color: #333; }
-    .sub-tab-btn.active { background: #3498db; color: #fff; box-shadow: 0 4px 10px rgba(52,152,219,0.3); }
-</style>
+        .help-modal-content {
+            background: #fff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 25px;
+            position: relative;
+        }
+
+        .help-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            color: #e74c3c;
+            cursor: pointer;
+        }
+
+        .status-info {
+            font-size: 11px;
+            color: #666;
+            font-style: italic;
+            margin-top: 2px;
+            display: block;
+            width: 100%;
+        }
+
+        .btn-remove {
+            background: #ff4757 !important;
+            color: white !important;
+            border: none;
+            padding: 0 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .btn-remove:hover {
+            background: #ff6b81 !important;
+        }
+
+        /* UI Tối ưu: Thanh Tab Trượt Ngang (V26.6) */
+        .sub-tabs {
+            display: flex;
+            gap: 5px;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #3498db #f1f1f1;
+            border: 1px solid #eee;
+        }
+
+        .sub-tabs::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .sub-tabs::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .sub-tabs::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 10px;
+        }
+
+        .sub-tab-btn {
+            padding: 8px 16px;
+            border: none;
+            background: #eee;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .sub-tab-btn:hover {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .sub-tab-btn.active {
+            background: #3498db;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+        }
+
+        /* Fix trượt cuối trang trên điện thoại */
+        #themeModalContent {
+            max-height: 90vh;
+            overflow-y: auto;
+            padding-bottom: 80px !important;
+        }
+
+        .col-settings {
+            padding-bottom: 100px !important;
+        }
+
+        @media screen and (max-width: 768px) {
+            body {
+                padding-bottom: 100px;
+            }
+
+            .help-modal-content {
+                padding-bottom: 80px !important;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<div id="applyBtnContainer" style="display:none; position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 1000000; padding: 10px 25px; background: var(--success); color: white; border-radius: 30px; font-weight: bold; cursor: grab; box-shadow: 0 5px 15px rgba(40,167,69,0.4); font-size: 14px; user-select: none;">✅ ÁP DỤNG (Chốt)</div>
-<div id="quickSliderContainer" style="display:none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 450px; background: rgba(255,255,255,0.98); padding: 15px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.4); z-index: 1000000; border: 2px solid var(--primary);">
-    <div id="quickSliderHeader" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; cursor: grab; padding-bottom: 8px; border-bottom: 1px dashed #ddd;">
-        <b id="quickSliderLabel" style="font-size: 12px; color: #333; text-transform: uppercase; pointer-events: none;">Thông số</b>
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <button id="btnSliderReset" title="Trả lại giá trị cũ" style="background: #e67e22; color: #fff; padding: 4px 8px; border-radius: 5px; font-size: 11px; border: none; cursor: pointer;">↺ Trả lại</button>
-            <input type="number" id="quickSliderValueInput" value="0" style="background: var(--primary); color: #fff; padding: 4px 5px; border-radius: 6px; font-weight: bold; font-size: 14px; width: 60px; text-align: center; border: 1px solid #0056b3; outline: none;">
+    <div id="applyBtnContainer"
+        style="display:none; position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 1000000; padding: 10px 25px; background: var(--success); color: white; border-radius: 30px; font-weight: bold; cursor: grab; box-shadow: 0 5px 15px rgba(40,167,69,0.4); font-size: 14px; user-select: none;">
+        ✅ ÁP DỤNG (Chốt)</div>
+    <div id="quickSliderContainer"
+        style="display:none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 450px; background: rgba(255,255,255,0.98); padding: 15px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.4); z-index: 1000000; border: 2px solid var(--primary);">
+        <div id="quickSliderHeader"
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; cursor: grab; padding-bottom: 8px; border-bottom: 1px dashed #ddd;">
+            <b id="quickSliderLabel"
+                style="font-size: 12px; color: #333; text-transform: uppercase; pointer-events: none;">Thông số</b>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button id="btnSliderReset" title="Trả lại giá trị cũ"
+                    style="background: #e67e22; color: #fff; padding: 4px 8px; border-radius: 5px; font-size: 11px; border: none; cursor: pointer;">↺
+                    Trả lại</button>
+                <input type="number" id="quickSliderValueInput" value="0"
+                    style="background: var(--primary); color: #fff; padding: 4px 5px; border-radius: 6px; font-weight: bold; font-size: 14px; width: 60px; text-align: center; border: 1px solid #0056b3; outline: none;">
+            </div>
+            <button onclick="closeQuickSlider()"
+                style="background: #eee; border-radius: 50%; width: 25px; height: 25px; border: none; color: #666; cursor: pointer;">✕</button>
         </div>
-        <button onclick="closeQuickSlider()" style="background: #eee; border-radius: 50%; width: 25px; height: 25px; border: none; color: #666; cursor: pointer;">✕</button>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button id="btnSliderMinus"
+                style="width: 45px; height: 45px; border-radius: 10px; background: #f8f9fa; border: 1px solid #ddd; font-size: 20px; font-weight: bold; color: var(--primary); cursor: pointer;">-</button>
+            <input type="range" id="quickSlider" style="flex: 1; height: 10px; cursor: pointer;">
+            <button id="btnSliderPlus"
+                style="width: 45px; height: 45px; border-radius: 10px; background: #f8f9fa; border: 1px solid #ddd; font-size: 20px; font-weight: bold; color: var(--primary); cursor: pointer;">+</button>
+        </div>
     </div>
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <button id="btnSliderMinus" style="width: 45px; height: 45px; border-radius: 10px; background: #f8f9fa; border: 1px solid #ddd; font-size: 20px; font-weight: bold; color: var(--primary); cursor: pointer;">-</button>
-        <input type="range" id="quickSlider" style="flex: 1; height: 10px; cursor: pointer;">
-        <button id="btnSliderPlus" style="width: 45px; height: 45px; border-radius: 10px; background: #f8f9fa; border: 1px solid #ddd; font-size: 20px; font-weight: bold; color: var(--primary); cursor: pointer;">+</button>
-    </div>
-</div>
 
-<div id="unifiedMenuContainer" class="unified-menu-container">
-    <div id="subMenuList" class="sub-menu-list">
-        <div class="sub-menu-item" onclick="openTemplateManager();">🎨 Quản Lý Mẫu</div>
-        <div class="sub-menu-item" onclick="toggleExportSubMenu();">💾 Chức Năng Xuất</div>
-        <div id="exportSubMenu" style="display:none; flex-direction:column; gap:8px; align-items:flex-end; margin-right:15px; border-right:2px solid #ddd; padding-right:15px;">
-            <button onclick="downloadSingleImage()" class="btn-mini" style="background:#17a2b8; border-radius:15px;">🖼️ Lưu 1 Ảnh</button>
-            <button onclick="generateAllImages()" class="btn-mini" style="background:#28a745; border-radius:15px;">📦 Tải ZIP (Tất cả)</button>
-            <button onclick="exportToPDF()" class="btn-mini" style="background:#e84393; border-radius:15px;">📄 Xuất PDF</button>
-            <button onclick="printAllPages()" class="btn-mini" style="background:#9b59b6; border-radius:15px;">🖨️ In A4 (Dành cho in)</button>
-            <button onclick="copyCanvas()" class="btn-mini" style="background:#3498db; border-radius:15px;">📋 Copy Ảnh</button>
-            <button onclick="exportToExcel()" class="btn-mini" style="background:#20c997; border-radius:15px;">📊 Xuất Excel</button>
+    <div id="unifiedMenuContainer" class="unified-menu-container">
+        <div id="subMenuList" class="sub-menu-list">
+            <div class="sub-menu-item" onclick="openTemplateManager();">🎨 Quản Lý Mẫu</div>
+            <div class="sub-menu-item" onclick="toggleExportSubMenu();">💾 Chức Năng Xuất</div>
+            <div id="exportSubMenu"
+                style="display:none; flex-direction:column; gap:8px; align-items:flex-end; margin-right:15px; border-right:2px solid #ddd; padding-right:15px;">
+                <button onclick="downloadSingleImage()" class="btn-mini"
+                    style="background:#17a2b8; border-radius:15px;">🖼️ Lưu 1 Ảnh</button>
+                <button onclick="generateAllImages()" class="btn-mini"
+                    style="background:#28a745; border-radius:15px;">📦 Tải ZIP (Tất cả)</button>
+                <button onclick="exportToPDF()" class="btn-mini" style="background:#e84393; border-radius:15px;">📄 Xuất
+                    PDF</button>
+                <button onclick="printAllPages()" class="btn-mini" style="background:#9b59b6; border-radius:15px;">🖨️
+                    In A4 (Dành cho in)</button>
+                <button onclick="copyCanvas()" class="btn-mini" style="background:#3498db; border-radius:15px;">📋 Copy
+                    Ảnh</button>
+                <button onclick="exportToExcel()" class="btn-mini" style="background:#20c997; border-radius:15px;">📊
+                    Xuất Excel</button>
+            </div>
+            <div class="sub-menu-item" onclick="openHelpModal();">📖 Hướng Dẫn</div>
+            <div class="sub-menu-item" onclick="undo(); toggleUnifiedMenu();" id="btnUndo">↩ Hoàn tác (0)</div>
         </div>
-        <div class="sub-menu-item" onclick="openHelpModal();">📖 Hướng Dẫn</div>
-        <div class="sub-menu-item" onclick="undo(); toggleUnifiedMenu();" id="btnUndo">↩ Hoàn tác (0)</div>
+        <div class="main-menu-btn" id="unifiedMenuBtn" onclick="toggleUnifiedMenu()" title="Mở Danh Mục Chức Năng">☰
+        </div>
     </div>
-    <div class="main-menu-btn" id="unifiedMenuBtn" onclick="toggleUnifiedMenu()" title="Mở Danh Mục Chức Năng">☰</div>
-</div>
 
-<div id="themeModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 3000000; justify-content: center; align-items: center; padding: 15px;">
-    <div id="themeModalContent" style="background: #fff; padding: 20px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-        <div class="theme-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--success); padding-bottom: 10px; margin-bottom: 15px;">
-            <span style="font-weight: bold; color: var(--success); font-size: 16px;">🎨 QUẢN LÝ MẪU THIẾT KẾ</span>
-            <span class="theme-modal-close" onclick="document.getElementById('themeModalOverlay').style.display='none'" style="cursor: pointer; font-size: 24px; color: red; line-height: 1;">✖</span>
-        </div>
-        
-        <select id="builtinTemplates" onchange="if(typeof loadBuiltinTemplate === 'function') loadBuiltinTemplate(this.value); document.getElementById('themeModalOverlay').style.display='none';" style="width: 100%; padding: 12px; border: 2px solid var(--success); border-radius: 8px; font-size: 14px; font-weight:bold; color: var(--success); cursor:pointer; text-align: center;">
-            <option value="">🌟 MẪU MẶC ĐỊNH (MẪU 1)</option>
-            <option value="mau_vip_1">🔥 Mẫu 1x1 - 1</option>
-            <option value="mau_vip_2">💎 Mẫu 2x10 - 1</option>
-            <option value="mau_vip_3">🌈 Mẫu 2x10 - 2</option>
-            <option value="mau_vip_4">⭐ Mẫu 3x8 - 1</option>
-            <option value="mau_vip_5">⚡ Mẫu 3x25 -1</option>
-        </select>
-        <input type="file" id="importConfig" accept=".json,.lite" style="display:none" onchange="handleImport(event); document.getElementById('themeModalOverlay').style.display='none';">
-        
-        <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
-            <label style="font-size: 11px; font-weight: bold; color: var(--primary); display: block; margin-bottom: 8px;">☁️ KHO MẪU ĐÁM MÂY TỰ ĐỘNG</label>
-            <div style="padding-bottom: 10px;">
-                <div style="position: relative;">
-                    <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
-                    <input type="text" id="searchTemplateInput" onkeyup="liveSearch('searchTemplateInput', 'cloudTemplatesList')" placeholder="Tìm mẫu (VD: vip, 3x8...)" style="width: 100%; padding: 8px 10px 8px 32px; border: 1px solid #ddd; border-radius: 20px; font-size: 12px; outline: none; box-sizing: border-box; transition: 0.3s;">
+    <div id="themeModalOverlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 3000000; justify-content: center; align-items: center; padding: 15px;">
+        <div id="themeModalContent"
+            style="background: #fff; padding: 20px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <div class="theme-modal-header"
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--success); padding-bottom: 10px; margin-bottom: 15px;">
+                <span style="font-weight: bold; color: var(--success); font-size: 16px;">🎨 QUẢN LÝ MẪU THIẾT KẾ</span>
+                <span class="theme-modal-close"
+                    onclick="document.getElementById('themeModalOverlay').style.display='none'"
+                    style="cursor: pointer; font-size: 24px; color: red; line-height: 1;">✖</span>
+            </div>
+
+            <select id="builtinTemplates"
+                onchange="if(typeof loadBuiltinTemplate === 'function') loadBuiltinTemplate(this.value); document.getElementById('themeModalOverlay').style.display='none';"
+                style="width: 100%; padding: 12px; border: 2px solid var(--success); border-radius: 8px; font-size: 14px; font-weight:bold; color: var(--success); cursor:pointer; text-align: center;">
+                <option value="">🌟 MẪU MẶC ĐỊNH (MẪU 1)</option>
+                <option value="mau_vip_1">🔥 Mẫu 1x1 - 1</option>
+                <option value="mau_vip_2">💎 Mẫu 2x10 - 1</option>
+                <option value="mau_vip_3">🌈 Mẫu 2x10 - 2</option>
+                <option value="mau_vip_4">⭐ Mẫu 3x8 - 1</option>
+                <option value="mau_vip_5">⚡ Mẫu 3x25 -1</option>
+            </select>
+            <input type="file" id="importConfig" accept=".json,.lite" style="display:none"
+                onchange="handleImport(event); document.getElementById('themeModalOverlay').style.display='none';">
+
+            <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
+                <label
+                    style="font-size: 11px; font-weight: bold; color: var(--primary); display: block; margin-bottom: 8px;">☁️
+                    KHO MẪU ĐÁM MÂY TỰ ĐỘNG</label>
+                <div style="padding-bottom: 10px;">
+                    <div style="position: relative;">
+                        <span
+                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
+                        <input type="text" id="searchTemplateInput"
+                            onkeyup="liveSearch('searchTemplateInput', 'cloudTemplatesList')"
+                            placeholder="Tìm mẫu (VD: vip, 3x8...)"
+                            style="width: 100%; padding: 8px 10px 8px 32px; border: 1px solid #ddd; border-radius: 20px; font-size: 12px; outline: none; box-sizing: border-box; transition: 0.3s;">
+                    </div>
+                </div>
+                <div id="cloudTemplatesList"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 250px; overflow-y: auto; padding: 5px;">
+                    <div style="grid-column: 1/-1; text-align: center; font-size: 11px; color: #888;">Đang tải danh
+                        sách...</div>
                 </div>
             </div>
-            <div id="cloudTemplatesList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 250px; overflow-y: auto; padding: 5px;">
-                <div style="grid-column: 1/-1; text-align: center; font-size: 11px; color: #888;">Đang tải danh sách...</div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-top: 15px;">
+                <button onclick="createNewLite()"
+                    style="background:#007bff; border:1px solid #0056b3; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🆕
+                    TẠO MỚI</button>
+                <button onclick="document.getElementById('importConfig').click()"
+                    style="background:#f4f7f6; border:1px solid #ccc; color:#333; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">📂
+                    NẠP MẪU</button>
+                <button onclick="exportConfig(); document.getElementById('themeModalOverlay').style.display='none';"
+                    style="background:#e74c3c; border:1px solid #c0392b; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">💾
+                    XUẤT LITE</button>
+                <button onclick="resetToDefault(); document.getElementById('themeModalOverlay').style.display='none';"
+                    style="background:#ffc107; border:1px solid #d39e00; color:#000; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🔄
+                    VỀ GỐC</button>
             </div>
         </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-top: 15px;">
-            <button onclick="createNewLite()" style="background:#007bff; border:1px solid #0056b3; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🆕 TẠO MỚI</button>
-            <button onclick="document.getElementById('importConfig').click()" style="background:#f4f7f6; border:1px solid #ccc; color:#333; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">📂 NẠP MẪU</button>
-            <button onclick="exportConfig(); document.getElementById('themeModalOverlay').style.display='none';" style="background:#e74c3c; border:1px solid #c0392b; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">💾 XUẤT LITE</button>
-            <button onclick="resetToDefault(); document.getElementById('themeModalOverlay').style.display='none';" style="background:#ffc107; border:1px solid #d39e00; color:#000; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🔄 VỀ GỐC</button>
+    </div>
+
+    <div class="column col-data">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin:0;">1. DANH SÁCH SIM</h3><span id="saveStatus">✔ Đã lưu</span>
+        </div>
+        <select id="filterMenh" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"
+            style="width:100%; padding:10px; border:2px solid var(--primary); border-radius:6px; font-weight:bold; color:var(--primary); margin-bottom:10px;">
+            <option value="ALL">🌈 Lọc Mệnh: TẤT CẢ SIM</option>
+            <option value="KIM">🤍 Chỉ hiện Mệnh KIM</option>
+            <option value="MỘC">💚 Chỉ hiện Mệnh MỘC</option>
+            <option value="THỦY">💙 Chỉ hiện Mệnh THỦY</option>
+            <option value="HỎA">❤ Chỉ hiện Mệnh HỎA</option>
+            <option value="THỔ">🤎 Chỉ hiện Mệnh THỔ</option>
+        </select>
+        <textarea id="list">0909.123.456|1000000000|VIP|Mới&#10;0988.88.88.88|50000000|Thường|Xả hàng</textarea>
+        <div style="display: flex; margin-top: 10px; gap: 8px;">
+            <button onclick="pasteList()" class="btn-success" style="flex:1; padding:12px;">📋 Dán SIM</button>
+            <button
+                onclick="document.getElementById('list').value=''; if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"
+                class="btn-danger" style="flex:1; padding:12px;">🗑️ Xóa hết</button>
         </div>
     </div>
-</div>
 
-<div class="column col-data">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="margin:0;">1. DANH SÁCH SIM</h3><span id="saveStatus">✔ Đã lưu</span>
-    </div>
-    <select id="filterMenh" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();" style="width:100%; padding:10px; border:2px solid var(--primary); border-radius:6px; font-weight:bold; color:var(--primary); margin-bottom:10px;">
-        <option value="ALL">🌈 Lọc Mệnh: TẤT CẢ SIM</option>
-        <option value="KIM">🤍 Chỉ hiện Mệnh KIM</option> <option value="MỘC">💚 Chỉ hiện Mệnh MỘC</option>
-        <option value="THỦY">💙 Chỉ hiện Mệnh THỦY</option> <option value="HỎA">❤ Chỉ hiện Mệnh HỎA</option> <option value="THỔ">🤎 Chỉ hiện Mệnh THỔ</option>
-    </select>
-    <textarea id="list">0909.123.456|1000000000|VIP|Mới&#10;0988.88.88.88|50000000|Thường|Xả hàng</textarea>
-    <div style="display: flex; margin-top: 10px; gap: 8px;">
-        <button onclick="pasteList()" class="btn-success" style="flex:1; padding:12px;">📋 Dán SIM</button>
-        <button onclick="document.getElementById('list').value=''; if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();" class="btn-danger" style="flex:1; padding:12px;">🗑️ Xóa hết</button>
-    </div>
-</div>
+    <div class="column col-preview" id="previewColumn">
+        <div class="preview-header"
+            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); margin-bottom: 10px; padding-bottom: 5px;">
+            <h3 style="margin:0; border:none;">2. BẢN VẼ FINAL</h3>
+            <div style="font-size:11px; color:red; font-weight:bold;" id="canvasSizeDisplay">Size: 0x0 px</div>
+        </div>
 
-<div class="column col-preview" id="previewColumn">
-    <div class="preview-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); margin-bottom: 10px; padding-bottom: 5px;">
-        <h3 style="margin:0; border:none;">2. BẢN VẼ FINAL</h3>
-        <div style="font-size:11px; color:red; font-weight:bold;" id="canvasSizeDisplay">Size: 0x0 px</div>
-    </div>
-    
-    <div class="zoom-bar" style="display: flex; gap: 5px; margin-bottom: 10px; background: #e8f4ff; padding: 5px; border-radius: 4px; align-items:center;">
-        <button id="toggleFullBtn" onclick="toggleFullscreen()" style="background:#34495e; color:#fff; padding:6px 12px; border:none; border-radius:4px; cursor:pointer;">🔲 TOÀN MÀN HÌNH</button>
-        <div style="flex-grow:1;"></div>
-        <button onclick="fitZoom()" style="background:#fff; border:1px solid #ccc; border-radius:4px; padding:4px 8px; cursor:pointer;">Fit</button>
-        <input type="range" id="zoomSlider" min="10" max="300" value="100" oninput="applyZoom(this.value)" style="width: 80px; cursor:pointer;">
-        <span id="zoomVal" style="font-weight:bold; font-size:12px; width:40px; display:inline-block;">100%</span>
+        <div class="zoom-bar"
+            style="display: flex; gap: 5px; margin-bottom: 10px; background: #e8f4ff; padding: 5px; border-radius: 4px; align-items:center;">
+            <button id="toggleFullBtn" onclick="toggleFullscreen()"
+                style="background:#34495e; color:#fff; padding:6px 12px; border:none; border-radius:4px; cursor:pointer;">🔲
+                TOÀN MÀN HÌNH</button>
+            <div style="flex-grow:1;"></div>
+            <button onclick="fitZoom()"
+                style="background:#fff; border:1px solid #ccc; border-radius:4px; padding:4px 8px; cursor:pointer;">Fit</button>
+            <input type="range" id="zoomSlider" min="10" max="300" value="100" oninput="applyZoom(this.value)"
+                style="width: 80px; cursor:pointer;">
+            <span id="zoomVal" style="font-weight:bold; font-size:12px; width:40px; display:inline-block;">100%</span>
+        </div>
+
+        <div id="canvasWrapper"><canvas id="preview"></canvas></div>
+
+        <div class="preview-pagination"
+            style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 10px;">
+            <button onclick="prevStep()"
+                style="cursor:pointer; padding:5px 15px; border-radius:4px; background:#007bff; color:#fff; border:none; font-weight:bold;">◀
+                Lùi</button>
+            <span style="font-size:13px; font-weight:bold; background:#eee; padding:5px 10px; border-radius:4px;">Trang
+                <input type="number" id="pageInput" value="1" onchange="goToPage(this.value)"
+                    style="width:40px; text-align:center; border:1px solid #ccc; border-radius:3px;"> / <span
+                    id="totalPagesText">1</span></span>
+            <button onclick="nextStep()"
+                style="cursor:pointer; padding:5px 15px; border-radius:4px; background:#007bff; color:#fff; border:none; font-weight:bold;">Tới
+                ▶</button>
+        </div>
+
+        <div class="preview-actions"
+            style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
+            <button onclick="copyCanvas()"
+                style="background:#007bff; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📋
+                Copy</button>
+            <button onclick="downloadSingleImage()"
+                style="background:#17a2b8; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">💾
+                Lưu 1 Ảnh</button>
+            <button onclick="printAllPages()"
+                style="background:#8e44ad; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">🖨️
+                In A4</button>
+            <button onclick="generateAllImages()"
+                style="background:#27ae60; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📦
+                Tải ZIP</button>
+        </div>
     </div>
 
-    <div id="canvasWrapper"><canvas id="preview"></canvas></div>
-
-    <div class="preview-pagination" style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 10px;">
-        <button onclick="prevStep()" style="cursor:pointer; padding:5px 15px; border-radius:4px; background:#007bff; color:#fff; border:none; font-weight:bold;">◀ Lùi</button>
-        <span style="font-size:13px; font-weight:bold; background:#eee; padding:5px 10px; border-radius:4px;">Trang <input type="number" id="pageInput" value="1" onchange="goToPage(this.value)" style="width:40px; text-align:center; border:1px solid #ccc; border-radius:3px;"> / <span id="totalPagesText">1</span></span>
-        <button onclick="nextStep()" style="cursor:pointer; padding:5px 15px; border-radius:4px; background:#007bff; color:#fff; border:none; font-weight:bold;">Tới ▶</button>
+    <div class="column col-settings">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tab-layout', this)">1. Lưới & Cột</button>
+            <button class="tab-btn" onclick="switchTab('tab-colheader', this)">2. Tiêu Đề</button>
+            <button class="tab-btn" onclick="switchTab('tab-globaltext', this)">3. Chữ Góc</button>
+            <button class="tab-btn" onclick="switchTab('tab-general', this)">4. Nền & In</button>
+        </div>
+        <div id="dynamic-tabs-container"></div>
     </div>
 
-    <div class="preview-actions" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
-        <button onclick="copyCanvas()" style="background:#007bff; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📋 Copy</button>
-        <button onclick="downloadSingleImage()" style="background:#17a2b8; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">💾 Lưu 1 Ảnh</button>
-        <button onclick="printAllPages()" style="background:#8e44ad; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">🖨️ In A4</button>
-        <button onclick="generateAllImages()" style="background:#27ae60; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📦 Tải ZIP</button>
-    </div>
-</div>
-
-<div class="column col-settings">
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('tab-layout', this)">1. Lưới & Cột</button>
-        <button class="tab-btn" onclick="switchTab('tab-colheader', this)">2. Tiêu Đề</button>
-        <button class="tab-btn" onclick="switchTab('tab-globaltext', this)">3. Chữ Góc</button>
-        <button class="tab-btn" onclick="switchTab('tab-general', this)">4. Nền & In</button>
-    </div>
-    <div id="dynamic-tabs-container"></div>
-</div>
-
-<script>
-    function generateColTab(prefix, title, defX, hasShape, defW, defBg) {
-    let html = `
+    <script>
+        function generateColTab(prefix, title, defX, hasShape, defW, defBg) {
+            let html = `
     <div id="sub-${prefix}" class="sub-tab-content">
         <div class="sub-sub-tabs">
             <button class="sub-sub-tab-btn active" onclick="switchSubSubTab('ssub-${prefix}-pos', this)">📐 Vị Trí</button>
@@ -263,7 +848,7 @@
             <div class="setting-row"><label>Kích thước</label><div class="setting-inputs"><span>W:</span><input type="number" id="${prefix}W" value="${defW}"><span>H:</span><input type="number" id="${prefix}H" value="50"></div></div>
             <div class="setting-row"><label>Lệch vị trí</label><div class="setting-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="0"></div></div>
             <div class="setting-row"><label>Xoay (Góc)</label><div class="setting-inputs"><span>∠:</span><input type="number" id="${prefix}Angle" value="0" style="width:45px;"> <input type="range" min="-180" max="180" value="0" oninput="document.getElementById('${prefix}Angle').value=this.value; typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="flex:1;"></div></div>
-            <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs"><select id="${prefix}AlignX"><option value="left" ${prefix==='num'?'selected':''}>Trái</option><option value="center" ${prefix==='price'||prefix==='data1'||prefix==='data2'?'selected':''}>Giữa</option><option value="right" ${prefix==='menh'||prefix==='mang'?'selected':''}>Phải</option></select><select id="${prefix}AlignY"><option value="top">Trên</option><option value="middle" selected>Giữa</option><option value="bottom">Dưới</option></select><label style="color:red;"><input type="checkbox" id="${prefix}Locked">🔒 Khóa</label></div></div>
+            <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs"><select id="${prefix}AlignX"><option value="left" ${prefix === 'num' ? 'selected' : ''}>Trái</option><option value="center" ${prefix === 'price' || prefix === 'data1' || prefix === 'data2' ? 'selected' : ''}>Giữa</option><option value="right" ${prefix === 'menh' || prefix === 'mang' ? 'selected' : ''}>Phải</option></select><select id="${prefix}AlignY"><option value="top">Trên</option><option value="middle" selected>Giữa</option><option value="bottom">Dưới</option></select><label style="color:red;"><input type="checkbox" id="${prefix}Locked">🔒 Khóa</label></div></div>
             </div>
         </div>
 
@@ -495,10 +1080,10 @@
             </div>
         ` : ''}
     </div>`;
-    return html;
-}
-    function generateHeaderTab(prefix, title, defX, defW, defY = 0, ax = 'center', ay = 'top') {
-        let html = `
+            return html;
+        }
+        function generateHeaderTab(prefix, title, defX, defW, defY = 0, ax = 'center', ay = 'top') {
+            let html = `
         <div id="sub-${prefix}" class="sub-tab-content">
             <div class="sub-sub-tabs">
                 <button class="sub-sub-tab-btn active" onclick="switchSubSubTab('ssub-${prefix}-pos', this)">📐 Vị Trí</button>
@@ -532,12 +1117,12 @@
                 <div class="setting-row"><label>Xoay (Góc)</label><div class="setting-inputs"><span>∠:</span><input type="number" id="${prefix}Angle" value="0" style="width:45px;"> <input type="range" min="-180" max="180" value="0" oninput="document.getElementById('${prefix}Angle').value=this.value; typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="flex:1;"></div></div>
                 <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs">
                     <select id="${prefix}AlignX" onchange="drawCanvas(); updateUI();" style="flex:1; padding:5px; border-radius:6px; border:1px solid #ddd;">
-                        <option value="left" ${ax==='left'?'selected':''}>Ngang: Trái</option>
-                        <option value="center" ${ax==='center'?'selected':''}>Ngang: Giữa</option>
-                        <option value="right" ${ax==='right'?'selected':''}>Ngang: Phải</option>
-                        <option value="auto" ${ax==='auto'?'selected':''}>✨ Auto (Lật gáy)</option>
+                        <option value="left" ${ax === 'left' ? 'selected' : ''}>Ngang: Trái</option>
+                        <option value="center" ${ax === 'center' ? 'selected' : ''}>Ngang: Giữa</option>
+                        <option value="right" ${ax === 'right' ? 'selected' : ''}>Ngang: Phải</option>
+                        <option value="auto" ${ax === 'auto' ? 'selected' : ''}>✨ Auto (Lật gáy)</option>
                     </select>
-                    <select id="${prefix}AlignY" onchange="drawCanvas(); updateUI();" style="flex:1; padding:5px; border-radius:6px; border:1px solid #ddd;"><option value="top" ${ay==='top'?'selected':''}>Dọc: Trên</option><option value="middle" ${ay==='middle'?'selected':''}>Dọc: Giữa</option><option value="bottom" ${ay==='bottom'?'selected':''}>Dọc: Dưới</option></select>
+                    <select id="${prefix}AlignY" onchange="drawCanvas(); updateUI();" style="flex:1; padding:5px; border-radius:6px; border:1px solid #ddd;"><option value="top" ${ay === 'top' ? 'selected' : ''}>Dọc: Trên</option><option value="middle" ${ay === 'middle' ? 'selected' : ''}>Dọc: Giữa</option><option value="bottom" ${ay === 'bottom' ? 'selected' : ''}>Dọc: Dưới</option></select>
                     <label style="color:red; background:#fff; padding:5px 8px; border-radius:6px; border:1px solid #ddd; cursor:pointer;"><input type="checkbox" id="${prefix}Locked"> Khóa</label>
                 </div></div>
                 </div>
@@ -573,13 +1158,13 @@
                 <div class="setting-box" style="border: 1px solid #e67e22;"><div class="setting-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}BorderShadow"> Bật bóng Viền</label><span>X:</span><input type="number" id="${prefix}BorderShadowX" value="2"><span>Y:</span><input type="number" id="${prefix}BorderShadowY" value="2"><span>Mờ:</span><input type="number" id="${prefix}BorderShadowBlur" value="4"><input type="color" id="${prefix}BorderShadowColor" value="#000000"></div></div></div>
             </div>
         </div>`;
-        return html;
-    }
+            return html;
+        }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        let layoutHtml = `<div id="tab-layout" class="tab-content active"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-luoi-chung', this)">Lưới Chung</button><button class="sub-tab-btn" onclick="switchSubTab('sub-num', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-price', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-menh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-mang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data2', this)">DL 2</button></div>`;
-        
-        layoutHtml += `<div id="sub-luoi-chung" class="sub-tab-content active">
+        document.addEventListener('DOMContentLoaded', () => {
+            let layoutHtml = `<div id="tab-layout" class="tab-content active"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-luoi-chung', this)">Lưới Chung</button><button class="sub-tab-btn" onclick="switchSubTab('sub-num', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-price', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-menh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-mang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data2', this)">DL 2</button></div>`;
+
+            layoutHtml += `<div id="sub-luoi-chung" class="sub-tab-content active">
             <div class="sub-tabs" style="background:#eee; margin-bottom:15px;">
                 <button class="sub-sub-tab-btn active" onclick="switchSubSubTab('sub-sub-luoi-size', this)">📏 Kích Thước</button>
                 <button class="sub-sub-tab-btn" onclick="switchSubSubTab('sub-sub-luoi-style', this)">🎨 Nền & Viền</button>
@@ -661,26 +1246,26 @@
             </div>
         </div>`;
 
-        layoutHtml += generateColTab('num', 'Cột Số', 0, false, 200, '#ffffff') + generateColTab('price', 'Cột Giá', 65, false, 110, '#ffffff') + generateColTab('menh', 'Cột Mệnh', 0, true, 70, '#ffffff') + generateColTab('mang', 'Cột Mạng', -80, true, 70, '#ffffff') + generateColTab('data1', 'Cột DL 1', 0, false, 100, '#ffffff') + generateColTab('data2', 'Cột DL 2', 0, false, 100, '#ffffff') + `</div>`;
+            layoutHtml += generateColTab('num', 'Cột Số', 0, false, 200, '#ffffff') + generateColTab('price', 'Cột Giá', 65, false, 110, '#ffffff') + generateColTab('menh', 'Cột Mệnh', 0, true, 70, '#ffffff') + generateColTab('mang', 'Cột Mạng', -80, true, 70, '#ffffff') + generateColTab('data1', 'Cột DL 1', 0, false, 100, '#ffffff') + generateColTab('data2', 'Cột DL 2', 0, false, 100, '#ffffff') + `</div>`;
 
-        let headHtml = `<div id="tab-colheader" class="tab-content"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-hCommon', this)">Bật/Tắt Tiêu Đề</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hNum', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hPrice', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMenh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData2', this)">DL 2</button></div>`;
-        headHtml += `<div id="sub-hCommon" class="sub-tab-content active"><div class="setting-box"><div class="setting-title">🏷️ Kích Hoạt Tiêu Đề</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="showHeaderRow" checked> Hiện hàng Tiêu Đề</label><span>Cao(H):</span><input type="number" id="headerRowHeight" value="50"></div></div></div></div>`;
-        headHtml += generateHeaderTab('hNum', 'SỐ ĐẸP VIP', 0, 200) + generateHeaderTab('hPrice', 'GIÁ BÁN', 65, 110) + generateHeaderTab('hMenh', 'MỆNH', 0, 70) + generateHeaderTab('hMang', 'MẠNG', -80, 70) + generateHeaderTab('hData1', 'DỮ LIỆU 1', 0, 100) + generateHeaderTab('hData2', 'DỮ LIỆU 2', 0, 100) + `</div>`;
+            let headHtml = `<div id="tab-colheader" class="tab-content"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-hCommon', this)">Bật/Tắt Tiêu Đề</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hNum', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hPrice', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMenh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData2', this)">DL 2</button></div>`;
+            headHtml += `<div id="sub-hCommon" class="sub-tab-content active"><div class="setting-box"><div class="setting-title">🏷️ Kích Hoạt Tiêu Đề</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="showHeaderRow" checked> Hiện hàng Tiêu Đề</label><span>Cao(H):</span><input type="number" id="headerRowHeight" value="50"></div></div></div></div>`;
+            headHtml += generateHeaderTab('hNum', 'SỐ ĐẸP VIP', 0, 200) + generateHeaderTab('hPrice', 'GIÁ BÁN', 65, 110) + generateHeaderTab('hMenh', 'MỆNH', 0, 70) + generateHeaderTab('hMang', 'MẠNG', -80, 70) + generateHeaderTab('hData1', 'DỮ LIỆU 1', 0, 100) + generateHeaderTab('hData2', 'DỮ LIỆU 2', 0, 100) + `</div>`;
 
-        let globHtml = `<div id="tab-globaltext" class="tab-content"><div class="sub-tabs" id="globalTextTabs" style="flex-wrap: wrap;"></div><div id="dynamic-globals-container">`;
-        let gT = [
-            {id:'header1', t:'Tiêu Đề 1', d:'BẢNG SIM SỐ ĐẸP', w:500, y:-25, ax:'center', ay:'top'}, 
-            {id:'header2', t:'Tiêu Đề 2', d:'Uy Tín - Chất Lượng', w:500, y:25, ax:'center', ay:'top'}, 
-            {id:'footer1', t:'Chân Trang 1', d:'Giao Sim Tận Nơi', w:500, y:-25, ax:'center', ay:'bottom'}, 
-            {id:'footer2', t:'Chân Trang 2', d:'Hotline: 0909.123.456', w:500, y:25, ax:'center', ay:'bottom'},
-            {id:'ctl', t:'Trái-Trên', d:'Hotline', w:200, y:0, ax:'left', ay:'top'},
-            {id:'ctr', t:'Phải-Trên', d:'Zalo', w:200, y:0, ax:'right', ay:'top'},
-            {id:'cbl', t:'Trái-Dưới', d:'CSKH', w:200, y:0, ax:'left', ay:'bottom'},
-            {id:'cbr', t:'Phải-Dưới', d:'UY TÍN', w:200, y:0, ax:'right', ay:'bottom'},
-            {id:'pageNum', t:'Số Trang', d:'Trang {p}/{t}', w:150, y:0, ax:'auto', ay:'bottom'}
-        ];
-        let gTabs = '<button class="sub-tab-btn active" onclick="switchSubTab(\'sub-gt-chung\', this)">Bật/Tắt Cụm</button>';
-        globHtml += `<div id="sub-gt-chung" class="sub-tab-content active"><div class="setting-box"><div class="setting-title">BẬT TẮT CHỮ GÓC</div><div class="setting-row"><div class="setting-inputs" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+            let globHtml = `<div id="tab-globaltext" class="tab-content"><div class="sub-tabs" id="globalTextTabs" style="flex-wrap: wrap;"></div><div id="dynamic-globals-container">`;
+            let gT = [
+                { id: 'header1', t: 'Tiêu Đề 1', d: 'BẢNG SIM SỐ ĐẸP', w: 500, y: -25, ax: 'center', ay: 'top' },
+                { id: 'header2', t: 'Tiêu Đề 2', d: 'Uy Tín - Chất Lượng', w: 500, y: 25, ax: 'center', ay: 'top' },
+                { id: 'footer1', t: 'Chân Trang 1', d: 'Giao Sim Tận Nơi', w: 500, y: -25, ax: 'center', ay: 'bottom' },
+                { id: 'footer2', t: 'Chân Trang 2', d: 'Hotline: 0909.123.456', w: 500, y: 25, ax: 'center', ay: 'bottom' },
+                { id: 'ctl', t: 'Trái-Trên', d: 'Hotline', w: 200, y: 0, ax: 'left', ay: 'top' },
+                { id: 'ctr', t: 'Phải-Trên', d: 'Zalo', w: 200, y: 0, ax: 'right', ay: 'top' },
+                { id: 'cbl', t: 'Trái-Dưới', d: 'CSKH', w: 200, y: 0, ax: 'left', ay: 'bottom' },
+                { id: 'cbr', t: 'Phải-Dưới', d: 'UY TÍN', w: 200, y: 0, ax: 'right', ay: 'bottom' },
+                { id: 'pageNum', t: 'Số Trang', d: 'Trang {p}/{t}', w: 150, y: 0, ax: 'auto', ay: 'bottom' }
+            ];
+            let gTabs = '<button class="sub-tab-btn active" onclick="switchSubTab(\'sub-gt-chung\', this)">Bật/Tắt Cụm</button>';
+            globHtml += `<div id="sub-gt-chung" class="sub-tab-content active"><div class="setting-box"><div class="setting-title">BẬT TẮT CHỮ GÓC</div><div class="setting-row"><div class="setting-inputs" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
             <label><input type="checkbox" id="use_header1" checked onchange="updateUI()">T.Đề 1</label>
             <label><input type="checkbox" id="use_header2" checked onchange="updateUI()">T.Đề 2</label>
             <label><input type="checkbox" id="use_ctl" checked onchange="updateUI()">Trái Trên</label>
@@ -691,13 +1276,13 @@
             <label><input type="checkbox" id="use_cbr" checked onchange="updateUI()">Phải Dưới</label>
             <label style="color:red;"><input type="checkbox" id="use_pageNum" checked onchange="updateUI()">Số Trang</label>
         </div></div></div></div>`;
-        gT.forEach(g => { 
-            gTabs += `<button class="sub-tab-btn" onclick="switchSubTab('sub-${g.id}', this)">${g.t}</button>`; 
-            globHtml += generateHeaderTab(g.id, g.d, 0, g.w, g.y, g.ax, g.ay); 
-        });
-        globHtml += `</div></div>`;
+            gT.forEach(g => {
+                gTabs += `<button class="sub-tab-btn" onclick="switchSubTab('sub-${g.id}', this)">${g.t}</button>`;
+                globHtml += generateHeaderTab(g.id, g.d, 0, g.w, g.y, g.ax, g.ay);
+            });
+            globHtml += `</div></div>`;
 
-        let genHtml = `
+            let genHtml = `
 <div id="tab-general" class="tab-content">
     <div class="sub-tabs" style="margin-bottom: 10px;">
         <button class="sub-tab-btn active" onclick="switchSubTab('sub-general-bg', this)">🌄 Khổ Giấy & Nền</button>
@@ -791,514 +1376,550 @@
 </div>
 `;
 
-        document.getElementById('dynamic-tabs-container').innerHTML = layoutHtml + headHtml + globHtml + genHtml;
-        document.getElementById('globalTextTabs').innerHTML = gTabs;
-    });
-</script>
+            document.getElementById('dynamic-tabs-container').innerHTML = layoutHtml + headHtml + globHtml + genHtml;
+            document.getElementById('globalTextTabs').innerHTML = gTabs;
+        });
+    </script>
 
-<div id="helpModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; animation: fadeIn 0.2s; backdrop-filter: blur(3px);">
-    <div style="background: #fff; padding: 20px; border-radius: 15px; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; box-shadow: 0 15px 50px rgba(0,0,0,0.4); position: relative;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 15px;">
-            <h3 style="margin: 0; color: #d35400; font-size: 16px; text-transform: uppercase;">📖 HƯỚNG DẪN NHẬP DỮ LIỆU</h3>
-            <span style="cursor: pointer; font-size: 24px; color: #999; line-height: 1; padding: 0 5px;" onclick="closeHelpModal()">✖</span>
-        </div>
-        <div style="font-size: 13px; color: #333; line-height: 1.6;">
-            <p>Hệ thống tự động nhận diện dữ liệu theo từng dòng. Bạn có thể nhập theo các định dạng sau:</p>
-            
-            <b style="color: var(--primary);">1. Nhập Cơ Bản (Chỉ hiện Số và Giá):</b>
-            <p style="margin: 4px 0; color: #666; font-size: 12px;">Phân cách Số và Giá bằng Khoảng trắng, Dấu chấm, hoặc Dấu gạch ngang.</p>
-            <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; margin: 5px 0 15px 0; border-left: 3px solid var(--primary);">
-                0909.123.456 500k<br>
-                0988-888-888 1.500.000<br>
-                090.999.9999 = 2 Triệu
+    <div id="helpModalOverlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; animation: fadeIn 0.2s; backdrop-filter: blur(3px);">
+        <div
+            style="background: #fff; padding: 20px; border-radius: 15px; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; box-shadow: 0 15px 50px rgba(0,0,0,0.4); position: relative;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: #d35400; font-size: 16px; text-transform: uppercase;">📖 HƯỚNG DẪN NHẬP DỮ
+                    LIỆU</h3>
+                <span style="cursor: pointer; font-size: 24px; color: #999; line-height: 1; padding: 0 5px;"
+                    onclick="closeHelpModal()">✖</span>
             </div>
-            
-            <b style="color: #e84393;">2. Nhập Nâng Cao (Thêm Dữ Liệu 1 & Dữ Liệu 2):</b>
-            <p style="margin: 4px 0; color: #666; font-size: 12px;">Sử dụng dấu gạch đứng <code style="color:red; font-weight:bold;">|</code> để phân cách các cột.</p>
-            <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; margin: 5px 0 15px 0; border-left: 3px solid #e84393;">
-                <b>Cú pháp:</b> Số | Giá | Dữ liệu 1 | Dữ liệu 2<br><br>
-                0909.123.456 | 500k | Sim Vip | Mới về<br>
-                0988.88.88.88 | 50 Tr | Trả sau | Khuyến mãi lớn<br>
-                0912.345.678 | Liên hệ | | Số độc
+            <div style="font-size: 13px; color: #333; line-height: 1.6;">
+                <p>Hệ thống tự động nhận diện dữ liệu theo từng dòng. Bạn có thể nhập theo các định dạng sau:</p>
+
+                <b style="color: var(--primary);">1. Nhập Cơ Bản (Chỉ hiện Số và Giá):</b>
+                <p style="margin: 4px 0; color: #666; font-size: 12px;">Phân cách Số và Giá bằng Khoảng trắng, Dấu chấm,
+                    hoặc Dấu gạch ngang.</p>
+                <div
+                    style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; margin: 5px 0 15px 0; border-left: 3px solid var(--primary);">
+                    0909.123.456 500k<br>
+                    0988-888-888 1.500.000<br>
+                    090.999.9999 = 2 Triệu
+                </div>
+
+                <b style="color: #e84393;">2. Nhập Nâng Cao (Thêm Dữ Liệu 1 & Dữ Liệu 2):</b>
+                <p style="margin: 4px 0; color: #666; font-size: 12px;">Sử dụng dấu gạch đứng <code
+                        style="color:red; font-weight:bold;">|</code> để phân cách các cột.</p>
+                <div
+                    style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; margin: 5px 0 15px 0; border-left: 3px solid #e84393;">
+                    <b>Cú pháp:</b> Số | Giá | Dữ liệu 1 | Dữ liệu 2<br><br>
+                    0909.123.456 | 500k | Sim Vip | Mới về<br>
+                    0988.88.88.88 | 50 Tr | Trả sau | Khuyến mãi lớn<br>
+                    0912.345.678 | Liên hệ | | Số độc
+                </div>
+
+                <ul style="padding-left: 20px; margin-bottom: 0; color: var(--danger); font-weight: bold;">
+                    <li>Nếu không nhập DL1 hoặc DL2, ô tương ứng sẽ tự động tàng hình!</li>
+                    <li>Cột Mệnh và Nhà Mạng sẽ tự động được AI phân tích từ Số SIM.</li>
+                </ul>
             </div>
-            
-            <ul style="padding-left: 20px; margin-bottom: 0; color: var(--danger); font-weight: bold;">
-                <li>Nếu không nhập DL1 hoặc DL2, ô tương ứng sẽ tự động tàng hình!</li>
-                <li>Cột Mệnh và Nhà Mạng sẽ tự động được AI phân tích từ Số SIM.</li>
-            </ul>
-        </div>
-        <div style="text-align: center; margin-top: 20px;">
-            <button onclick="closeHelpModal()" style="background: #f39c12; color: #fff; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);">Đã Hiểu</button>
-        </div>
-    </div>
-</div>
-
-<div id="mobileSettingModal" onclick="if(event.target===this)window.closeMobileModal()">
-  <div class="mobile-modal-content">
-    <div class="mobile-modal-header-area">
-      <div class="mobile-modal-drag-handle"></div>
-      <div class="mobile-modal-top-row">
-        <span id="mobileModalTitle" class="mobile-modal-title">Cài Đặt</span>
-        <button class="mobile-modal-close-btn" onclick="window.closeMobileModal()" title="Đóng">✕</button>
-      </div>
-      <div id="mobileTabMenu">
-        <button class="m-tab-lvl1" id="mTab-tab-layout" onclick="openMobileModal('layout')">&#128202; Lưới</button>
-        <button class="m-tab-lvl1" id="mTab-tab-colheader" onclick="openMobileModal('header')">&#127991; Tiêu Đề</button>
-        <button class="m-tab-lvl1" id="mTab-tab-globaltext" onclick="openMobileModal('globaltext')">&#128221; Chữ Góc</button>
-        <button class="m-tab-lvl1" id="mTab-tab-general" onclick="openMobileModal('general')">&#128444; Nền</button>
-      </div>
-    </div>
-    <div class="mobile-modal-body" id="mobileModalBody"></div>
-  </div>
-</div>
-
-<div id="drmOverlay"><div class="drm-box"><h2>⚠ PHẦN MỀM ĐÃ BỊ KHÓA</h2><div class="drm-mac" id="displayMac">ĐANG TẠO MÃ...</div><button onclick="copyMac()" class="drm-btn" style="background:#007bff; margin-bottom:20px;">📋 COPY MÃ MÁY NÀY</button><input type="text" id="licenseKeyInput" class="drm-input" placeholder="Nhập Key..."><button class="drm-btn" onclick="activateLicense()">🔓 KÍCH HOẠT NGAY</button><div id="drmMessage"></div></div></div>
-<div id="paletteModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2100000; justify-content: center; align-items: center; padding: 15px; backdrop-filter: blur(4px);">
-    <div style="background: #fff; padding: 20px; border-radius: 15px; width: 100%; max-width: 450px; position: relative; box-shadow: 0 15px 50px rgba(0,0,0,0.4);">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #8e44ad; padding-bottom:10px; margin-bottom:15px;">
-            <h3 style="margin:0; color:#8e44ad; font-size:16px;">🎨 BẢNG MÀU GỢI Ý CHUYÊN NGHIỆP</h3>
-            <span style="cursor:pointer; font-size:24px; color:#999;" onclick="document.getElementById('paletteModalOverlay').style.display='none'">✖</span>
-        </div>
-        <div id="paletteContainer" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; max-height:400px; overflow-y:auto; padding:5px;">
-            <!-- Palette items injected by JS -->
-        </div>
-        <div style="text-align:center; margin-top:15px; font-size:11px; color:#888;">Chọn bộ màu để áp dụng ngay cho thành phần đang được chọn!</div>
-    </div>
-</div>
-<div id="printArea"></div>
-
-<script src="https://stuk.github.io/jszip/dist/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="js/script.js"></script>
-<script src="js/main.js"></script>
-
-<div id="modal-bg-cloud" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000000; justify-content:center; align-items:center; padding: 15px; box-sizing: border-box; backdrop-filter: blur(3px);">
-    <div style="background:#fff; width:100%; max-width:600px; border-radius:15px; padding:20px; box-shadow:0 15px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; position: relative;">
-        
-        <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:15px; border-bottom:2px solid #007bff; padding-bottom:10px;">
-            <h3 style="margin:0; color:#007bff; font-size: 18px;">☁️ KHO ẢNH DRIVE (HASHTAG)</h3>
-            <button onclick="document.getElementById('modal-bg-cloud').style.display='none'" style="border:none; background:#ff4757; color:white; width: 30px; height: 30px; border-radius: 50%; cursor:pointer; font-weight: bold; line-height: 1;">✕</button>
-        </div>
-
-        <div style="position: relative; margin-bottom: 15px;">
-            <input type="text" 
-                id="cloudSearchBox" 
-                onkeyup="liveSearch('cloudSearchBox', 'bgCloudList')" 
-                placeholder="🔍 Gõ hashtag tìm nhanh (VD: #Tet, #Vang)..." 
-                style="width:100%; padding:12px 15px; border:2px solid #007bff; border-radius:25px; font-weight:bold; box-sizing:border-box; outline: none; transition: 0.3s; font-size: 14px;">
-        </div>
-
-        <div id="bgCloudList" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:12px; max-height:450px; overflow-y:auto; padding:5px; scroll-behavior: smooth;">
-            </div>
-        
-        <div style="text-align: center; margin-top: 10px; font-size: 11px; color: #888;">
-            💡 Mẹo: Gõ hashtag có dấu # để tìm chính xác hơn
-        </div>
-    </div>
-</div>
-
-<div id="globalLoading">
-    <div class="loading-box">
-        <div class="loader-double"></div>
-        <div class="loading-content">
-            <div id="loadingAction" style="font-size: 13px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Hệ thống đang</div>
-            <div id="loadingText" style="font-size: 18px; color: #fff; font-weight: bold; min-height: 24px;">Xử lý dữ liệu</div>
-            <div class="progress-dots">
-                <span>.</span><span>.</span><span>.</span>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="closeHelpModal()"
+                    style="background: #f39c12; color: #fff; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);">Đã
+                    Hiểu</button>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-// ==========================================
-// A0. HÀM TIỆN ÍCH TOÀN CỤC (V24: Fix thiếu hàm)
-// ==========================================
-window.setLocalImage = function(inputEl, globalVarName, statusId) {
-    let file = inputEl.files[0];
-    if (!file) return;
-    let reader = new FileReader();
-    reader.onload = function(e) {
-        let img = new Image();
-        img.onload = function() {
-            window[globalVarName] = img;
-            // Nếu là ảnh nền tổng, gán cả 2 biến để drawCanvas nhận
-            if (globalVarName === 'globalBgImage') window.bgImage = img;
+    <div id="mobileSettingModal" onclick="if(event.target===this)window.closeMobileModal()">
+        <div class="mobile-modal-content">
+            <div class="mobile-modal-header-area">
+                <div class="mobile-modal-drag-handle"></div>
+                <div class="mobile-modal-top-row" style="display: none;">
+                    <span id="mobileModalTitle" class="mobile-modal-title">Cài Đặt</span>
+                    <button class="mobile-modal-close-btn" onclick="window.closeMobileModal()" title="Đóng">✕</button>
+                </div>
+                <div id="mobileTabMenu">
+                    <button class="m-tab-lvl1" id="mTab-tab-layout" onclick="openMobileModal('layout')">&#128202;
+                        Lưới</button>
+                    <button class="m-tab-lvl1" id="mTab-tab-colheader" onclick="openMobileModal('header')">&#127991;
+                        Tiêu Đề</button>
+                    <button class="m-tab-lvl1" id="mTab-tab-globaltext"
+                        onclick="openMobileModal('globaltext')">&#128221; Chữ Góc</button>
+                    <button class="m-tab-lvl1" id="mTab-tab-general" onclick="openMobileModal('general')">&#128444;
+                        Nền</button>
+                </div>
+            </div>
+            <div class="mobile-modal-body" id="mobileModalBody"></div>
+        </div>
+    </div>
+
+    <div id="drmOverlay">
+        <div class="drm-box">
+            <h2>⚠ PHẦN MỀM ĐÃ BỊ KHÓA</h2>
+            <div class="drm-mac" id="displayMac">ĐANG TẠO MÃ...</div><button onclick="copyMac()" class="drm-btn"
+                style="background:#007bff; margin-bottom:20px;">📋 COPY MÃ MÁY NÀY</button><input type="text"
+                id="licenseKeyInput" class="drm-input" placeholder="Nhập Key..."><button class="drm-btn"
+                onclick="activateLicense()">🔓 KÍCH HOẠT NGAY</button>
+            <div id="drmMessage"></div>
+        </div>
+    </div>
+    <div id="paletteModalOverlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2100000; justify-content: center; align-items: center; padding: 15px; backdrop-filter: blur(4px);">
+        <div
+            style="background: #fff; padding: 20px; border-radius: 15px; width: 100%; max-width: 450px; position: relative; box-shadow: 0 15px 50px rgba(0,0,0,0.4);">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #8e44ad; padding-bottom:10px; margin-bottom:15px;">
+                <h3 style="margin:0; color:#8e44ad; font-size:16px;">🎨 BẢNG MÀU GỢI Ý CHUYÊN NGHIỆP</h3>
+                <span style="cursor:pointer; font-size:24px; color:#999;"
+                    onclick="document.getElementById('paletteModalOverlay').style.display='none'">✖</span>
+            </div>
+            <div id="paletteContainer"
+                style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; max-height:400px; overflow-y:auto; padding:5px;">
+                <!-- Palette items injected by JS -->
+            </div>
+            <div style="text-align:center; margin-top:15px; font-size:11px; color:#888;">Chọn bộ màu để áp dụng ngay cho
+                thành phần đang được chọn!</div>
+        </div>
+    </div>
+    <div id="printArea"></div>
+
+    <script src="https://stuk.github.io/jszip/dist/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/main.js"></script>
+
+    <div id="modal-bg-cloud"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000000; justify-content:center; align-items:center; padding: 15px; box-sizing: border-box; backdrop-filter: blur(3px);">
+        <div
+            style="background:#fff; width:100%; max-width:600px; border-radius:15px; padding:20px; box-shadow:0 15px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; position: relative;">
+
+            <div
+                style="display:flex; justify-content:space-between; align-items: center; margin-bottom:15px; border-bottom:2px solid #007bff; padding-bottom:10px;">
+                <h3 style="margin:0; color:#007bff; font-size: 18px;">☁️ KHO ẢNH DRIVE (HASHTAG)</h3>
+                <button onclick="document.getElementById('modal-bg-cloud').style.display='none'"
+                    style="border:none; background:#ff4757; color:white; width: 30px; height: 30px; border-radius: 50%; cursor:pointer; font-weight: bold; line-height: 1;">✕</button>
+            </div>
+
+            <div style="position: relative; margin-bottom: 15px;">
+                <input type="text" id="cloudSearchBox" onkeyup="liveSearch('cloudSearchBox', 'bgCloudList')"
+                    placeholder="🔍 Gõ hashtag tìm nhanh (VD: #Tet, #Vang)..."
+                    style="width:100%; padding:12px 15px; border:2px solid #007bff; border-radius:25px; font-weight:bold; box-sizing:border-box; outline: none; transition: 0.3s; font-size: 14px;">
+            </div>
+
+            <div id="bgCloudList"
+                style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:12px; max-height:450px; overflow-y:auto; padding:5px; scroll-behavior: smooth;">
+            </div>
+
+            <div style="text-align: center; margin-top: 10px; font-size: 11px; color: #888;">
+                💡 Mẹo: Gõ hashtag có dấu # để tìm chính xác hơn
+            </div>
+        </div>
+    </div>
+
+    <div id="globalLoading">
+        <div class="loading-box">
+            <div class="loader-double"></div>
+            <div class="loading-content">
+                <div id="loadingAction"
+                    style="font-size: 13px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">
+                    Hệ thống đang</div>
+                <div id="loadingText" style="font-size: 18px; color: #fff; font-weight: bold; min-height: 24px;">Xử lý
+                    dữ liệu</div>
+                <div class="progress-dots">
+                    <span>.</span><span>.</span><span>.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // A0. HÀM TIỆN ÍCH TOÀN CỤC (V24: Fix thiếu hàm)
+        // ==========================================
+        window.setLocalImage = function (inputEl, globalVarName, statusId) {
+            let file = inputEl.files[0];
+            if (!file) return;
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                let img = new Image();
+                img.onload = function () {
+                    window[globalVarName] = img;
+                    // Nếu là ảnh nền tổng, gán cả 2 biến để drawCanvas nhận
+                    if (globalVarName === 'globalBgImage') window.bgImage = img;
+                    let statusEl = document.getElementById(statusId);
+                    if (statusEl) statusEl.innerHTML = '✅ Đã nạp ảnh';
+                    if (typeof window.updateUI === 'function') window.updateUI();
+                    if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.removeImage = function (globalVarName, inputId, statusId) {
+            window[globalVarName] = null;
+            if (globalVarName === 'globalBgImage') window.bgImage = null;
+            let inputEl = document.getElementById(inputId);
+            if (inputEl) inputEl.value = '';
             let statusEl = document.getElementById(statusId);
-            if (statusEl) statusEl.innerHTML = '✅ Đã nạp ảnh';
-            if (typeof window.updateUI === 'function') window.updateUI();
+            if (statusEl) statusEl.innerHTML = '❌ Chưa có ảnh';
             if (typeof window.drawCanvas === 'function') window.drawCanvas();
             if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
         };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-};
 
-window.removeImage = function(globalVarName, inputId, statusId) {
-    window[globalVarName] = null;
-    if (globalVarName === 'globalBgImage') window.bgImage = null;
-    let inputEl = document.getElementById(inputId);
-    if (inputEl) inputEl.value = '';
-    let statusEl = document.getElementById(statusId);
-    if (statusEl) statusEl.innerHTML = '❌ Chưa có ảnh';
-    if (typeof window.drawCanvas === 'function') window.drawCanvas();
-    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-};
-
-window.pasteList = async function() {
-    try {
-        let text = await navigator.clipboard.readText();
-        let listEl = document.getElementById('list');
-        if (listEl && text) {
-            listEl.value = text;
-            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-        }
-    } catch (e) {
-        alert('❌ Không thể đọc clipboard! Hãy dán (Ctrl+V) trực tiếp vào ô nhập liệu.');
-    }
-};
-
-// ==========================================
-// A. KHỞI TẠO DOM & SỰ KIỆN CƠ BẢN
-// ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-    window.getVal = function(id, def = 0) {
-        let el = document.getElementById(id);
-        if (!el) return def;
-        let val = parseFloat(el.value);
-        return isNaN(val) ? def : val; 
-    };
-
-    // sysFonts nay duoc nạp từ file js/fonts_config.js
-    window.customFonts = [];
-    window.initFontSelectors = function(forceRefresh = false) {
-        document.querySelectorAll('.font-selector').forEach(sel => {
-            if (!forceRefresh && sel.children.length > 0) return; 
-            
-            // Lưu giá trị hiện tại để khôi phục sau khi refresh
-            let currentVal = sel.value;
-            sel.innerHTML = ''; 
-            
-            // Gộp font hệ thống (từ fonts_config.js) và font tự tải
-            const allFonts = [...(window.sysFonts || []), ...window.customFonts];
-            allFonts.forEach(f => {
-                let opt = document.createElement('option');
-                opt.value = f; opt.innerText = f;
-                opt.style.fontFamily = `"${f}", sans-serif`;
-                sel.appendChild(opt);
-            });
-            
-            // Khôi phục giá trị hoặc chọn font cuối cùng nếu vừa upload
-            if (forceRefresh && sel.dataset.lastUpload) {
-                sel.value = sel.dataset.lastUpload;
-                delete sel.dataset.lastUpload;
-            } else {
-                sel.value = currentVal || allFonts[0];
-            }
-        });
-    };
-
-    window.handleGlobalFontUpload = function(event) {
-        let file = event.target.files[0];
-        if (!file) return;
-        
-        let fontName = file.name.split('.')[0].replace(/[^a-z0-9]/gi, '_');
-        let reader = new FileReader();
-        
-        reader.onload = async function(e) {
+        window.pasteList = async function () {
             try {
-                let fontFace = new FontFace(fontName, e.target.result);
-                await fontFace.load();
-                document.fonts.add(fontFace);
-                
-                if (!window.customFonts.includes(fontName)) {
-                    window.customFonts.push(fontName);
+                let text = await navigator.clipboard.readText();
+                let listEl = document.getElementById('list');
+                if (listEl && text) {
+                    listEl.value = text;
+                    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
                 }
-                
-                // Đánh dấu để các select tự chọn font này sau khi refresh
-                document.querySelectorAll('.font-selector').forEach(sel => {
-                     sel.dataset.lastUpload = fontName;
-                });
-                
-                window.initFontSelectors(true);
-                if (typeof drawCanvas === 'function') drawCanvas();
-                alert("✅ Đã nạp font: " + fontName);
-            } catch (err) {
-                alert("❌ Lỗi nạp font: " + err.message);
+            } catch (e) {
+                alert('❌ Không thể đọc clipboard! Hãy dán (Ctrl+V) trực tiếp vào ô nhập liệu.');
             }
         };
-        reader.readAsArrayBuffer(file);
-        event.target.value = ''; // Reset để chọn lại cùng file nếu cần
-    };
 
-    initFontSelectors();
+        // ==========================================
+        // A. KHỞI TẠO DOM & SỰ KIỆN CƠ BẢN
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            window.getVal = function (id, def = 0) {
+                let el = document.getElementById(id);
+                if (!el) return def;
+                let val = parseFloat(el.value);
+                return isNaN(val) ? def : val;
+            };
 
-    window.setupAdvancedUploader = function(inputId, globalVarName) {
-        let inputEl = document.getElementById(inputId);
-        if (!inputEl) return;
-        
-        let newEl = inputEl.cloneNode(true);
-        inputEl.parentNode.replaceChild(newEl, inputEl);
-        
-        newEl.addEventListener('change', function(e) {
-            let file = e.target.files[0];
-            if (!file) return;
-            let reader = new FileReader();
-            reader.onload = function(event) {
-                let img = new Image();
-                img.onload = function() {
-                    window[globalVarName] = img; 
-                    
-                    let modeSelectId = inputId.replace('Input', 'Mode');
-                    let modeSelect = document.getElementById(modeSelectId);
-                    if(modeSelect) {
-                        modeSelect.value = 'image';
-                        modeSelect.dispatchEvent(new Event('change'));
+            // sysFonts nay duoc nạp từ file js/fonts_config.js
+            window.customFonts = [];
+            window.initFontSelectors = function (forceRefresh = false) {
+                document.querySelectorAll('.font-selector').forEach(sel => {
+                    if (!forceRefresh && sel.children.length > 0) return;
+
+                    // Lưu giá trị hiện tại để khôi phục sau khi refresh
+                    let currentVal = sel.value;
+                    sel.innerHTML = '';
+
+                    // Gộp font hệ thống (từ fonts_config.js) và font tự tải
+                    const allFonts = [...(window.sysFonts || []), ...window.customFonts];
+                    allFonts.forEach(f => {
+                        let opt = document.createElement('option');
+                        opt.value = f; opt.innerText = f;
+                        opt.style.fontFamily = `"${f}", sans-serif`;
+                        sel.appendChild(opt);
+                    });
+
+                    // Khôi phục giá trị hoặc chọn font cuối cùng nếu vừa upload
+                    if (forceRefresh && sel.dataset.lastUpload) {
+                        sel.value = sel.dataset.lastUpload;
+                        delete sel.dataset.lastUpload;
+                    } else {
+                        sel.value = currentVal || allFonts[0];
                     }
+                });
+            };
 
-                    let statusId = "";
-                    if (globalVarName === 'bgImage') statusId = 'mainBgStatus';
-                    else if (globalVarName === 'cellBgImage') statusId = 'cellBgStatus';
-                    else if (globalVarName === 'cellBorderImage') statusId = 'cellBorderStatus';
-                    
-                    let statusEl = document.getElementById(statusId);
-                    if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh";
+            window.handleGlobalFontUpload = function (event) {
+                let file = event.target.files[0];
+                if (!file) return;
 
+                let fontName = file.name.split('.')[0].replace(/[^a-z0-9]/gi, '_');
+                let reader = new FileReader();
+
+                reader.onload = async function (e) {
+                    try {
+                        let fontFace = new FontFace(fontName, e.target.result);
+                        await fontFace.load();
+                        document.fonts.add(fontFace);
+
+                        if (!window.customFonts.includes(fontName)) {
+                            window.customFonts.push(fontName);
+                        }
+
+                        // Đánh dấu để các select tự chọn font này sau khi refresh
+                        document.querySelectorAll('.font-selector').forEach(sel => {
+                            sel.dataset.lastUpload = fontName;
+                        });
+
+                        window.initFontSelectors(true);
+                        if (typeof drawCanvas === 'function') drawCanvas();
+                        alert("✅ Đã nạp font: " + fontName);
+                    } catch (err) {
+                        alert("❌ Lỗi nạp font: " + err.message);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+                event.target.value = ''; // Reset để chọn lại cùng file nếu cần
+            };
+
+            initFontSelectors();
+
+            window.setupAdvancedUploader = function (inputId, globalVarName) {
+                let inputEl = document.getElementById(inputId);
+                if (!inputEl) return;
+
+                let newEl = inputEl.cloneNode(true);
+                inputEl.parentNode.replaceChild(newEl, inputEl);
+
+                newEl.addEventListener('change', function (e) {
+                    let file = e.target.files[0];
+                    if (!file) return;
+                    let reader = new FileReader();
+                    reader.onload = function (event) {
+                        let img = new Image();
+                        img.onload = function () {
+                            window[globalVarName] = img;
+
+                            let modeSelectId = inputId.replace('Input', 'Mode');
+                            let modeSelect = document.getElementById(modeSelectId);
+                            if (modeSelect) {
+                                modeSelect.value = 'image';
+                                modeSelect.dispatchEvent(new Event('change'));
+                            }
+
+                            let statusId = "";
+                            if (globalVarName === 'bgImage') statusId = 'mainBgStatus';
+                            else if (globalVarName === 'cellBgImage') statusId = 'cellBgStatus';
+                            else if (globalVarName === 'cellBorderImage') statusId = 'cellBorderStatus';
+
+                            let statusEl = document.getElementById(statusId);
+                            if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh";
+
+                            if (typeof window.updateUI === 'function') window.updateUI();
+                            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+                        }
+                        img.src = event.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                });
+            };
+
+            setTimeout(function () {
+                document.querySelectorAll('input[type="file"]').forEach(el => {
+                    if (el.id && el.id.includes('Input')) {
+                        let varName = el.id.replace('Input', 'Image');
+                        setupAdvancedUploader(el.id, varName);
+                    }
+                });
+
+                if (typeof window.updateUI === 'function') window.updateUI();
+                if (typeof window.drawCanvas === 'function') window.drawCanvas();
+            }, 500);
+
+            document.body.addEventListener('input', function (e) {
+                if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) && e.target.type !== 'file') {
+                    if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+                }
+            });
+            document.body.addEventListener('change', function (e) {
+                if (['SELECT', 'INPUT'].includes(e.target.tagName) && e.target.type !== 'file') {
                     if (typeof window.updateUI === 'function') window.updateUI();
                     if (typeof window.drawCanvas === 'function') window.drawCanvas();
                     if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
                 }
-                img.src = event.target.result;
-            }
-            reader.readAsDataURL(file);
+            });
         });
-    };
 
-    setTimeout(function() {
-        document.querySelectorAll('input[type="file"]').forEach(el => {
-            if(el.id && el.id.includes('Input')) {
-                let varName = el.id.replace('Input', 'Image'); 
-                setupAdvancedUploader(el.id, varName);
+        // ==========================================
+        // B. QUICK SLIDER
+        // ==========================================
+        let originalValue = 0; let currentEditingInput = null; let longPressTimer = null;
+        function closeQuickSlider() {
+            const qsContainer = document.getElementById('quickSliderContainer');
+            if (qsContainer) {
+                qsContainer.style.display = 'none';
+                currentEditingInput = null;
+                sliderMoved = false;
+                qsContainer.style.top = ''; qsContainer.style.left = '50%'; qsContainer.style.bottom = '20px'; qsContainer.style.transform = 'translateX(-50%)';
+            }
+        }
+        document.addEventListener('input', function (e) {
+            if (currentEditingInput && e.target === currentEditingInput) {
+                let v = parseFloat(e.target.value) || 0;
+                let slider = document.getElementById('quickSlider');
+                let sliderInput = document.getElementById('quickSliderValueInput');
+                if (slider) slider.value = v;
+                if (sliderInput) sliderInput.value = v;
             }
         });
-        
-        if (typeof window.updateUI === 'function') window.updateUI();
-        if (typeof window.drawCanvas === 'function') window.drawCanvas();
-    }, 500);
+        document.addEventListener('focusin', function (e) {
+            if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+                const input = e.target;
+                if (input.id === 'quickSliderValueInput' || input.id === 'pageInput') return;
 
-    document.body.addEventListener('input', function(e) {
-        if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) && e.target.type !== 'file') {
-            if(typeof window.drawCanvas === 'function') window.drawCanvas();
-            if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-        }
-    });
-    document.body.addEventListener('change', function(e) {
-        if (['SELECT', 'INPUT'].includes(e.target.tagName) && e.target.type !== 'file') {
-            if(typeof window.updateUI === 'function') window.updateUI();
-            if(typeof window.drawCanvas === 'function') window.drawCanvas();
-            if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-        }
-    });
-});
+                currentEditingInput = input;
+                originalValue = parseFloat(input.value) || 0;
 
-// ==========================================
-// B. QUICK SLIDER
-// ==========================================
-let originalValue = 0; let currentEditingInput = null; let longPressTimer = null;
-function closeQuickSlider() {
-    const qsContainer = document.getElementById('quickSliderContainer');
-    if(qsContainer) {
-        qsContainer.style.display = 'none';
-        currentEditingInput = null;
-        sliderMoved = false; 
-        qsContainer.style.top = ''; qsContainer.style.left = '50%'; qsContainer.style.bottom = '20px'; qsContainer.style.transform = 'translateX(-50%)';
-    }
-}
-document.addEventListener('input', function(e) {
-    if (currentEditingInput && e.target === currentEditingInput) {
-        let v = parseFloat(e.target.value) || 0;
-        let slider = document.getElementById('quickSlider');
-        let sliderInput = document.getElementById('quickSliderValueInput');
-        if(slider) slider.value = v;
-        if(sliderInput) sliderInput.value = v;
-    }
-});
-document.addEventListener('focusin', function(e) {
-    if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
-        const input = e.target;
-        if(input.id === 'quickSliderValueInput' || input.id === 'pageInput') return;
-        
-        currentEditingInput = input;
-        originalValue = parseFloat(input.value) || 0;
-        
-        const sliderContainer = document.getElementById('quickSliderContainer');
-        const slider = document.getElementById('quickSlider');
-        const sliderInput = document.getElementById('quickSliderValueInput');
-        const sliderLabel = document.getElementById('quickSliderLabel');
-        
-        let labelText = "Chỉnh thông số";
-        const row = input.closest('.setting-row');
-        if (row) { const label = row.querySelector('label'); if (label) labelText = label.innerText; } 
-        else { const span = input.previousElementSibling; if (span && span.tagName === 'SPAN') labelText = span.innerText; }
-        sliderLabel.innerText = labelText;
-        
-        let currentVal = parseFloat(input.value) || 0;
-        let min = 0, max = 100, step = 1;
-        if (input.id.includes('ScaleY')) { min = 0.1; max = 3; step = 0.1; }
-        else if (input.id.includes('Angle')) { min = -360; max = 360; step = 1; }
-        else if (input.id.includes('Pad')) { min = 0; max = 100; step = 1; }
-        else if (input.id.includes('Size') || input.id.includes('TextScale')) { min = 8; max = 150; step = 1; }
-        else if (input.id.includes('W') || input.id.includes('H') || input.id.includes('Width') || input.id.includes('Height')) { min = 0; max = 800; step = 1; }
-        else if (input.id.includes('X') || input.id.includes('Y')) { min = -500; max = 500; step = 1; }
-        else if (input.id.includes('Gap') || input.id.includes('Radius')) { min = 0; max = 100; step = 1; }
-        
-        slider.min = min; slider.max = max; slider.step = step;
-        slider.value = currentVal; 
-        if(sliderInput) sliderInput.value = currentVal;
-        
-        sliderContainer.style.display = 'block';
-        
-        const updateAll = (newVal) => {
-            let v = parseFloat(newVal); if (isNaN(v)) v = 0;
-            if(input.value != v) input.value = v; 
-            if(slider.value != v) slider.value = v; 
-            if(sliderInput && sliderInput.value != v) sliderInput.value = v;
-            
-            if(typeof updatePreviewImmediate === 'function') updatePreviewImmediate();
-            if(typeof debouncedSave === 'function') debouncedSave();
-            if(typeof showApplyButton === 'function') showApplyButton();
+                const sliderContainer = document.getElementById('quickSliderContainer');
+                const slider = document.getElementById('quickSlider');
+                const sliderInput = document.getElementById('quickSliderValueInput');
+                const sliderLabel = document.getElementById('quickSliderLabel');
+
+                let labelText = "Chỉnh thông số";
+                const row = input.closest('.setting-row');
+                if (row) { const label = row.querySelector('label'); if (label) labelText = label.innerText; }
+                else { const span = input.previousElementSibling; if (span && span.tagName === 'SPAN') labelText = span.innerText; }
+                sliderLabel.innerText = labelText;
+
+                let currentVal = parseFloat(input.value) || 0;
+                let min = 0, max = 100, step = 1;
+                if (input.id.includes('ScaleY')) { min = 0.1; max = 3; step = 0.1; }
+                else if (input.id.includes('Angle')) { min = -360; max = 360; step = 1; }
+                else if (input.id.includes('Pad')) { min = 0; max = 100; step = 1; }
+                else if (input.id.includes('Size') || input.id.includes('TextScale')) { min = 8; max = 150; step = 1; }
+                else if (input.id.includes('W') || input.id.includes('H') || input.id.includes('Width') || input.id.includes('Height')) { min = 0; max = 800; step = 1; }
+                else if (input.id.includes('X') || input.id.includes('Y')) { min = -500; max = 500; step = 1; }
+                else if (input.id.includes('Gap') || input.id.includes('Radius')) { min = 0; max = 100; step = 1; }
+
+                slider.min = min; slider.max = max; slider.step = step;
+                slider.value = currentVal;
+                if (sliderInput) sliderInput.value = currentVal;
+
+                sliderContainer.style.display = 'block';
+
+                const updateAll = (newVal) => {
+                    let v = parseFloat(newVal); if (isNaN(v)) v = 0;
+                    if (input.value != v) input.value = v;
+                    if (slider.value != v) slider.value = v;
+                    if (sliderInput && sliderInput.value != v) sliderInput.value = v;
+
+                    if (typeof updatePreviewImmediate === 'function') updatePreviewImmediate();
+                    if (typeof debouncedSave === 'function') debouncedSave();
+                    if (typeof showApplyButton === 'function') showApplyButton();
+                };
+
+                slider.oninput = function () { updateAll(this.value); };
+                if (sliderInput) {
+                    sliderInput.oninput = function () { updateAll(this.value); };
+                    sliderInput.onkeydown = function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); updateAll(this.value); } };
+                }
+
+                const setupBtn = (btnId, delta) => {
+                    const btn = document.getElementById(btnId); if (!btn) return;
+                    const startAction = (ev) => { ev.preventDefault(); let currentVal = parseFloat(input.value); updateAll((currentVal + delta).toFixed(step < 1 ? 1 : 0)); longPressTimer = setInterval(() => { let v = parseFloat(input.value); updateAll((v + delta).toFixed(step < 1 ? 1 : 0)); }, 80); };
+                    const stopAction = () => clearInterval(longPressTimer);
+                    btn.ontouchstart = startAction; btn.ontouchend = stopAction; btn.onmousedown = startAction; btn.onmouseup = stopAction; btn.onmouseleave = stopAction;
+                };
+                setupBtn('btnSliderMinus', -step); setupBtn('btnSliderPlus', step);
+                document.getElementById('btnSliderReset').onclick = (ev) => { ev.preventDefault(); updateAll(originalValue); };
+            }
+        });
+
+        const closeEvents = ['touchstart', 'mousedown'];
+        closeEvents.forEach(evt => {
+            document.addEventListener(evt, function (e) {
+                const container = document.getElementById('quickSliderContainer');
+                if (container && container.style.display === 'block') {
+                    if (!container.contains(e.target) && e.target !== currentEditingInput) { closeQuickSlider(); }
+                }
+            }, { passive: true });
+        });
+
+        let isSliderDragging = false; let sliderMoved = false; let sliderStartX, sliderStartY, sliderInitX, sliderInitY;
+        const qsHeader = document.getElementById('quickSliderHeader');
+        const qsContainer = document.getElementById('quickSliderContainer');
+
+        function startQsDrag(e) {
+            if (!qsHeader || !qsContainer) return;
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+            isSliderDragging = true;
+            let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            sliderStartX = clientX; sliderStartY = clientY;
+            let rect = qsContainer.getBoundingClientRect();
+            sliderInitX = rect.left; sliderInitY = rect.top;
+            if (!sliderMoved) { qsContainer.style.bottom = 'auto'; qsContainer.style.transform = 'none'; }
+            qsContainer.style.left = sliderInitX + 'px'; qsContainer.style.top = sliderInitY + 'px';
+            qsHeader.style.cursor = 'grabbing';
+        }
+
+        function doQsDrag(e) {
+            if (!isSliderDragging || !qsContainer) return;
+            e.preventDefault();
+            let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            let dx = clientX - sliderStartX; let dy = clientY - sliderStartY;
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) sliderMoved = true;
+            if (sliderMoved) {
+                let maxX = window.innerWidth - qsContainer.offsetWidth; let maxY = window.innerHeight - qsContainer.offsetHeight;
+                qsContainer.style.left = Math.max(0, Math.min(sliderInitX + dx, maxX)) + 'px';
+                qsContainer.style.top = Math.max(0, Math.min(sliderInitY + dy, maxY)) + 'px';
+            }
+        }
+        function stopQsDrag() { isSliderDragging = false; if (qsHeader) qsHeader.style.cursor = 'grab'; }
+
+        if (qsHeader) { qsHeader.addEventListener('mousedown', startQsDrag); qsHeader.addEventListener('touchstart', startQsDrag, { passive: false }); }
+        window.addEventListener('mousemove', doQsDrag, { passive: false }); window.addEventListener('touchmove', doQsDrag, { passive: false });
+        window.addEventListener('mouseup', stopQsDrag); window.addEventListener('touchend', stopQsDrag);
+
+
+        // ==========================================
+        // C. HỆ THỐNG ĐÁM MÂY V16
+        // ==========================================
+        const CLOUD_JSON_URL = "https://script.google.com/macros/s/AKfycbxowiVuOyMhN-ua15GgfARcYUvD-Gf8iqFNdT88oTjzKV74OwJwxTD3EXAlsTzhsLDp/exec";
+        window.allTemplates = [];
+        window.cloudBgData = [];
+        window.currentBgTarget = 'global';
+
+        window.openThemeModal = function () {
+            const modal = document.getElementById('themeModalOverlay');
+            if (modal) { modal.style.display = 'flex'; loadCloudTemplates(); }
         };
-
-        slider.oninput = function() { updateAll(this.value); };
-        if(sliderInput) {
-            sliderInput.oninput = function() { updateAll(this.value); };
-            sliderInput.onkeydown = function(ev) { if(ev.key === 'Enter') { ev.preventDefault(); updateAll(this.value); } };
-        }
-        
-        const setupBtn = (btnId, delta) => {
-            const btn = document.getElementById(btnId); if(!btn) return;
-            const startAction = (ev) => { ev.preventDefault(); let currentVal = parseFloat(input.value); updateAll((currentVal + delta).toFixed(step < 1 ? 1 : 0)); longPressTimer = setInterval(() => { let v = parseFloat(input.value); updateAll((v + delta).toFixed(step < 1 ? 1 : 0)); }, 80); };
-            const stopAction = () => clearInterval(longPressTimer);
-            btn.ontouchstart = startAction; btn.ontouchend = stopAction; btn.onmousedown = startAction; btn.onmouseup = stopAction; btn.onmouseleave = stopAction;
+        window.closeThemeModal = function () {
+            let modal = document.getElementById('themeModalOverlay');
+            if (modal) modal.style.display = 'none';
         };
-        setupBtn('btnSliderMinus', -step); setupBtn('btnSliderPlus', step);
-        document.getElementById('btnSliderReset').onclick = (ev) => { ev.preventDefault(); updateAll(originalValue); };
-    }
-});
+        let themeOverlay = document.getElementById('themeModalOverlay');
+        if (themeOverlay) { themeOverlay.addEventListener('click', function (e) { if (e.target === this) window.closeThemeModal(); }); }
 
-const closeEvents = ['touchstart', 'mousedown'];
-closeEvents.forEach(evt => {
-    document.addEventListener(evt, function(e) {
-        const container = document.getElementById('quickSliderContainer');
-        if (container && container.style.display === 'block') { 
-            if (!container.contains(e.target) && e.target !== currentEditingInput) { closeQuickSlider(); } 
+        let btnFab = document.getElementById('fabBtn');
+        if (btnFab) {
+            btnFab.addEventListener('click', (e) => {
+                let isMoved = typeof checkFab1Moved === 'function' ? checkFab1Moved() : false;
+                if (!isMoved) window.openThemeModal();
+            });
         }
-    }, {passive: true});
-});
 
-let isSliderDragging = false; let sliderMoved = false; let sliderStartX, sliderStartY, sliderInitX, sliderInitY;
-const qsHeader = document.getElementById('quickSliderHeader');
-const qsContainer = document.getElementById('quickSliderContainer');
-
-function startQsDrag(e) {
-    if (!qsHeader || !qsContainer) return;
-    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
-    isSliderDragging = true;
-    let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-    let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-    sliderStartX = clientX; sliderStartY = clientY;
-    let rect = qsContainer.getBoundingClientRect();
-    sliderInitX = rect.left; sliderInitY = rect.top;
-    if(!sliderMoved) { qsContainer.style.bottom = 'auto'; qsContainer.style.transform = 'none'; }
-    qsContainer.style.left = sliderInitX + 'px'; qsContainer.style.top = sliderInitY + 'px';
-    qsHeader.style.cursor = 'grabbing';
-}
-
-function doQsDrag(e) {
-    if (!isSliderDragging || !qsContainer) return;
-    e.preventDefault();
-    let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-    let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-    let dx = clientX - sliderStartX; let dy = clientY - sliderStartY;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) sliderMoved = true;
-    if (sliderMoved) {
-        let maxX = window.innerWidth - qsContainer.offsetWidth; let maxY = window.innerHeight - qsContainer.offsetHeight;
-        qsContainer.style.left = Math.max(0, Math.min(sliderInitX + dx, maxX)) + 'px';
-        qsContainer.style.top = Math.max(0, Math.min(sliderInitY + dy, maxY)) + 'px';
-    }
-}
-function stopQsDrag() { isSliderDragging = false; if (qsHeader) qsHeader.style.cursor = 'grab'; }
-
-if (qsHeader) { qsHeader.addEventListener('mousedown', startQsDrag); qsHeader.addEventListener('touchstart', startQsDrag, {passive: false}); }
-window.addEventListener('mousemove', doQsDrag, {passive: false}); window.addEventListener('touchmove', doQsDrag, {passive: false});
-window.addEventListener('mouseup', stopQsDrag); window.addEventListener('touchend', stopQsDrag);
-
-
-// ==========================================
-// C. HỆ THỐNG ĐÁM MÂY V16
-// ==========================================
-const CLOUD_JSON_URL = "https://script.google.com/macros/s/AKfycbxowiVuOyMhN-ua15GgfARcYUvD-Gf8iqFNdT88oTjzKV74OwJwxTD3EXAlsTzhsLDp/exec";
-window.allTemplates = []; 
-window.cloudBgData = [];
-window.currentBgTarget = 'global';
-
-window.openThemeModal = function() {
-    const modal = document.getElementById('themeModalOverlay');
-    if (modal) { modal.style.display = 'flex'; loadCloudTemplates(); }
-};
-window.closeThemeModal = function() { 
-    let modal = document.getElementById('themeModalOverlay');
-    if(modal) modal.style.display = 'none'; 
-}; 
-let themeOverlay = document.getElementById('themeModalOverlay');
-if(themeOverlay) { themeOverlay.addEventListener('click', function(e) { if(e.target === this) window.closeThemeModal(); }); }
-
-let btnFab = document.getElementById('fabBtn');
-if (btnFab) {
-    btnFab.addEventListener('click', (e) => { 
-        let isMoved = typeof checkFab1Moved === 'function' ? checkFab1Moved() : false;
-        if (!isMoved) window.openThemeModal(); 
-    });
-}
-
-function toggleLoading(show, actionText = "Đang xử lý", mainText = "Vui lòng chờ") {
-    const loader = document.getElementById('globalLoading');
-    const act = document.getElementById('loadingAction');
-    const txt = document.getElementById('loadingText');
-    if (loader) {
-        if (show) {
-            loader.style.display = 'flex'; act.innerText = actionText; txt.innerText = mainText;
-        } else {
-            loader.style.opacity = '0';
-            setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 300);
+        function toggleLoading(show, actionText = "Đang xử lý", mainText = "Vui lòng chờ") {
+            const loader = document.getElementById('globalLoading');
+            const act = document.getElementById('loadingAction');
+            const txt = document.getElementById('loadingText');
+            if (loader) {
+                if (show) {
+                    loader.style.display = 'flex'; act.innerText = actionText; txt.innerText = mainText;
+                } else {
+                    loader.style.opacity = '0';
+                    setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 300);
+                }
+            }
         }
-    }
-}
 
-async function loadCloudTemplates() {
-    const listContainer = document.getElementById('cloudTemplatesList');
-    if (!listContainer) return;
-    try {
-        listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px 0; font-size: 12px; color: #888;">⏳ Đang đồng bộ Kho mẫu đám mây...</div>';
-        const resp = await fetch(CLOUD_JSON_URL + "?type=template");
-        window.allTemplates = await resp.json();
-        renderTemplates(window.allTemplates);
-    } catch (err) {
-        listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px 0; font-size: 12px; color: #e74c3c;">❌ Lỗi kết nối máy chủ! Vui lòng thử lại.</div>';
-    }
-}
-
-function renderTemplates(data) {
-    const listContainer = document.getElementById('cloudTemplatesList');
-    if (!listContainer) return;
-    listContainer.innerHTML = data.map(pt => {
-        let thumb = pt.thumb || "";
-        if (thumb.includes('drive.google.com')) {
-            let m = thumb.match(/[-\w]{25,}/);
-            if (m) thumb = `https://drive.google.com/thumbnail?id=${m[0]}&sz=w400`;
+        async function loadCloudTemplates() {
+            const listContainer = document.getElementById('cloudTemplatesList');
+            if (!listContainer) return;
+            try {
+                listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px 0; font-size: 12px; color: #888;">⏳ Đang đồng bộ Kho mẫu đám mây...</div>';
+                const resp = await fetch(CLOUD_JSON_URL + "?type=template");
+                window.allTemplates = await resp.json();
+                renderTemplates(window.allTemplates);
+            } catch (err) {
+                listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px 0; font-size: 12px; color: #e74c3c;">❌ Lỗi kết nối máy chủ! Vui lòng thử lại.</div>';
+            }
         }
-        return `
+
+        function renderTemplates(data) {
+            const listContainer = document.getElementById('cloudTemplatesList');
+            if (!listContainer) return;
+            listContainer.innerHTML = data.map(pt => {
+                let thumb = pt.thumb || "";
+                if (thumb.includes('drive.google.com')) {
+                    let m = thumb.match(/[-\w]{25,}/);
+                    if (m) thumb = `https://drive.google.com/thumbnail?id=${m[0]}&sz=w400`;
+                }
+                return `
             <div class="cloud-template-item" onclick="importFromCloudID('${pt.id}', '${pt.name.replace(/'/g, "\\")}')"
                  style="background:#fff; border:1px solid #ddd; border-radius:8px; cursor:pointer; overflow:hidden; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
                 <img src="${thumb}" style="width:100%; height:80px; object-fit:cover;" onerror="this.src='https://placehold.co/200x100?text=No+Image'">
@@ -1307,55 +1928,55 @@ function renderTemplates(data) {
                     <div style="font-size:9px; color:#007bff; font-style:italic;">${pt.tags || '#NoTag'}</div>
                 </div>
             </div>`;
-    }).join('');
-}
+            }).join('');
+        }
 
-window.liveSearch = function(inputId, listId) {
-    let input = document.getElementById(inputId);
-    if (!input) return;
-    let keyword = input.value.toLowerCase().trim();
-    if (listId === 'cloudTemplatesList') {
-        if (!window.allTemplates) return; 
-        const filtered = window.allTemplates.filter(item => (item.name || "").toLowerCase().includes(keyword) || (item.tags || "").toLowerCase().includes(keyword));
-        renderTemplates(filtered);
-    } 
-    else if (listId === 'bgCloudList') {
-        if (!window.cloudBgData) return; 
-        const filtered = window.cloudBgData.filter(item => (item.name || "").toLowerCase().includes(keyword) || (item.tags || "").toLowerCase().includes(keyword));
-        renderBackgrounds(filtered); 
-    }
-};
+        window.liveSearch = function (inputId, listId) {
+            let input = document.getElementById(inputId);
+            if (!input) return;
+            let keyword = input.value.toLowerCase().trim();
+            if (listId === 'cloudTemplatesList') {
+                if (!window.allTemplates) return;
+                const filtered = window.allTemplates.filter(item => (item.name || "").toLowerCase().includes(keyword) || (item.tags || "").toLowerCase().includes(keyword));
+                renderTemplates(filtered);
+            }
+            else if (listId === 'bgCloudList') {
+                if (!window.cloudBgData) return;
+                const filtered = window.cloudBgData.filter(item => (item.name || "").toLowerCase().includes(keyword) || (item.tags || "").toLowerCase().includes(keyword));
+                renderBackgrounds(filtered);
+            }
+        };
 
-window.openBgCloudModal = function(target, statusId = null) {
-    window.currentBgTarget = target; 
-    window.currentStatusId = statusId;
-    const modal = document.getElementById('modal-bg-cloud');
-    if (modal) { modal.style.display = 'flex'; loadCloudBackgrounds(); }
-};
+        window.openBgCloudModal = function (target, statusId = null) {
+            window.currentBgTarget = target;
+            window.currentStatusId = statusId;
+            const modal = document.getElementById('modal-bg-cloud');
+            if (modal) { modal.style.display = 'flex'; loadCloudBackgrounds(); }
+        };
 
-async function loadCloudBackgrounds() {
-    const gallery = document.getElementById('bgCloudList');
-    if (!gallery) return;
-    try {
-        gallery.innerHTML = "<div style='grid-column:1/-1; text-align:center;'>⏳ Đang tải...</div>";
-        const resp = await fetch(CLOUD_JSON_URL + "?type=bg");
-        window.cloudBgData = await resp.json();
-        renderBackgrounds(window.cloudBgData);
-    } catch (err) { gallery.innerHTML = "Lỗi tải kho nền."; }
-}
+        async function loadCloudBackgrounds() {
+            const gallery = document.getElementById('bgCloudList');
+            if (!gallery) return;
+            try {
+                gallery.innerHTML = "<div style='grid-column:1/-1; text-align:center;'>⏳ Đang tải...</div>";
+                const resp = await fetch(CLOUD_JSON_URL + "?type=bg");
+                window.cloudBgData = await resp.json();
+                renderBackgrounds(window.cloudBgData);
+            } catch (err) { gallery.innerHTML = "Lỗi tải kho nền."; }
+        }
 
-function renderBackgrounds(data) {
-    const gallery = document.getElementById('bgCloudList');
-    if (!gallery) return;
-    if (!data || data.length === 0) {
-        gallery.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:20px; color:#888;'>Chưa có ảnh nào phù hợp 😅</div>";
-        return;
-    }
-    gallery.innerHTML = data.map(bg => {
-        let thumb = `https://drive.google.com/thumbnail?id=${bg.id}&sz=w300`;
-        let safeName = (bg.name || "Không tên").replace(/'/g, "\\'");
-        let safeTags = (bg.tags || "").replace(/'/g, "\\'");
-        return `
+        function renderBackgrounds(data) {
+            const gallery = document.getElementById('bgCloudList');
+            if (!gallery) return;
+            if (!data || data.length === 0) {
+                gallery.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:20px; color:#888;'>Chưa có ảnh nào phù hợp 😅</div>";
+                return;
+            }
+            gallery.innerHTML = data.map(bg => {
+                let thumb = `https://drive.google.com/thumbnail?id=${bg.id}&sz=w300`;
+                let safeName = (bg.name || "Không tên").replace(/'/g, "\\'");
+                let safeTags = (bg.tags || "").replace(/'/g, "\\'");
+                return `
             <div class="cloud-item-wrapper" onclick="handleCloudItemClick(this, '${bg.id}', 'image')">
                 <div class="local-loading-overlay">
                     <div class="local-spinner"></div>
@@ -1367,457 +1988,462 @@ function renderBackgrounds(data) {
                     <span style="font-size:9px; color:#007bff; font-style:italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${bg.tags || ''}</span>
                 </div>
             </div>`;
-    }).join('');
-}
+            }).join('');
+        }
 
-window.handleCloudItemClick = function(element, fileId, type) {
-    const overlay = element.querySelector('.local-loading-overlay');
-    if (overlay) overlay.style.display = 'flex';
-    const gallery = element.parentElement;
-    if (gallery) gallery.style.pointerEvents = 'none';
+        window.handleCloudItemClick = function (element, fileId, type) {
+            const overlay = element.querySelector('.local-loading-overlay');
+            if (overlay) overlay.style.display = 'flex';
+            const gallery = element.parentElement;
+            if (gallery) gallery.style.pointerEvents = 'none';
 
-    if (type === 'image') {
-        applyCloudBackground(fileId, overlay, gallery); 
-    } else {
-        importFromCloudID(fileId, overlay, gallery);
-    }
-};
-
-async function applyCloudBackground(fileId, loaderOverlay, galleryElement) {
-    try {
-        let response = await fetch(CLOUD_JSON_URL + "?action=get_image&id=" + fileId);
-        let dataUrl = await response.text();
-        
-        let img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = dataUrl;
-        img.onload = () => {
-            const target = window.currentBgTarget;
-            if (target === 'global') window.bgImage = img;
-            else if (target === 'cellBgImage') window.cellBgImage = img;
-            else if (target === 'cellBorderImage') window.cellBorderImage = img;
-            else window[target] = img;
-
-            if (window.currentStatusId) {
-                let st = document.getElementById(window.currentStatusId);
-                if (st) st.innerHTML = '☁️ Đang dùng ảnh Mây';
-            }
-
-            drawCanvas();
-            if (loaderOverlay) loaderOverlay.style.display = 'none';
-            if (galleryElement) galleryElement.style.pointerEvents = 'auto';
-            document.querySelectorAll('#bgCloudModalOverlay, #modal-bg-cloud').forEach(m => m.style.display = 'none');
-        };
-    } catch (err) { 
-        if (loaderOverlay) loaderOverlay.style.display = 'none';
-        if (galleryElement) galleryElement.style.pointerEvents = 'auto';
-        alert("Lỗi tải ảnh!"); 
-    }
-}
-
-async function importFromCloudID(fileId, name) {
-    try {
-        toggleLoading(true, "ĐANG NẠP THIẾT KẾ", name); 
-        const response = await fetch(CLOUD_JSON_URL + "?action=get_lite&id=" + fileId);
-        let rawData = await response.text();
-        const binaryString = atob(rawData.trim());
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-        let cfg = JSON.parse(new TextDecoder().decode(bytes));
-        
-        applyConfigToUI(cfg, true);
-        document.querySelectorAll('#themeModalOverlay, #modal-cloud-template').forEach(m => m.style.display = 'none');
-    } catch (err) { 
-        alert("❌ Lỗi nạp mẫu!"); 
-    } finally {
-        setTimeout(() => toggleLoading(false), 500); 
-    }
-}
-
-
-// ============================================================================
-// 7. HỆ THỐNG QUẢN LÝ MẪU V24 (XUẤT / NẠP / TẠO MỚI / RESET) - NÉN ẢNH
-// ============================================================================
-
-// --- 7.1 HÀM NÉN ẢNH: Resize + JPEG compression trước khi lưu vào .lite ---
-window.compressImage = function(imgElement, maxWidth = 800, quality = 0.7) {
-    return new Promise((resolve) => {
-        try {
-            if (!imgElement || !imgElement.naturalWidth) { resolve(null); return; }
-            let tempCanvas = document.createElement('canvas');
-            let tempCtx = tempCanvas.getContext('2d');
-            let origW = imgElement.naturalWidth || imgElement.width;
-            let origH = imgElement.naturalHeight || imgElement.height;
-            
-            // Tính tỷ lệ resize
-            let scale = 1;
-            if (origW > maxWidth) scale = maxWidth / origW;
-            tempCanvas.width = Math.round(origW * scale);
-            tempCanvas.height = Math.round(origH * scale);
-            
-            tempCtx.drawImage(imgElement, 0, 0, tempCanvas.width, tempCanvas.height);
-            let dataUrl = tempCanvas.toDataURL('image/jpeg', quality);
-            resolve(dataUrl);
-        } catch (err) {
-            // Nếu lỗi CORS hoặc lỗi khác, thử trả về src gốc nếu là data:image
-            if (imgElement.src && imgElement.src.startsWith('data:image')) {
-                resolve(imgElement.src);
+            if (type === 'image') {
+                applyCloudBackground(fileId, overlay, gallery);
             } else {
-                resolve(null);
+                importFromCloudID(fileId, overlay, gallery);
             }
-        }
-    });
-};
+        };
 
-// --- 7.2 XUẤT FILE .lite (V24: Nén ảnh + Lưu tất cả) ---
-window.exportConfig = async function() {
-    let config = {};
-    // Quét TẤT CẢ input/select trên trang (không chỉ .col-settings)
-    let inputs = document.querySelectorAll('.col-settings input, .col-settings select');
-    
-    inputs.forEach(el => {
-        if (!el.id || el.type === 'file' || el.id.includes('search')) return;
-        if (el.type === 'checkbox') {
-            config[el.id] = el.checked;
-        } else {
-            config[el.id] = el.value;
-        }
-    });
-
-    // Xây dựng danh sách TẤT CẢ image keys cần lưu
-    config.savedImages = {};
-    // globalBgImage là biến thực tế khi upload local, bgImage là khi load từ cloud
-    const imgKeys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
-    
-    const prefixes = [
-        'num', 'price', 'menh', 'mang', 'data1', 'data2',
-        'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2',
-        'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum'
-    ];
-    
-    prefixes.forEach(p => {
-        imgKeys.push(p + 'ColorImage', p + 'BgImage', p + 'BorderImage', p + 'ShapeBorderImage');
-    });
-
-    // Hiện loading
-    if (typeof toggleLoading === 'function') toggleLoading(true, "ĐANG NÉN ẢNH", "Chuẩn bị xuất file .lite...");
-
-    // Nén tất cả ảnh (bao gồm cả ảnh từ cloud đã load vào RAM)
-    let imgCount = 0;
-    for (let key of imgKeys) {
-        if (window[key] && window[key] instanceof Image && window[key].complete && window[key].naturalWidth > 0) {
-            let compressed = await window.compressImage(window[key], 800, 0.7);
-            if (compressed) {
-                // Chuẩn hóa key: globalBgImage → bgImage trong file .lite
-                let saveKey = (key === 'globalBgImage') ? 'bgImage' : key;
-                config.savedImages[saveKey] = compressed;
-                imgCount++;
-            }
-        }
-    }
-
-    // Tắt loading
-    if (typeof toggleLoading === 'function') toggleLoading(false);
-
-    // Tạo file download
-    let jsonStr = JSON.stringify(config);
-    let blob = new Blob([jsonStr], { type: 'application/json' });
-    let sizeMB = (blob.size / 1024 / 1024).toFixed(2);
-    
-    let dlAnchorElem = document.createElement('a');
-    dlAnchorElem.href = URL.createObjectURL(blob);
-    let date = new Date();
-    let dateStr = `${date.getDate()}_${date.getMonth()+1}_${date.getFullYear()}`;
-    dlAnchorElem.download = `Mau_Thiet_Ke_VIP_${dateStr}.lite`;
-    document.body.appendChild(dlAnchorElem);
-    dlAnchorElem.click();
-    setTimeout(() => { document.body.removeChild(dlAnchorElem); URL.revokeObjectURL(dlAnchorElem.href); }, 500);
-
-    alert(`✅ Đã xuất file .lite thành công!\n📦 Kích thước: ${sizeMB} MB\n🖼️ Đã nén ${imgCount} hình ảnh`);
-};
-
-
-// --- 7.3 NẠP FILE .lite (V24: Hỗ trợ cả JSON lẫn base64) ---
-window.handleImport = function(event) {
-    let file = event.target.files[0];
-    if (!file) return;
-    let reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            let raw = e.target.result.trim();
-            let config;
+        async function applyCloudBackground(fileId, loaderOverlay, galleryElement) {
             try {
-                // Thử parse JSON thuần trước (file .lite local)
-                config = JSON.parse(raw);
-            } catch(jsonErr) {
-                // Thử decode base64 (file .lite từ cloud)
-                try {
-                    const binaryString = atob(raw);
-                    const bytes = new Uint8Array(binaryString.length);
-                    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-                    config = JSON.parse(new TextDecoder().decode(bytes));
-                } catch(b64Err) {
-                    throw new Error('Invalid format');
-                }
-            }
-            window.applyConfigToUI(config, true);
-        } catch(err) {
-            alert('❌ Lỗi: File không đúng định dạng thiết kế!');
-        }
-        event.target.value = ''; 
-    };
-    reader.readAsText(file);
-};
+                let response = await fetch(CLOUD_JSON_URL + "?action=get_image&id=" + fileId);
+                let dataUrl = await response.text();
 
-// --- 7.4 ÁP DỤNG CONFIG VÀO GIAO DIỆN (V24: Backward Compatible) ---
-window.applyConfigToUI = function(config, isTemplate = false) {
-    // V2.5.1: Mở rộng phạm vi quét. Nếu là Template (Nạp mẫu), sẽ bỏ qua danh sách SIM
-    let inputs = document.querySelectorAll('.col-settings input, .col-settings select, #list, #filterMenh');
-    inputs.forEach(el => {
-        if (!el.id || el.type === 'file' || el.id.includes('search')) return;
-        
-        // Nếu là Nạp mẫu, không ghi đè danh sách số và bộ lọc
-        if (isTemplate && (el.id === 'list' || el.id === 'filterMenh')) return;
-        
-        if (config.hasOwnProperty(el.id)) {
-            if (el.type === 'checkbox') el.checked = config[el.id];
-            else el.value = config[el.id];
-            
-            // Kích hoạt sự kiện để đảm bảo giao diện đồng bộ
-            if (el.id === 'list' && typeof window.updatePreviewImmediate === 'function') {
-                window.updatePreviewImmediate();
-            }
-        } else {
-            if (el.type === 'checkbox') {
-                el.checked = (el.id === 'showHeaderRow');
-            } else if (el.tagName === 'SELECT') {
-                if (el.id.includes('ShapeType')) el.value = 'none';
-            }
-        }
-    });
-
-    // Xóa tất cả ảnh cũ trước khi nạp mới
-    window.globalBgImage = null; window.bgImage = null; 
-    window.cellBgImage = null; window.cellBorderImage = null;
-
-    if (config.savedImages && Object.keys(config.savedImages).length > 0) {
-        let imagesToLoad = Object.keys(config.savedImages).length;
-        let imagesLoaded = 0;
-
-        if (typeof toggleLoading === 'function') toggleLoading(true, "ĐANG KHÔI PHỤC", `Nạp ${imagesToLoad} hình ảnh...`);
-
-        for (let key in config.savedImages) {
-            let img = new Image();
-            img.onload = () => {
-                // V24: bgImage từ file .lite → gán vào CẢ 2 biến để drawCanvas nhận được
-                if (key === 'bgImage') {
-                    window.bgImage = img;
-                    window.globalBgImage = img;
-                } else {
-                    window[key] = img;
-                }
-                imagesLoaded++;
-                
-                // V24: Cập nhật status text cho các ảnh đã nạp thành công
-                let statusId = "";
-                if (key === 'bgImage') statusId = 'mainBgStatus';
-                else if (key === 'cellBgImage') statusId = 'cellBgStatus';
-                else if (key === 'cellBorderImage') statusId = 'cellBorderStatus';
-                
-                let statusEl = document.getElementById(statusId);
-                if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh từ file Lite";
-
-                if (imagesLoaded === imagesToLoad) {
-                    if (typeof toggleLoading === 'function') setTimeout(() => toggleLoading(false), 300);
-                    if(typeof window.updateUI === 'function') window.updateUI();
-                    if(typeof window.drawCanvas === 'function') window.drawCanvas();
-                    if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-                }
-            };
-            img.onerror = () => {
-                imagesLoaded++;
-                if (imagesLoaded === imagesToLoad) {
-                    if (typeof toggleLoading === 'function') setTimeout(() => toggleLoading(false), 300);
-                    if(typeof window.updateUI === 'function') window.updateUI();
-                    if(typeof window.drawCanvas === 'function') window.drawCanvas();
-                }
-            };
-            img.src = config.savedImages[key];
-        }
-    } else {
-        if(typeof window.updateUI === 'function') window.updateUI();
-        if(typeof window.drawCanvas === 'function') window.drawCanvas();
-        if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-    }
-};
-
-window.createNewLite = function() {
-    if(confirm('Tạo mới sẽ xóa toàn bộ cài đặt hiện tại trên màn hình. Bạn có chắc không?')) {
-        document.querySelectorAll('.col-settings input[type="checkbox"]').forEach(el => el.checked = false);
-        document.querySelectorAll('.col-settings input[type="color"]').forEach(el => {
-            if(el.id.includes('Bg') || el.id.includes('ColorGradient1')) el.value = '#ffffff';
-            else el.value = '#000000';
-        });
-        document.querySelectorAll('.col-settings input[type="text"]').forEach(el => el.value = '');
-        
-        // Xóa tất cả ảnh toàn cục
-        window.globalBgImage = null; window.bgImage = null;
-        window.cellBgImage = null; window.cellBorderImage = null;
-        let mainBgStatus = document.getElementById('mainBgStatus');
-        if (mainBgStatus) mainBgStatus.innerHTML = '❌ Chưa có ảnh';
-        let cellBgStatus = document.getElementById('cellBgStatus');
-        if (cellBgStatus) cellBgStatus.innerHTML = '❌ Chưa có ảnh';
-        
-        if(document.getElementById('chkNum')) document.getElementById('chkNum').checked = true;
-        if(document.getElementById('chkPrice')) document.getElementById('chkPrice').checked = true;
-        if(document.getElementById('cellBgTrans')) document.getElementById('cellBgTrans').checked = true;
-
-        if(typeof window.updateUI === 'function') window.updateUI();
-        if(typeof window.drawCanvas === 'function') window.drawCanvas();
-        
-        if(typeof window.closeThemeModal === 'function') window.closeThemeModal();
-        else document.getElementById('themeModalOverlay').style.display = 'none';
-    }
-};
-
-window.resetToDefault = function() {
-    if(confirm('Khôi phục về trạng thái gốc mặc định của phần mềm?')) {
-        location.reload(); 
-    }
-};
-
-
-
-// ==========================================
-// AUTO-SAVE & SESSION RECOVERY (V2.5)
-// ==========================================
-window.saveSession = async function() {
-    try {
-        let config = {};
-        let inputs = document.querySelectorAll('.col-settings input, .col-settings select, #list');
-        inputs.forEach(el => {
-            if (!el.id || el.type === 'file' || el.id.includes('search')) return;
-            if (el.type === 'checkbox') config[el.id] = el.checked;
-            else config[el.id] = el.value;
-        });
-
-        // Chỉ lưu thông tin cơ bản trước (Tránh quá tải localStorage)
-        localStorage.setItem('VIP_SIM_TOOL_SESSION_DATA', JSON.stringify(config));
-
-        // Thử lưu các ảnh tùy chỉnh (Background)
-        const imgKeys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
-        for (let key of imgKeys) {
-            if (window[key] && window[key] instanceof Image && window[key].src.startsWith('data:image')) {
-                try {
-                    localStorage.setItem('VIP_SIM_TOOL_IMG_' + key, window[key].src);
-                } catch(e) {
-                    console.warn("Dung lượng bộ nhớ đầy, không thể lưu ảnh: " + key);
-                }
-            }
-        }
-        console.log("💾 Đã tự động sao lưu phiên làm việc.");
-    } catch (err) {
-        console.error("Lỗi Auto-save:", err);
-    }
-};
-
-let saveTimeout = null;
-window.debouncedSave = function() {
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(window.saveSession, 1500); // Lưu sau 1.5s không thao tác
-};
-
-window.restoreSession = function() {
-    try {
-        let rawData = localStorage.getItem('VIP_SIM_TOOL_SESSION_DATA');
-        if (!rawData) return false;
-        
-        let config = JSON.parse(rawData);
-        if (!config) return false;
-
-        // Áp dụng cài đặt UI
-        window.applyConfigToUI(config);
-
-        // Khôi phục ảnh từ localStorage
-        const imgKeys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
-        imgKeys.forEach(key => {
-            let savedImg = localStorage.getItem('VIP_SIM_TOOL_IMG_' + key);
-            if (savedImg) {
                 let img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = dataUrl;
                 img.onload = () => {
-                    if (key === 'globalBgImage' || key === 'bgImage') {
-                        window.globalBgImage = img; window.bgImage = img;
-                    } else {
-                        window[key] = img;
+                    const target = window.currentBgTarget;
+                    if (target === 'global') window.bgImage = img;
+                    else if (target === 'cellBgImage') window.cellBgImage = img;
+                    else if (target === 'cellBorderImage') window.cellBorderImage = img;
+                    else window[target] = img;
+
+                    if (window.currentStatusId) {
+                        let st = document.getElementById(window.currentStatusId);
+                        if (st) st.innerHTML = '☁️ Đang dùng ảnh Mây';
                     }
-                    if(typeof window.drawCanvas === 'function') window.drawCanvas();
+
+                    drawCanvas();
+                    if (loaderOverlay) loaderOverlay.style.display = 'none';
+                    if (galleryElement) galleryElement.style.pointerEvents = 'auto';
+                    document.querySelectorAll('#bgCloudModalOverlay, #modal-bg-cloud').forEach(m => m.style.display = 'none');
                 };
-                img.src = savedImg;
+            } catch (err) {
+                if (loaderOverlay) loaderOverlay.style.display = 'none';
+                if (galleryElement) galleryElement.style.pointerEvents = 'auto';
+                alert("Lỗi tải ảnh!");
             }
-        });
-
-        console.log("📂 Đã khôi phục phiên làm việc cũ.");
-        
-        // Hiện thông báo nhỏ cho người dùng
-        let toast = document.createElement('div');
-        toast.style = "position:fixed; bottom:20px; left:20px; background:rgba(46, 204, 113, 0.9); color:white; padding:10px 20px; border-radius:50px; font-weight:bold; z-index:9999; box-shadow:0 4px 15px rgba(0,0,0,0.2);";
-        toast.innerHTML = "✨ Đã khôi phục phiên làm việc!";
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
-
-        return true;
-
-    } catch (err) {
-        console.error("Lỗi khôi phục session:", err);
-        return false;
-    }
-};
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Khôi phục phiên làm việc cũ ngay khi mở trang
-    setTimeout(() => {
-        const restored = window.restoreSession();
-        // Nếu không có dữ liệu cũ (restored === false), tự động nạp mẫu mặc định
-        if (!restored && typeof window.loadDefaultTemplate === 'function') {
-            window.loadDefaultTemplate();
         }
-    }, 400);
 
-    setInterval(() => {
-        const canvas = document.getElementById('preview');
-        const sizeDisplay = document.getElementById('canvasSizeDisplay');
-        
-        if (canvas && sizeDisplay) {
-            // Lấy kích thước ảnh gốc thực tế được tạo ra
-            const w = canvas.width;
-            const h = canvas.height;
-            
-            // Cập nhật text nếu Canvas đã được vẽ thành công
-            if (w > 0 && h > 0) {
-                const currentText = `Size: ${w} x ${h} px`;
-                if (sizeDisplay.innerText !== currentText) {
-                    sizeDisplay.innerText = currentText;
+        async function importFromCloudID(fileId, name) {
+            try {
+                toggleLoading(true, "ĐANG NẠP THIẾT KẾ", name);
+                const response = await fetch(CLOUD_JSON_URL + "?action=get_lite&id=" + fileId);
+                let rawData = await response.text();
+                const binaryString = atob(rawData.trim());
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                let cfg = JSON.parse(new TextDecoder().decode(bytes));
+
+                applyConfigToUI(cfg, true);
+                document.querySelectorAll('#themeModalOverlay, #modal-cloud-template').forEach(m => m.style.display = 'none');
+            } catch (err) {
+                alert("❌ Lỗi nạp mẫu!");
+            } finally {
+                setTimeout(() => toggleLoading(false), 500);
+            }
+        }
+
+
+        // ============================================================================
+        // 7. HỆ THỐNG QUẢN LÝ MẪU V24 (XUẤT / NẠP / TẠO MỚI / RESET) - NÉN ẢNH
+        // ============================================================================
+
+        // --- 7.1 HÀM NÉN ẢNH: Resize + JPEG compression trước khi lưu vào .lite ---
+        window.compressImage = function (imgElement, maxWidth = 800, quality = 0.7) {
+            return new Promise((resolve) => {
+                try {
+                    if (!imgElement || !imgElement.naturalWidth) { resolve(null); return; }
+                    let tempCanvas = document.createElement('canvas');
+                    let tempCtx = tempCanvas.getContext('2d');
+                    let origW = imgElement.naturalWidth || imgElement.width;
+                    let origH = imgElement.naturalHeight || imgElement.height;
+
+                    // Tính tỷ lệ resize
+                    let scale = 1;
+                    if (origW > maxWidth) scale = maxWidth / origW;
+                    tempCanvas.width = Math.round(origW * scale);
+                    tempCanvas.height = Math.round(origH * scale);
+
+                    tempCtx.drawImage(imgElement, 0, 0, tempCanvas.width, tempCanvas.height);
+                    let dataUrl = tempCanvas.toDataURL('image/jpeg', quality);
+                    resolve(dataUrl);
+                } catch (err) {
+                    // Nếu lỗi CORS hoặc lỗi khác, thử trả về src gốc nếu là data:image
+                    if (imgElement.src && imgElement.src.startsWith('data:image')) {
+                        resolve(imgElement.src);
+                    } else {
+                        resolve(null);
+                    }
+                }
+            });
+        };
+
+        // --- 7.2 XUẤT FILE .lite (V24: Nén ảnh + Lưu tất cả) ---
+        window.exportConfig = async function () {
+            let config = {};
+            // Quét TẤT CẢ input/select trên trang (không chỉ .col-settings)
+            let inputs = document.querySelectorAll('.col-settings input, .col-settings select');
+
+            inputs.forEach(el => {
+                if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+                if (el.type === 'checkbox') {
+                    config[el.id] = el.checked;
+                } else {
+                    config[el.id] = el.value;
+                }
+            });
+
+            // Xây dựng danh sách TẤT CẢ image keys cần lưu
+            config.savedImages = {};
+            // globalBgImage là biến thực tế khi upload local, bgImage là khi load từ cloud
+            const imgKeys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
+
+            const prefixes = [
+                'num', 'price', 'menh', 'mang', 'data1', 'data2',
+                'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2',
+                'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum'
+            ];
+
+            prefixes.forEach(p => {
+                imgKeys.push(p + 'ColorImage', p + 'BgImage', p + 'BorderImage', p + 'ShapeBorderImage');
+            });
+
+            // Hiện loading
+            if (typeof toggleLoading === 'function') toggleLoading(true, "ĐANG NÉN ẢNH", "Chuẩn bị xuất file .lite...");
+
+            // Nén tất cả ảnh (bao gồm cả ảnh từ cloud đã load vào RAM)
+            let imgCount = 0;
+            for (let key of imgKeys) {
+                if (window[key] && window[key] instanceof Image && window[key].complete && window[key].naturalWidth > 0) {
+                    let compressed = await window.compressImage(window[key], 800, 0.7);
+                    if (compressed) {
+                        // Chuẩn hóa key: globalBgImage → bgImage trong file .lite
+                        let saveKey = (key === 'globalBgImage') ? 'bgImage' : key;
+                        config.savedImages[saveKey] = compressed;
+                        imgCount++;
+                    }
                 }
             }
-        }
-    }, 500); // Tự động quét và cập nhật mỗi 0.5 giây
-});
-</script>
 
-<div id="helpModalOverlay" class="help-modal-overlay">
-    <div class="help-modal-content">
-        <span class="help-close" onclick="closeHelpModal()">✖</span>
-        <h2 style="color:#2c3e50; border-bottom:2px solid #3498db; padding-bottom:10px;">📖 HƯỚNG DẪN SỬ DỤNG</h2>
-        <div style="line-height:1.6; font-size:14px; margin-top:15px;">
-            <p><b>1. Nhập liệu Sim:</b> Dán danh sách sim vào ô bên trái theo định dạng (Số|Giá|Mệnh|Mạng|Dữ liệu 1|Dữ liệu 2).</p>
-            <p><b>2. Thiết kế Lưới:</b> Chỉnh sửa kích thước, số cột/dòng, màu sắc và độ dày viền tại tab "Lưới & Cột".</p>
-            <p><b>3. Phối màu thông minh:</b> Sử dụng nút "🎨 Phối màu" tại các ô màu để xem các gợi ý tông màu chuyên nghiệp.</p>
-            <p><b>4. Xuất ảnh:</b> Sử dụng menu ở góc dưới bên phải để tải ảnh đơn, file ZIP hoặc file PDF.</p>
-            <p><b>5. Quản lý mẫu:</b> Bạn có thể lưu mẫu thiết kế vào file .lite hoặc nạp từ kho mây đám mây.</p>
+            // Tắt loading
+            if (typeof toggleLoading === 'function') toggleLoading(false);
+
+            // Tạo file download
+            let jsonStr = JSON.stringify(config);
+            let blob = new Blob([jsonStr], { type: 'application/json' });
+            let sizeMB = (blob.size / 1024 / 1024).toFixed(2);
+
+            let dlAnchorElem = document.createElement('a');
+            dlAnchorElem.href = URL.createObjectURL(blob);
+            let date = new Date();
+            let dateStr = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
+            dlAnchorElem.download = `Mau_Thiet_Ke_VIP_${dateStr}.lite`;
+            document.body.appendChild(dlAnchorElem);
+            dlAnchorElem.click();
+            setTimeout(() => { document.body.removeChild(dlAnchorElem); URL.revokeObjectURL(dlAnchorElem.href); }, 500);
+
+            alert(`✅ Đã xuất file .lite thành công!\n📦 Kích thước: ${sizeMB} MB\n🖼️ Đã nén ${imgCount} hình ảnh`);
+        };
+
+
+        // --- 7.3 NẠP FILE .lite (V24: Hỗ trợ cả JSON lẫn base64) ---
+        window.handleImport = function (event) {
+            let file = event.target.files[0];
+            if (!file) return;
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    let raw = e.target.result.trim();
+                    let config;
+                    try {
+                        // Thử parse JSON thuần trước (file .lite local)
+                        config = JSON.parse(raw);
+                    } catch (jsonErr) {
+                        // Thử decode base64 (file .lite từ cloud)
+                        try {
+                            const binaryString = atob(raw);
+                            const bytes = new Uint8Array(binaryString.length);
+                            for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                            config = JSON.parse(new TextDecoder().decode(bytes));
+                        } catch (b64Err) {
+                            throw new Error('Invalid format');
+                        }
+                    }
+                    window.applyConfigToUI(config, true);
+                } catch (err) {
+                    alert('❌ Lỗi: File không đúng định dạng thiết kế!');
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        };
+
+        // --- 7.4 ÁP DỤNG CONFIG VÀO GIAO DIỆN (V24: Backward Compatible) ---
+        window.applyConfigToUI = function (config, isTemplate = false) {
+            // V2.5.1: Mở rộng phạm vi quét. Nếu là Template (Nạp mẫu), sẽ bỏ qua danh sách SIM
+            let inputs = document.querySelectorAll('.col-settings input, .col-settings select, #list, #filterMenh');
+            inputs.forEach(el => {
+                if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+
+                // Nếu là Nạp mẫu, không ghi đè danh sách số và bộ lọc
+                if (isTemplate && (el.id === 'list' || el.id === 'filterMenh')) return;
+
+                if (config.hasOwnProperty(el.id)) {
+                    if (el.type === 'checkbox') el.checked = config[el.id];
+                    else el.value = config[el.id];
+
+                    // Kích hoạt sự kiện để đảm bảo giao diện đồng bộ
+                    if (el.id === 'list' && typeof window.updatePreviewImmediate === 'function') {
+                        window.updatePreviewImmediate();
+                    }
+                } else {
+                    if (el.type === 'checkbox') {
+                        el.checked = (el.id === 'showHeaderRow');
+                    } else if (el.tagName === 'SELECT') {
+                        if (el.id.includes('ShapeType')) el.value = 'none';
+                    }
+                }
+            });
+
+            // Xóa tất cả ảnh cũ trước khi nạp mới
+            window.globalBgImage = null; window.bgImage = null;
+            window.cellBgImage = null; window.cellBorderImage = null;
+
+            if (config.savedImages && Object.keys(config.savedImages).length > 0) {
+                let imagesToLoad = Object.keys(config.savedImages).length;
+                let imagesLoaded = 0;
+
+                if (typeof toggleLoading === 'function') toggleLoading(true, "ĐANG KHÔI PHỤC", `Nạp ${imagesToLoad} hình ảnh...`);
+
+                for (let key in config.savedImages) {
+                    let img = new Image();
+                    img.onload = () => {
+                        // V24: bgImage từ file .lite → gán vào CẢ 2 biến để drawCanvas nhận được
+                        if (key === 'bgImage') {
+                            window.bgImage = img;
+                            window.globalBgImage = img;
+                        } else {
+                            window[key] = img;
+                        }
+                        imagesLoaded++;
+
+                        // V24: Cập nhật status text cho các ảnh đã nạp thành công
+                        let statusId = "";
+                        if (key === 'bgImage') statusId = 'mainBgStatus';
+                        else if (key === 'cellBgImage') statusId = 'cellBgStatus';
+                        else if (key === 'cellBorderImage') statusId = 'cellBorderStatus';
+
+                        let statusEl = document.getElementById(statusId);
+                        if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh từ file Lite";
+
+                        if (imagesLoaded === imagesToLoad) {
+                            if (typeof toggleLoading === 'function') setTimeout(() => toggleLoading(false), 300);
+                            if (typeof window.updateUI === 'function') window.updateUI();
+                            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+                        }
+                    };
+                    img.onerror = () => {
+                        imagesLoaded++;
+                        if (imagesLoaded === imagesToLoad) {
+                            if (typeof toggleLoading === 'function') setTimeout(() => toggleLoading(false), 300);
+                            if (typeof window.updateUI === 'function') window.updateUI();
+                            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                        }
+                    };
+                    img.src = config.savedImages[key];
+                }
+            } else {
+                if (typeof window.updateUI === 'function') window.updateUI();
+                if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+            }
+        };
+
+        window.createNewLite = function () {
+            if (confirm('Tạo mới sẽ xóa toàn bộ cài đặt hiện tại trên màn hình. Bạn có chắc không?')) {
+                document.querySelectorAll('.col-settings input[type="checkbox"]').forEach(el => el.checked = false);
+                document.querySelectorAll('.col-settings input[type="color"]').forEach(el => {
+                    if (el.id.includes('Bg') || el.id.includes('ColorGradient1')) el.value = '#ffffff';
+                    else el.value = '#000000';
+                });
+                document.querySelectorAll('.col-settings input[type="text"]').forEach(el => el.value = '');
+
+                // Xóa tất cả ảnh toàn cục
+                window.globalBgImage = null; window.bgImage = null;
+                window.cellBgImage = null; window.cellBorderImage = null;
+                let mainBgStatus = document.getElementById('mainBgStatus');
+                if (mainBgStatus) mainBgStatus.innerHTML = '❌ Chưa có ảnh';
+                let cellBgStatus = document.getElementById('cellBgStatus');
+                if (cellBgStatus) cellBgStatus.innerHTML = '❌ Chưa có ảnh';
+
+                if (document.getElementById('chkNum')) document.getElementById('chkNum').checked = true;
+                if (document.getElementById('chkPrice')) document.getElementById('chkPrice').checked = true;
+                if (document.getElementById('cellBgTrans')) document.getElementById('cellBgTrans').checked = true;
+
+                if (typeof window.updateUI === 'function') window.updateUI();
+                if (typeof window.drawCanvas === 'function') window.drawCanvas();
+
+                if (typeof window.closeThemeModal === 'function') window.closeThemeModal();
+                else document.getElementById('themeModalOverlay').style.display = 'none';
+            }
+        };
+
+        window.resetToDefault = function () {
+            if (confirm('Khôi phục về trạng thái gốc mặc định của phần mềm?')) {
+                location.reload();
+            }
+        };
+
+
+
+        // ==========================================
+        // AUTO-SAVE & SESSION RECOVERY (V2.5)
+        // ==========================================
+        window.saveSession = async function () {
+            try {
+                let config = {};
+                let inputs = document.querySelectorAll('.col-settings input, .col-settings select, #list');
+                inputs.forEach(el => {
+                    if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+                    if (el.type === 'checkbox') config[el.id] = el.checked;
+                    else config[el.id] = el.value;
+                });
+
+                // Chỉ lưu thông tin cơ bản trước (Tránh quá tải localStorage)
+                localStorage.setItem('VIP_SIM_TOOL_SESSION_DATA', JSON.stringify(config));
+
+                // Thử lưu các ảnh tùy chỉnh (Background)
+                const imgKeys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
+                for (let key of imgKeys) {
+                    if (window[key] && window[key] instanceof Image && window[key].src.startsWith('data:image')) {
+                        try {
+                            localStorage.setItem('VIP_SIM_TOOL_IMG_' + key, window[key].src);
+                        } catch (e) {
+                            console.warn("Dung lượng bộ nhớ đầy, không thể lưu ảnh: " + key);
+                        }
+                    }
+                }
+                console.log("💾 Đã tự động sao lưu phiên làm việc.");
+            } catch (err) {
+                console.error("Lỗi Auto-save:", err);
+            }
+        };
+
+        let saveTimeout = null;
+        window.debouncedSave = function () {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(window.saveSession, 1500); // Lưu sau 1.5s không thao tác
+        };
+
+        window.restoreSession = function () {
+            try {
+                let rawData = localStorage.getItem('VIP_SIM_TOOL_SESSION_DATA');
+                if (!rawData) return false;
+
+                let config = JSON.parse(rawData);
+                if (!config) return false;
+
+                // Áp dụng cài đặt UI
+                window.applyConfigToUI(config);
+
+                // Khôi phục ảnh từ localStorage
+                const imgKeys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
+                imgKeys.forEach(key => {
+                    let savedImg = localStorage.getItem('VIP_SIM_TOOL_IMG_' + key);
+                    if (savedImg) {
+                        let img = new Image();
+                        img.onload = () => {
+                            if (key === 'globalBgImage' || key === 'bgImage') {
+                                window.globalBgImage = img; window.bgImage = img;
+                            } else {
+                                window[key] = img;
+                            }
+                            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                        };
+                        img.src = savedImg;
+                    }
+                });
+
+                console.log("📂 Đã khôi phục phiên làm việc cũ.");
+
+                // Hiện thông báo nhỏ cho người dùng
+                let toast = document.createElement('div');
+                toast.style = "position:fixed; bottom:20px; left:20px; background:rgba(46, 204, 113, 0.9); color:white; padding:10px 20px; border-radius:50px; font-weight:bold; z-index:9999; box-shadow:0 4px 15px rgba(0,0,0,0.2);";
+                toast.innerHTML = "✨ Đã khôi phục phiên làm việc!";
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
+
+                return true;
+
+            } catch (err) {
+                console.error("Lỗi khôi phục session:", err);
+                return false;
+            }
+        };
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Khôi phục phiên làm việc cũ ngay khi mở trang
+            setTimeout(() => {
+                const restored = window.restoreSession();
+                // Nếu không có dữ liệu cũ (restored === false), tự động nạp mẫu mặc định
+                if (!restored && typeof window.loadDefaultTemplate === 'function') {
+                    window.loadDefaultTemplate();
+                }
+            }, 400);
+
+            setInterval(() => {
+                const canvas = document.getElementById('preview');
+                const sizeDisplay = document.getElementById('canvasSizeDisplay');
+
+                if (canvas && sizeDisplay) {
+                    // Lấy kích thước ảnh gốc thực tế được tạo ra
+                    const w = canvas.width;
+                    const h = canvas.height;
+
+                    // Cập nhật text nếu Canvas đã được vẽ thành công
+                    if (w > 0 && h > 0) {
+                        const currentText = `Size: ${w} x ${h} px`;
+                        if (sizeDisplay.innerText !== currentText) {
+                            sizeDisplay.innerText = currentText;
+                        }
+                    }
+                }
+            }, 500); // Tự động quét và cập nhật mỗi 0.5 giây
+        });
+    </script>
+
+    <div id="helpModalOverlay" class="help-modal-overlay">
+        <div class="help-modal-content">
+            <span class="help-close" onclick="closeHelpModal()">✖</span>
+            <h2 style="color:#2c3e50; border-bottom:2px solid #3498db; padding-bottom:10px;">📖 HƯỚNG DẪN SỬ DỤNG</h2>
+            <div style="line-height:1.6; font-size:14px; margin-top:15px;">
+                <p><b>1. Nhập liệu Sim:</b> Dán danh sách sim vào ô bên trái theo định dạng (Số|Giá|Mệnh|Mạng|Dữ liệu
+                    1|Dữ liệu 2).</p>
+                <p><b>2. Thiết kế Lưới:</b> Chỉnh sửa kích thước, số cột/dòng, màu sắc và độ dày viền tại tab "Lưới &
+                    Cột".</p>
+                <p><b>3. Phối màu thông minh:</b> Sử dụng nút "🎨 Phối màu" tại các ô màu để xem các gợi ý tông màu
+                    chuyên nghiệp.</p>
+                <p><b>4. Xuất ảnh:</b> Sử dụng menu ở góc dưới bên phải để tải ảnh đơn, file ZIP hoặc file PDF.</p>
+                <p><b>5. Quản lý mẫu:</b> Bạn có thể lưu mẫu thiết kế vào file .lite hoặc nạp từ kho mây đám mây.</p>
+            </div>
         </div>
     </div>
-</div>
-<input type="file" id="globalFontInput" style="display:none" accept=".ttf,.otf,.woff,.woff2" onchange="handleGlobalFontUpload(event)">
+    <input type="file" id="globalFontInput" style="display:none" accept=".ttf,.otf,.woff,.woff2"
+        onchange="handleGlobalFontUpload(event)">
 </body>
-</html>
+
+</html>
