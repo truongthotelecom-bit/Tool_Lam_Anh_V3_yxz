@@ -331,12 +331,21 @@ window.drawCanvas = function() {
     let list = typeof window.parseList === 'function' ? window.parseList() : []; 
     
     let tCols = window.getVal('tableCols', 2), tRows = window.getVal('tableRows', 10), cW = window.getVal('cellW', 380), cH = window.getVal('cellH', 60);
-    let gapX = window.getVal('tableGap', 15), gapY = window.getVal('rowGap', 10), mLeft = window.getVal('mLeft', 30), mRight = window.getVal('mRight', 30), tZoneH = window.getVal('tZoneH', 100), fZoneH = window.getVal('fZoneH', 80);
+    let gapX = window.getVal('tableGap', 15), gapY = window.getVal('rowGap', 10), 
+        mLeft = window.getVal('mLeft', 30), mRight = window.getVal('mRight', 30), 
+        tZoneH = window.getVal('tZoneH', 100), fZoneH = window.getVal('fZoneH', 80);
+    
+    let bMode = document.getElementById('bindingMode')?.value || 'none';
+    let mBind = window.getVal('marginBinding', 80);
+    let mNonBind = window.getVal('marginNonBinding', 30);
     
     let chkHead = document.getElementById('showHeaderRow');
     let hasHead = chkHead ? chkHead.checked : false; 
     let headH = hasHead ? window.getVal('headerRowHeight', 50) : 0, headGap = hasHead ? gapY : 0;
     
+    let totalTableW = (tCols * cW + Math.max(0, tCols - 1) * gapX);
+    let totalTableH = (tRows * cH + Math.max(0, tRows - 1) * gapY);
+
     let sMode = document.getElementById('canvasSizeMode')?.value || 'auto';
     let imgToDraw = window.globalBgImage || window.bgImage; 
     let scale = window.getVal('exportScale', 1);
@@ -348,8 +357,11 @@ window.drawCanvas = function() {
     } else if (sMode === 'fixed') {
         canvas.width = window.getVal('customCanvasW', 1080) * scale; canvas.height = window.getVal('customCanvasH', 1920) * scale;
     } else {
-        let autoW = mLeft + mRight + (tCols * cW) + (Math.max(0, tCols - 1) * gapX);
-        let autoH = tZoneH + fZoneH + headH + headGap + (tRows * cH) + (Math.max(0, tRows - 1) * gapY);
+        // Auto mode
+        let curMLeft = (bMode === 'none') ? mLeft : mBind;
+        let curMRight = (bMode === 'none') ? mRight : mNonBind;
+        let autoW = curMLeft + curMRight + totalTableW;
+        let autoH = tZoneH + fZoneH + headH + headGap + totalTableH;
         canvas.width = autoW * scale; canvas.height = autoH * scale;
     }
 
@@ -378,7 +390,18 @@ window.drawCanvas = function() {
         ctx.fillRect(0, 0, cw, ch);
     }
 
-    let tStartX = (cw - (tCols * cW + Math.max(0, tCols - 1) * gapX)) / 2; 
+    // CĂN LỀ & ĐÓNG GÁY (V2.5.2)
+    let tStartX = (cw - totalTableW) / 2; 
+    if (bMode === 'single') {
+        tStartX = mBind;
+    } else if (bMode === 'double') {
+        let isOddPage = (window.currentStep % 2 === 0);
+        if (isOddPage) tStartX = mBind;
+        else tStartX = cw - totalTableW - mBind;
+    } else {
+        if (sMode === 'auto') tStartX = mLeft;
+        else tStartX = mLeft + (cw - mLeft - mRight - totalTableW) / 2;
+    }
     let tStartY = tZoneH + headH + headGap;
     let totalCells = tRows * tCols;
 
