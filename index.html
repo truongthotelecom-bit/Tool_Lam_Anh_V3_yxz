@@ -1520,16 +1520,20 @@ window.handleImport = function(event) {
 
 // --- 7.4 ÁP DỤNG CONFIG VÀO GIAO DIỆN (V24: Backward Compatible) ---
 window.applyConfigToUI = function(config) {
-    let inputs = document.querySelectorAll('.col-settings input, .col-settings select');
+    // V2.5: Mở rộng phạm vi quét bao gồm cả danh sách SIM và các bộ lọc
+    let inputs = document.querySelectorAll('.col-settings input, .col-settings select, #list, #filterMenh');
     inputs.forEach(el => {
         if (!el.id || el.type === 'file' || el.id.includes('search')) return;
         
         if (config.hasOwnProperty(el.id)) {
             if (el.type === 'checkbox') el.checked = config[el.id];
             else el.value = config[el.id];
+            
+            // Kích hoạt sự kiện để đảm bảo giao diện đồng bộ
+            if (el.id === 'list' && typeof window.updatePreviewImmediate === 'function') {
+                window.updatePreviewImmediate();
+            }
         } else {
-            // V24: File .lite cũ thiếu key → UNCHECK checkbox (kể cả cột, chữ góc)
-            // Chỉ giữ showHeaderRow mặc định ON (vì nó là core behavior)
             if (el.type === 'checkbox') {
                 el.checked = (el.id === 'showHeaderRow');
             } else if (el.tagName === 'SELECT') {
