@@ -8,7 +8,7 @@ const wrapper = document.getElementById('canvasWrapper');
 // --- 1. BIẾN TRẠNG THÁI ---
 let hitBoxes = []; window.isExporting = false; window.currentStep = 0;
 let currentZoom = 100; let isAutoFit = true;
-let isPanning = false, startX, startY, scrollLeft, scrollTop;
+let isPanning = false, startX, startY, panStartX, panStartY, scrollLeft, scrollTop;
 let isDragging = false, dragTarget = null, dragStartX = 0, dragStartY = 0, dragStartOffsetX = 0, dragStartOffsetY = 0;
 let hoveredIndex = -1, isDragMoved = false, isFullscreen = false;
 let lastClickTime = 0; 
@@ -555,11 +555,23 @@ function fitZoom() { isAutoFit = true; updateZoomUI(); wrapper.scrollTop = 0; wr
 function applyZoom(val) { currentZoom = parseInt(val); isAutoFit = false; updateZoomUI(); }
 
 if(wrapper) {
-    wrapper.addEventListener('mousedown', (e) => { if (typeof isDragging !== 'undefined' && isDragging) return; isPanning = true; startX = e.pageX - wrapper.offsetLeft; startY = e.pageY - wrapper.offsetTop; scrollLeft = wrapper.scrollLeft; scrollTop = wrapper.scrollTop; });
+    wrapper.addEventListener('mousedown', (e) => { 
+        if (typeof isDragging !== 'undefined' && isDragging) return; 
+        isPanning = true; 
+        panStartX = e.pageX - wrapper.offsetLeft; 
+        panStartY = e.pageY - wrapper.offsetTop; 
+        scrollLeft = wrapper.scrollLeft; 
+        scrollTop = wrapper.scrollTop; 
+    });
     wrapper.addEventListener('mouseleave', () => { isPanning = false; hoveredIndex = -1; if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); });
     canvas.addEventListener('mouseleave', () => { hoveredIndex = -1; if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); });
     wrapper.addEventListener('mouseup', () => { isPanning = false; });
-    wrapper.addEventListener('mousemove', (e) => { if (!isPanning) return; e.preventDefault(); wrapper.scrollLeft = scrollLeft - (e.pageX - wrapper.offsetLeft - startX) * 1.5; wrapper.scrollTop = scrollTop - (e.pageY - wrapper.offsetTop - startY) * 1.5; });
+    wrapper.addEventListener('mousemove', (e) => { 
+        if (!isPanning) return; 
+        e.preventDefault(); 
+        wrapper.scrollLeft = scrollLeft - (e.pageX - wrapper.offsetLeft - panStartX) * 1.5; 
+        wrapper.scrollTop = scrollTop - (e.pageY - wrapper.offsetTop - panStartY) * 1.5; 
+    });
 }
 
 function getPointerPos(canvas, clientX, clientY) {
@@ -623,8 +635,8 @@ function handleInteractStart(clientX, clientY) {
 function handleInteractMove(clientX, clientY) {
     let dx = clientX - startX; let dy = clientY - startY;
     
-    // Nếu di chuyển quá 10px thì coi là đã di chuyển (Hủy Long-press)
-    if (isPanning && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+    // Nếu di chuyển quá 20px thì coi là đã thực sự có di chuyển (Hủy Long-press nếu chưa bắt đầu kéo)
+    if (isPanning && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
         if (!isLongPress) {
             isDragMoved = true;
             clearTimeout(longPressTimeout);
@@ -633,6 +645,7 @@ function handleInteractMove(clientX, clientY) {
 
     if (isDragging && dragTarget && isLongPress) {
         // --- CHẾ ĐỘ KÉO ĐỐI TƯỢNG (Sau khi Long-press) ---
+        isDragMoved = true; // Đánh dấu đã di chuyển để handleInteractEnd lưu lại
         let pos = getPointerPos(canvas, clientX, clientY); 
         let dX_obj = pos.x - dragStartX; let dY_obj = pos.y - dragStartY;
         
