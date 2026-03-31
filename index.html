@@ -1374,7 +1374,7 @@ async function importFromCloudID(fileId, name) {
         for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
         let cfg = JSON.parse(new TextDecoder().decode(bytes));
         
-        applyConfigToUI(cfg, false);
+        applyConfigToUI(cfg, true);
         document.querySelectorAll('#themeModalOverlay, #modal-cloud-template').forEach(m => m.style.display = 'none');
     } catch (err) { 
         alert("❌ Lỗi nạp mẫu!"); 
@@ -1509,7 +1509,7 @@ window.handleImport = function(event) {
                     throw new Error('Invalid format');
                 }
             }
-            window.applyConfigToUI(config);
+            window.applyConfigToUI(config, true);
         } catch(err) {
             alert('❌ Lỗi: File không đúng định dạng thiết kế!');
         }
@@ -1519,11 +1519,14 @@ window.handleImport = function(event) {
 };
 
 // --- 7.4 ÁP DỤNG CONFIG VÀO GIAO DIỆN (V24: Backward Compatible) ---
-window.applyConfigToUI = function(config) {
-    // V2.5: Mở rộng phạm vi quét bao gồm cả danh sách SIM và các bộ lọc
+window.applyConfigToUI = function(config, isTemplate = false) {
+    // V2.5.1: Mở rộng phạm vi quét. Nếu là Template (Nạp mẫu), sẽ bỏ qua danh sách SIM
     let inputs = document.querySelectorAll('.col-settings input, .col-settings select, #list, #filterMenh');
     inputs.forEach(el => {
         if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+        
+        // Nếu là Nạp mẫu, không ghi đè danh sách số và bộ lọc
+        if (isTemplate && (el.id === 'list' || el.id === 'filterMenh')) return;
         
         if (config.hasOwnProperty(el.id)) {
             if (el.type === 'checkbox') el.checked = config[el.id];
