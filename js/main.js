@@ -150,7 +150,7 @@ window.buildShapePath = function(ctx, shape, w, h, radius, expand = 0) {
 // ============================================================================
 // HÀM VẼ CHÍNH (DRAW PRO ELEMENT) 
 // ============================================================================
-window.drawProElement = function(ctx, prefix, text, cx, cy, w, h, radius, angle, isCellGrid = false, autoBgColor = null) {
+window.drawProElement = function(ctx, prefix, text, cx, cy, w, h, radius, angle, isCellGrid = false, autoBgColor = null, rowIndex = -1) {
     if (!text && !isCellGrid) return;
 
     const _v = (id, def) => { let el = document.getElementById(id); return el ? (parseFloat(el.value) || 0) : def; };
@@ -178,6 +178,19 @@ window.drawProElement = function(ctx, prefix, text, cx, cy, w, h, radius, angle,
         
         let bgMode = document.getElementById(prefix + 'BgMode')?.value || 'solid';
         let bgC1 = bgMode === 'gradient' ? document.getElementById(prefix + 'BgGradient1')?.value : document.getElementById(prefix + 'Bg')?.value;
+        
+        // --- LOGIC NGỰA VẰN (ZEBRA) - PHẦN NỀN ---
+        if (window.isChecked('useZebra') && rowIndex !== -1 && ['cell', 'num','price','menh','mang','data1','data2'].includes(prefix)) {
+            let parity = rowIndex % 2; // 0: Lẻ (1,3,5..), 1: Chẵn (2,4,6..)
+            let zPrefix = (parity === 0) ? 'zebraOdd' : 'zebraEven';
+            let zebraGen = document.getElementById(zPrefix + 'Bg')?.value;
+            
+            if (zebraGen) {
+                bgMode = 'solid';
+                bgC1 = zebraGen;
+            }
+        }
+        
         ctx.fillStyle = window.getAdvancedStyle(ctx, bgMode, bgC1, document.getElementById(prefix + 'BgGradient2')?.value, window[prefix + 'BgImage'], -w/2, -h/2, w, h, _v(prefix + 'BgGradAngle', 0));
         ctx.fill(); 
         ctx.restore();
@@ -271,6 +284,19 @@ window.drawProElement = function(ctx, prefix, text, cx, cy, w, h, radius, angle,
         
         let clMode = document.getElementById(prefix + 'ColorMode')?.value || 'solid';
         let clC1 = clMode === 'gradient' ? document.getElementById(prefix + 'ColorGradient1')?.value : document.getElementById(prefix + 'Color')?.value;
+
+        // --- LOGIC NGỰA VẰN (ZEBRA) - PHẦN CHỮ ---
+        if (window.isChecked('useZebra') && rowIndex !== -1 && ['num','price','menh','mang','data1','data2'].includes(prefix)) {
+            let parity = rowIndex % 2; 
+            let zPrefix = (parity === 0) ? 'zebraOdd' : 'zebraEven';
+            let colKey = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+            let zebraTextCol = document.getElementById(zPrefix + colKey + 'Color')?.value;
+            
+            if (zebraTextCol) {
+                clMode = 'solid';
+                clC1 = zebraTextCol;
+            }
+        }
 
         if (sType === 'text_only' && autoBgColor) clC1 = autoBgColor; 
         
@@ -439,7 +465,7 @@ window.drawCanvas = function() {
             let cx = tStartX + c * (cW + gapX) + cW/2; 
             let cy = tStartY + r * (cH + gapY) + cH/2;
             
-            window.drawProElement(ctx, 'cell', ' ', cx, cy, cW, cH, window.getVal('cellRadius'), 0, true);
+            window.drawProElement(ctx, 'cell', ' ', cx, cy, cW, cH, window.getVal('cellRadius'), 0, true, null, r);
 
             // Lấy dữ liệu cho ô
             let rowData = drawList[i]; 
@@ -510,9 +536,9 @@ window.drawCanvas = function() {
                          if (p === 'menh') autoColor = menhColors[rawMenh] || null; // Dùng rawMenh để lấy màu
                          if (p === 'mang') autoColor = netData ? netData.color : null;
                          
-                         window.drawProElement(ctx, p, vList[idx], px, py, w, h, window.getVal(p+'Radius'), window.getVal(p+'Angle'), false, autoColor);
+                         window.drawProElement(ctx, p, vList[idx], px, py, w, h, window.getVal(p+'Radius'), window.getVal(p+'Angle'), false, autoColor, r);
                      } else {
-                         window.drawProElement(ctx, p, ' ', px, py, w, h, window.getVal(p+'Radius'), window.getVal(p+'Angle'), true);
+                         window.drawProElement(ctx, p, ' ', px, py, w, h, window.getVal(p+'Radius'), window.getVal(p+'Angle'), true, null, r);
                      }
                  }
              });
@@ -905,6 +931,13 @@ window.updateUI = function() {
 
     if (typeof window.updateGeneralUI === 'function') window.updateGeneralUI();
     if (typeof window.toggleCanvasSizeInputs === 'function') window.toggleCanvasSizeInputs();
+
+    // 🦓 HIỂN THỊ CÀI ĐẶT NGỰA VẰN
+    let useZebra = document.getElementById('useZebra');
+    let zebraContainer = document.getElementById('zebraSettingsContainer');
+    if (useZebra && zebraContainer) {
+        zebraContainer.style.display = useZebra.checked ? 'block' : 'none';
+    }
 };
 
 window.drawGlobalBackground = function(ctx, canvasW, canvasH) {
