@@ -244,6 +244,16 @@ window.drawProElement = function(ctx, prefix, text, cx, cy, w, h, radius, angle,
         // V24: Dùng autoBgColor nếu có, nếu không dùng màu mặc định xám
         let shapeFillColor = autoBgColor || '#888888';
         
+        // --- LOGIC NGỰA VẰN (ZEBRA) - PHẦN KHỐI SHAPE (ÁP DỤNG CHO CÁC CỘT DỮ LIỆU) ---
+        if (window.isChecked('useZebra') && rowIndex !== -1 && ['num','price','data1','data2'].includes(prefix)) {
+            let parity = rowIndex % 2; 
+            let zPrefix = (parity === 0) ? 'zebraOdd' : 'zebraEven';
+            let zebraGen = document.getElementById(zPrefix + 'Bg')?.value;
+            if (zebraGen) {
+                shapeFillColor = zebraGen;
+            }
+        }
+        
         ctx.save();
         if (typeof applyShadow === 'function') applyShadow(ctx, prefix, 'ShapeBoxShadow'); 
         
@@ -937,6 +947,20 @@ window.updateUI = function() {
     let zebraContainer = document.getElementById('zebraSettingsContainer');
     if (useZebra && zebraContainer) {
         zebraContainer.style.display = useZebra.checked ? 'block' : 'none';
+        
+        // --- ĐỒNG BỘ HIỂN THỊ CỘT TRONG ZEBRA (V26.6) ---
+        const syncZebra = (chkId, grpPrefix) => {
+            let chk = document.getElementById(chkId);
+            let gOdd = document.getElementById('zebraOdd' + grpPrefix + 'Grp');
+            let gEven = document.getElementById('zebraEven' + grpPrefix + 'Grp');
+            if (chk) {
+                let disp = chk.checked ? 'flex' : 'none';
+                if (gOdd) gOdd.style.display = disp;
+                if (gEven) gEven.style.display = disp;
+            }
+        };
+        syncZebra('chkNum', 'Num'); syncZebra('chkPrice', 'Price'); syncZebra('chkMenh', 'Menh');
+        syncZebra('chkMang', 'Mang'); syncZebra('chkData1', 'Data1'); syncZebra('chkData2', 'Data2');
     }
 };
 
