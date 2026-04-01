@@ -612,6 +612,68 @@
             padding-bottom: 80px !important;
         }
 
+        /* [MOBILE SIM LIST MODAL] - FULL SCREEN INPUT */
+        #mobileSimListModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #fff;
+            z-index: 5000000;
+            flex-direction: column;
+            animation: slideUpSim 0.3s ease-out;
+        }
+        @keyframes slideUpSim {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .sim-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #2c3e50;
+            color: #fff;
+        }
+        .sim-modal-body {
+            flex: 1;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        #mobileListArea {
+            flex: 1;
+            width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 16px;
+            outline: none;
+            resize: none;
+            font-family: monospace;
+        }
+        .sim-modal-footer {
+            display: flex;
+            gap: 10px;
+            padding: 15px 10px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+        .btn-sim-action {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-sim-paste { background: #3498db; color: #fff; }
+        .btn-sim-clear { background: #e74c3c; color: #fff; }
+        .btn-sim-apply { background: #2ecc71; color: #fff; flex: 1.5; }
+
         .col-settings {
             padding-bottom: 100px !important;
         }
@@ -760,7 +822,7 @@
             <option value="HỎA">❤ Chỉ hiện Mệnh HỎA</option>
             <option value="THỔ">🤎 Chỉ hiện Mệnh THỔ</option>
         </select>
-        <textarea id="list">0909.123.456|1000000000|VIP|Mới&#10;0988.88.88.88|50000000|Thường|Xả hàng</textarea>
+        <textarea id="list" onclick="if(window.innerWidth <= 768) window.openSimListModal()">0909.123.456|1000000000|VIP|Mới&#10;0988.88.88.88|50000000|Thường|Xả hàng</textarea>
         <div style="display: flex; margin-top: 10px; gap: 8px;">
             <button onclick="pasteList()" class="btn-success" style="flex:1; padding:12px;">📋 Dán SIM</button>
             <button
@@ -2442,6 +2504,65 @@
             </div>
         </div>
     </div>
+    <div id="mobileSimListModal">
+        <div class="sim-modal-header">
+            <b style="font-size: 16px;">📝 NHẬP DANH SÁCH SIM</b>
+            <span onclick="window.closeSimListModal()" style="cursor: pointer; font-size: 24px; color: #ff4757;">✖</span>
+        </div>
+        <div class="sim-modal-body">
+            <textarea id="mobileListArea" placeholder="Dán danh sách SIM tại đây..."></textarea>
+        </div>
+        <div class="sim-modal-footer">
+            <button class="btn-sim-action btn-sim-paste" onclick="window.pasteToMobileList()">📋 DÁN SIM</button>
+            <button class="btn-sim-action btn-sim-clear" onclick="document.getElementById('mobileListArea').value = ''">🗑️ XÓA</button>
+            <button class="btn-sim-action btn-sim-apply" onclick="window.applySimList()">✅ XÁC NHẬN</button>
+        </div>
+    </div>
+
+    <script>
+        window.openSimListModal = function() {
+            let listEl = document.getElementById('list');
+            let mListArea = document.getElementById('mobileListArea');
+            let modal = document.getElementById('mobileSimListModal');
+            if (listEl && mListArea && modal) {
+                mListArea.value = listEl.value;
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // Chặn cuộn trang nền
+            }
+        };
+
+        window.closeSimListModal = function() {
+            let modal = document.getElementById('mobileSimListModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        };
+
+        window.applySimList = function() {
+            let listEl = document.getElementById('list');
+            let mListArea = document.getElementById('mobileListArea');
+            if (listEl && mListArea) {
+                listEl.value = mListArea.value;
+                if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+                if (typeof window.debouncedSave === 'function') window.debouncedSave();
+            }
+            window.closeSimListModal();
+        };
+
+        window.pasteToMobileList = async function() {
+            try {
+                let text = await navigator.clipboard.readText();
+                let mListArea = document.getElementById('mobileListArea');
+                if (mListArea && text) {
+                    mListArea.value = text;
+                }
+            } catch (e) {
+                alert('❌ Không thể truy cập bộ nhớ tạm! Hãy dán thủ công.');
+            }
+        };
+    </script>
+
     <input type="file" id="globalFontInput" style="display:none" accept=".ttf,.otf,.woff,.woff2"
         onchange="handleGlobalFontUpload(event)">
 </body>
