@@ -154,43 +154,79 @@
             display: flex !important;
             flex-direction: column !important;
         }
-        body.studio-mode #canvasWrapper {
+        body.studio-mode #canvasWrapper,
+        #previewColumn.fullscreen #canvasWrapper {
             height: 100% !important;
             margin: 0 !important;
             padding: 5px !important;
+            position: relative;
+            z-index: 5 !important;
         }
-        body.studio-mode #mobileSettingModal {
-            display: block !important;
+        /* [SIDEBAR & POPUP V26.6] - UNITY SYSTEM */
+        #mobileSettingModal {
+            display: none;
             position: fixed !important;
+            z-index: 9999999 !important; /* Sidebar: 9.9 triệu */
+            transition: none !important;
+            padding: 0 !important; /* Xóa mọi padding của cha */
+        }
+
+        /* CHẾ ĐỘ MOBILE (50/50) */
+        body.studio-mode #mobileSettingModal {
             top: 50vh !important;
             left: 0 !important;
             width: 100vw !important;
             height: 50vh !important;
-            z-index: 1001 !important;
-            background: #fff !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            transform: none !important;
+            pointer-events: none !important;
         }
-        body.studio-mode .mobile-modal-content {
-            height: 100% !important;
-            border-radius: 0 !important;
+
+        /* CHẾ ĐỘ DESKTOP FULLSCREEN (ÔM KHÍT KHUNG LÀM VIỆC) */
+        #previewColumn.fullscreen ~ #mobileSettingModal {
+            top: 85px !important; 
+            right: 20px !important; 
+            width: 380px !important; /* Ép cứng 380px */
+            height: calc(100vh - 105px) !important; /* 85 top + 20 bottom = 105 */
+            left: auto !important;
+            pointer-events: auto !important;
+            background: transparent !important;
             box-shadow: none !important;
-            margin: 0 !important;
-            max-width: none !important;
         }
-        body.studio-mode .mobile-modal-drag-handle {
+
+        /* NỘI DUNG POPUP (CHUNG) */
+        .mobile-modal-content {
+            background: #fff !important;
+            height: 100% !important; /* Lấp đầy cha */
+            width: 100% !important;  
+            margin: 0 !important; 
+            padding: 0 !important;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ddd;
+            border-radius: 12px !important;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.2) !important; /* v26.6: Chuyển bóng đổ sang đây cho đẹp */
+            pointer-events: auto !important;
+            overflow: hidden;
+            box-sizing: border-box !important;
+        }
+
+        body.studio-mode .mobile-modal-content {
+            border-radius: 20px 20px 0 0 !important;
+        }
+
+        body.studio-mode .mobile-modal-drag-handle,
+        #previewColumn.fullscreen ~ #mobileSettingModal .mobile-modal-drag-handle {
             display: none !important;
         }
         body.studio-mode .mobile-modal-header-area {
             padding: 5px 0 !important;
         }
 
-        /* Fix trượt cuối trang và tối ưu mobile */
+        /* Fix trượt cuối trang và tối ưu mobile (V26.6 - SIÊU TRÀN VIỀN) */
         .mobile-modal-body {
-            padding-bottom: 200px !important;
+            padding: 0px 5px 200px 5px !important; /* Triệt tiêu 30px rác, chỉ để lề 5px cực mỏng */
             overflow-y: auto !important;
             -webkit-overflow-scrolling: touch;
+            box-sizing: border-box !important;
         }
         .col-settings {
             padding-bottom: 120px !important;
@@ -406,7 +442,7 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            z-index: 2000000;
+            z-index: 10000000 !important; /* v26.6: Nổi trên tất cả, kể cả Popup (9.9M) */
             display: flex;
             flex-direction: column;
             align-items: flex-end;

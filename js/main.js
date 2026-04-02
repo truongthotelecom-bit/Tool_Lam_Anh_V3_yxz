@@ -782,7 +782,34 @@ function handleInteractMove(clientX, clientY) {
     }
 }
 
-function handleInteractEnd() {
+function handleInteractEnd(e) {
+    if (!e) return;
+    
+    // v26.6: SIÊU BẢO VỆ UI - Bỏ qua xử lý nếu click trúng các thanh điều khiển
+    if (e.target && (
+        e.target.closest('.zoom-bar') || 
+        e.target.closest('#quickSliderContainer') || 
+        e.target.closest('.unified-menu-container') ||
+        e.target.closest('.mobile-modal-header-area')
+    )) {
+        console.log("Interact: UI control detected, ignoring canvas close logic");
+        return;
+    }
+    
+    // v26.6: SIÊU BẢO VỆ SIDEBAR - Kiểm tra tọa độ vật lý (Fix lỗi trượt thanh kéo tắt popup)
+    let modalEl = document.getElementById('mobileSettingModal');
+    if (modalEl && modalEl.style.display === 'flex') {
+        let rect = modalEl.getBoundingClientRect();
+        // Thêm vùng đệm lề 15px để chống chuột trượt nhanh khi kéo thanh trượt
+        let buffer = 15;
+        if (e.clientX >= (rect.left - buffer) && e.clientX <= (rect.right + buffer) && 
+            e.clientY >= (rect.top - buffer) && e.clientY <= (rect.bottom + buffer)) {
+            return; 
+        }
+    }
+    
+    if (e.target && (e.target.closest('#mobileSettingModal') || e.target.id === 'mobileSettingModal')) return;
+    
     clearTimeout(longPressTimeout);
     let targetRef = isDragging ? dragTarget : pendingTarget;
     let wasLongPress = isLongPress;
@@ -796,13 +823,32 @@ function handleInteractEnd() {
         if (typeof window.debouncedSave === 'function') window.debouncedSave();
         setTimeout(() => { window.isOpeningModal = false; }, 100);
     } else if (!isDragMoved && !wasLongPress && targetRef) {
+        // v26.3 Debug logs
+        console.log("Interact: Click detected on ID:", targetRef.id, "Fullscreen:", isFS);
+
         // Click nhanh -> Mở modal
         window.isOpeningModal = true; 
         if (isFS || window.innerWidth <= 768) { 
-            if (typeof window.openMobileModal === 'function') window.openMobileModal(targetRef.id); 
+            if (typeof window.openMobileModal === 'function') {
+                console.log("Calling openMobileModal for:", targetRef.id);
+                window.openMobileModal(targetRef.id); 
+            }
         } 
-        else { if (typeof window.focusDesktopTab === 'function') window.focusDesktopTab(targetRef.id); }
+        else { 
+            if (typeof window.focusDesktopTab === 'function') {
+                console.log("Calling focusDesktopTab for:", targetRef.id);
+                window.focusDesktopTab(targetRef.id); 
+            }
+        }
         setTimeout(() => { window.isOpeningModal = false; }, 200);
+    } else if (!isDragMoved && !wasLongPress && !targetRef) {
+        // v26.4: Bấm vùng trống -> Tự động đóng Popup
+        if (isFS || window.innerWidth <= 768) {
+            if (typeof window.closeMobileModal === 'function') {
+                console.log("Interact: Blank click on canvas, closing modal");
+                window.closeMobileModal();
+            }
+        }
     }
 
     isDragging = false; dragTarget = null; pendingTarget = null;
@@ -857,7 +903,7 @@ if(canvas) {
 
     window.addEventListener('touchend', function(e) { 
         if (e.touches.length === 0) { 
-            handleInteractEnd(); 
+            handleInteractEnd(e); 
             isPinching = false;
         } else if (e.touches.length === 1) {
             isPinching = false;
@@ -868,7 +914,7 @@ if(canvas) {
         let handled = handleInteractStart(e.clientX, e.clientY); 
         if(handled) e.preventDefault();
     });
-    window.addEventListener('mouseup', function(e) { handleInteractEnd(); });
+    window.addEventListener('mouseup', function(e) { handleInteractEnd(e); });
 }
 
 window.closeMobileModal = function() {
@@ -893,55 +939,97 @@ window.closeMobileModal = function() {
     let activeSubTabBtn = document.querySelector('.tab-content.active .sub-tab-btn.active'); if(activeSubTabBtn) activeSubTabBtn.click();
 };
 
-window.currentUXCategory = '-format'; let isSyncingTab = false;
+window.currentUXCategory = 'pos'; 
+let isSyncingTab = false;
+
 window.switchTab = function(tabId, btn) { 
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active')); 
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active')); 
-    let target = document.getElementById(tabId); if(target) target.classList.add('active'); if(btn) btn.classList.add('active'); 
-    syncTabUX(target); 
-}
+    let target = document.getElementById(tabId); 
+    if(target) target.classList.add('active'); 
+    if(btn) btn.classList.add('active'); 
+    
+    // Trên Desktop, khi chuyển Level 1, ta cần sync sâu vào tab con đang active bên trong nó
+    setTimeout(() => {
+        let activeSub = target.querySelector('.sub-tab-content.active') || target;
+        syncTabUX(activeSub); 
+    }, 50);
+};
+
 window.switchSubTab = function(subTabId, btn) {
     if (!btn) return;
     const parent = btn.closest('.tab-content');
     if (!parent) return;
     
-    // Chỉ tìm các nút tab con trực tiếp của tab-content này (tránh nhầm với sub-sub-tab)
     parent.querySelectorAll('.sub-tabs:first-child .sub-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     
-    // Chuyển nội dung tab cấp 2
     parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.remove('active'));
     const target = document.getElementById(subTabId);
     if (target) {
         target.classList.add('active');
-        // Kích hoạt nút con cấp 3 mặc định nếu có
-        let firstSubSub = target.querySelector('.sub-sub-tab-btn');
-        if (firstSubSub) firstSubSub.click();
+        // Đồng bộ hóa phân mục cho toàn bộ vùng cài đặt
+        syncTabUX(document.getElementById('dynamic-tabs-container') || target);
     }
     if (typeof window.debouncedSave === 'function') window.debouncedSave();
 };
 
 window.switchSubSubTab = function(subSubTabId, btn) {
     if (!btn) return;
-    const parentScope = btn.closest('.sub-tab-content');
+    const parentScope = btn.closest('.sub-tab-content') || btn.parentNode.parentNode;
     if (!parentScope) return;
 
-    parentScope.querySelectorAll('.sub-sub-tab-btn').forEach(b => b.classList.remove('active'));
+    // Reset buttons in siblings
+    btn.parentNode.querySelectorAll('.sub-sub-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    parentScope.querySelectorAll('.sub-sub-tab-content').forEach(c => c.classList.remove('active'));
+    // Reset content
+    parentScope.querySelectorAll(':scope > .sub-sub-tab-content').forEach(c => c.classList.remove('active'));
     const target = document.getElementById(subSubTabId);
     if (target) target.classList.add('active');
+
+    // Save category (extract from ssub-prefix-category)
+    let parts = subSubTabId.split('-');
+    if (parts.length >= 3) {
+        window.currentUXCategory = parts[parts.length - 1];
+        console.log("UX Sync: Category saved as", window.currentUXCategory);
+    }
+
     if (typeof window.debouncedSave === 'function') window.debouncedSave();
 };
+
 function syncTabUX(container) {
     if(isSyncingTab || !container || !window.currentUXCategory) return;
     isSyncingTab = true;
-    let subBtn = container.querySelector(`.sub-tabs > .sub-tab-btn[onclick*="${window.currentUXCategory}'"]`);
-    if(subBtn && !subBtn.classList.contains('active')) subBtn.click();
-    let searchArea = container.querySelector('.sub-tab-content.active') || container;
-    let subSubBtn = searchArea.querySelector(`.sub-sub-tabs > .sub-sub-tab-btn[onclick*="${window.currentUXCategory}'"]`);
-    if(subSubBtn && !subSubBtn.classList.contains('active')) subSubBtn.click();
+    let cat = window.currentUXCategory;
+    console.log("UX Sync Global: Target Category", cat);
+    
+    // Selector hỗ trợ cả nháy đơn và nháy kép
+    let selector = `.sub-sub-tab-btn[onclick*="-${cat}'"], .sub-sub-tab-btn[onclick*='-${cat}"']`;
+    
+    // 1. Tìm trong container được truyền vào
+    let subSubBtn = container.querySelector(selector);
+    
+    // 2. Nếu không thấy, tìm diện rộng trong vùng cài đặt Desktop
+    if (!subSubBtn) {
+        let root = document.getElementById('dynamic-tabs-container');
+        if (root) {
+            // Tìm trong các phân vùng content đang hiển thị (active)
+            subSubBtn = root.querySelector(`.tab-content.active .sub-sub-tab-btn[onclick*="-${cat}'"]`);
+            if (!subSubBtn) subSubBtn = root.querySelector(`.tab-content.active .sub-tab-content.active .sub-sub-tab-btn[onclick*="-${cat}'"]`);
+        }
+    }
+    
+    if (subSubBtn) {
+        console.log("UX Sync Action: Auto-clicking", subSubBtn.innerText);
+        if (!subSubBtn.classList.contains('active')) subSubBtn.click();
+    } else {
+        // Nếu không tìm thấy category cũ, click cái đầu tiên của tab content đang active
+        let activeScope = container.querySelector('.sub-tab-content.active') || container;
+        let firstBtn = activeScope.querySelector('.sub-sub-tab-btn');
+        if (firstBtn && !firstBtn.classList.contains('active')) firstBtn.click();
+    }
+    
     isSyncingTab = false;
 }
 function updatePreview(){clearTimeout(window.previewTimeout); window.previewTimeout=setTimeout(window.updatePreviewImmediate,150);}
@@ -1065,21 +1153,36 @@ window.applyPresetSize = function(val) {
 setTimeout(window.updateGeneralUI, 100);
 
 window.openMobileModal = function(tid) {
+    if (!tid) return;
     window.isOpeningModal = true; setTimeout(() => { window.isOpeningModal = false; }, 100);
 
+    // v26.3 ID Normalization: 'num_0' -> 'num'
+    let rawId = tid;
+    let cleanId = tid.split('_')[0]; 
+    console.log("openMobileModal: Opening for RawID:", rawId, "CleanID:", cleanId);
+
     let tabId = '', subTabId = '', mTitle = '';
-    const _colIds2 = ['num','price','menh','mang','data1','data2']; const _headerIds2 = ['hNum','hPrice','hMenh','hMang','hData1','hData2']; const _globalTxtIds2 = ['header1','header2','footer1','footer2','ctl','ctr','cbl','cbr','pageNum'];
-    const _colNames = {num:'SỐ', price:'GIÁ', menh:'MỆNH', mang:'MẠNG', data1:'DL 1', data2:'DL 2'}; const _hNames = {hNum:'SỐ', hPrice:'GIÁ', hMenh:'MỆNH', hMang:'MẠNG', hData1:'DL 1', hData2:'DL 2'}; const _txtNames = {header1:'Tiêu Đề 1', header2:'Tiêu Đề 2', footer1:'Chân Trang 1', footer2:'Chân Trang 2', ctl:'Trái-Trên', ctr:'Phải-Trên', cbl:'Trái-Dưới', cbr:'Phải-Dưới', pageNum:'Số Trang'};
+    const _colIds2 = ['num','price','menh','mang','data1','data2']; 
+    const _headerIds2 = ['hNum','hPrice','hMenh','hMang','hData1','hData2']; 
+    const _globalTxtIds2 = ['header1','header2','footer1','footer2','ctl','ctr','cbl','cbr','pageNum'];
 
-    if (tid === 'layout') { tabId = 'tab-layout'; mTitle = '📊 LƯỚI SIM'; }
-    else if (tid === 'general') { tabId = 'tab-general'; subTabId = 'sub-general-bg'; mTitle = '🌄 NỀN TỔNG'; }
-    else if (tid === 'header') { tabId = 'tab-colheader'; subTabId = 'sub-hCommon'; mTitle = '🏷️ TIÊU ĐỀ'; }
-    else if (tid === 'globaltext') { tabId = 'tab-globaltext'; subTabId = 'sub-gt-chung'; mTitle = '📝 CHỮ GÓC'; }
-    else if (_colIds2.includes(tid)) { tabId = 'tab-layout'; subTabId = 'sub-' + tid; mTitle = '⚙️ CỘT ' + (_colNames[tid] || tid.toUpperCase()); }
-    else if (_headerIds2.includes(tid)) { tabId = 'tab-colheader'; subTabId = 'sub-' + tid; mTitle = '🏷️ TIÊU ĐỀ ' + (_hNames[tid] || tid.toUpperCase()); }
-    else if (_globalTxtIds2.includes(tid)) { tabId = 'tab-globaltext'; subTabId = 'sub-' + tid; mTitle = '✏️ ' + (_txtNames[tid] || tid.toUpperCase()); }
+    const _colNames = {num:'SỐ', price:'GIÁ', menh:'MỆNH', mang:'MẠNG', data1:'DL 1', data2:'DL 2'}; 
+    const _hNames = {hNum:'SỐ', hPrice:'GIÁ', hMenh:'MỆNH', hMang:'MẠNG', hData1:'DL 1', hData2:'DL 2'}; 
+    const _txtNames = {header1:'Tiêu Đề 1', header2:'Tiêu Đề 2', footer1:'Chân Trang 1', footer2:'Chân Trang 2', ctl:'Trái-Trên', ctr:'Phải-Trên', cbl:'Trái-Dưới', cbr:'Phải-Dưới', pageNum:'Số Trang'};
 
-    if (!tabId) return; let el = document.getElementById(tabId); if (!el) return;
+    if (cleanId === 'layout') { tabId = 'tab-layout'; mTitle = '📊 LƯỚI SIM'; }
+    else if (cleanId === 'general') { tabId = 'tab-general'; subTabId = 'sub-general-bg'; mTitle = '🌄 NỀN TỔNG'; }
+    else if (cleanId === 'header') { tabId = 'tab-colheader'; subTabId = 'sub-hCommon'; mTitle = '🏷️ TIÊU ĐỀ'; }
+    else if (cleanId === 'globaltext') { tabId = 'tab-globaltext'; subTabId = 'sub-gt-chung'; mTitle = '📝 CHỮ GÓC'; }
+    else if (_colIds2.includes(cleanId)) { tabId = 'tab-layout'; subTabId = 'sub-' + cleanId; mTitle = '⚙️ CỘT ' + (_colNames[cleanId] || cleanId.toUpperCase()); }
+    else if (_headerIds2.includes(cleanId)) { tabId = 'tab-colheader'; subTabId = 'sub-' + cleanId; mTitle = '🏷️ TIÊU ĐỀ ' + (_hNames[cleanId] || cleanId.toUpperCase()); }
+    else if (_globalTxtIds2.includes(cleanId)) { tabId = 'tab-globaltext'; subTabId = 'sub-' + cleanId; mTitle = '✏️ ' + (_txtNames[cleanId] || cleanId.toUpperCase()); }
+
+    console.log("openMobileModal: Resolved TabID:", tabId, "SubTabID:", subTabId);
+
+    if (!tabId) { console.warn("openMobileModal: No TabID found for", cleanId); return; } 
+    let el = document.getElementById(tabId); 
+    if (!el) { console.error("openMobileModal: Element for TabID not found:", tabId); return; }
 
     try {
         let btn1 = document.querySelector(`.tabs button[onclick*="${tabId}"]`); if(btn1) switchTab(tabId, btn1);
@@ -1120,7 +1223,7 @@ window.openMobileModal = function(tid) {
         setTimeout(() => { contentEl.classList.remove('modal-guarding'); }, 300);
     }
     
-    modalEl.style.display = 'flex';
+    if (modalEl) modalEl.style.display = 'flex';
 };
 
 window.focusDesktopTab = function(tid) {
@@ -2139,10 +2242,10 @@ window.generateColTab = function(prefix, title, defX, hasShape, defW, defBg) {
     let html = `
     <div id="sub-${prefix}" class="sub-tab-content">
         <div class="sub-tabs">
-            <button class="sub-tab-btn active" onclick="switchSubSubTab('ssub-${prefix}-pos', this)">📐 Vị Trí</button>
-            <button class="sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-format', this)">📝 Chữ & Bóng</button>
-            <button class="sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-bg', this)">🎨 Nền Ô</button>
-            ${hasShape ? `<button class="sub-tab-btn" style="color: #e74c3c; font-weight: bold;" onclick="switchSubSubTab('ssub-${prefix}-shape', this)">💎 Khối Độc Lập</button>` : ''}
+            <button class="sub-sub-tab-btn active" onclick="switchSubSubTab('ssub-${prefix}-pos', this)">📐 Vị Trí</button>
+            <button class="sub-sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-format', this)">📝 Chữ & Bóng</button>
+            <button class="sub-sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-bg', this)">🎨 Nền Ô</button>
+            ${hasShape ? `<button class="sub-sub-tab-btn" style="color: #e74c3c; font-weight: bold;" onclick="switchSubSubTab('ssub-${prefix}-shape', this)">💎 Khối Độc Lập</button>` : ''}
         </div>
 
         <div id="ssub-${prefix}-pos" class="sub-sub-tab-content active">
@@ -2386,9 +2489,9 @@ window.generateHeaderTab = function(prefix, title, defX, defW, defY = 0, ax = 'c
     let html = `
         <div id="sub-${prefix}" class="sub-tab-content">
             <div class="sub-tabs">
-                <button class="sub-tab-btn active" onclick="switchSubSubTab('ssub-${prefix}-pos', this)">📐 Vị Trí</button>
-                <button class="sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-format', this)">📝 Định Dạng</button>
-                <button class="sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-bg', this)">🎨 Nền & Viền</button>
+                <button class="sub-sub-tab-btn active" onclick="switchSubSubTab('ssub-${prefix}-pos', this)">📐 Vị Trí</button>
+                <button class="sub-sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-format', this)">📝 Định Dạng</button>
+                <button class="sub-sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-bg', this)">🎨 Nền & Viền</button>
             </div>
             <div id="ssub-${prefix}-format" class="sub-sub-tab-content">
                 <div class="setting-box"><div class="setting-title" style="background:#2ecc71;">🔠 Định Dạng Chữ</div>
@@ -2846,51 +2949,6 @@ window.nextStep = function() {
     if(window.currentStep < tot - 1) { window.currentStep++; if(typeof window.drawCanvas === 'function') window.drawCanvas(); }
 };
 
-window.switchSubTab = function(tabId, btn) {
-    let parent = btn.closest('.tab-content') || document.getElementById('mobileModalBody');
-    if(!parent) return;
-    parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.remove('active'));
-    parent.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
-    let target = document.getElementById(tabId);
-    if(target) target.classList.add('active');
-    if(btn) btn.classList.add('active');
-    if(target && window.currentSubSubTab) {
-        let activeSubSubBtn = target.querySelector(`.sub-sub-tab-btn[onclick*="-${window.currentSubSubTab}'"], .sub-sub-tab-btn[onclick*='-${window.currentSubSubTab}"']`);
-        if(activeSubSubBtn && !activeSubSubBtn.classList.contains('active')) {
-            let match = activeSubSubBtn.getAttribute('onclick').match(/['"]([^'"]+)['"]/);
-            if(match) window.switchSubSubTab(match[1], activeSubSubBtn, true);
-        }
-    }
-};
-
-window.switchSubSubTab = function(tabId, btn, isAutoSync = false) {
-    if (window.isSyncingTabs) return;
-    let parent = btn.closest('.sub-tab-content'); if(!parent) return;
-    parent.querySelectorAll('.sub-sub-tab-content').forEach(c => c.classList.remove('active'));
-    parent.querySelectorAll('.sub-sub-tab-btn').forEach(b => b.classList.remove('active'));
-    let target = document.getElementById(tabId);
-    if(target) target.classList.add('active');
-    if(btn) btn.classList.add('active');
-    let parts = tabId.split('-'); let category = parts[parts.length - 1]; 
-    if (!isAutoSync && ['pos', 'format', 'bg'].includes(category)) {
-        window.currentSubSubTab = category; window.isSyncingTabs = true;
-        let allBtns = document.querySelectorAll(`.sub-sub-tab-btn[onclick*="-${category}'"], .sub-sub-tab-btn[onclick*='-${category}"']`);
-        allBtns.forEach(b => {
-            if (b !== btn) {
-                let match = b.getAttribute('onclick').match(/['"]([^'"]+)['"]/);
-                if (match) {
-                    let t = document.getElementById(match[1]);
-                    if(t) {
-                        b.closest('.sub-tab-content').querySelectorAll('.sub-sub-tab-content').forEach(c => c.classList.remove('active'));
-                        b.closest('.sub-tab-content').querySelectorAll('.sub-sub-tab-btn').forEach(x => x.classList.remove('active'));
-                        t.classList.add('active'); b.classList.add('active');
-                    }
-                }
-            }
-        });
-        window.isSyncingTabs = false;
-    }
-};
 
 window.applyAIColor = function(prefix) {
     const list = typeof window.parseList === 'function' ? window.parseList() : [];
