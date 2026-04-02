@@ -767,7 +767,7 @@ function handleInteractStart(clientX, clientY) {
                 showToast("🔓 GIỮ 1 GIÂY để kéo thả hoặc KHÓA để cố định vị trí!");
                 isPanning = false; // QUAN TRỌNG: Mặc định tắt PAN để chuẩn bị cho Long-press
                 
-                // Khởi tạo Long-press (Nhấn giữ 500ms để bắt đầu kéo)
+                // Khởi tạo Long-press (Nhấn giữ 350ms để bắt đầu kéo) - Giảm từ 500ms theo yêu cầu
                 clearTimeout(longPressTimeout);
                 longPressTimeout = setTimeout(() => {
                     if (!isDragMoved && pendingTarget && !pendingTarget.isLocked) {
@@ -779,10 +779,9 @@ function handleInteractStart(clientX, clientY) {
                         let elY = document.getElementById(dragTarget.inputY); dragStartOffsetY = elY ? parseInt(elY.value)||0 : 0;
                         if (typeof window.saveState === 'function') window.saveState();
                         canvas.style.cursor = 'grabbing';
-                        // Khi đã bắt đầu Drag thì chắc chắn không Pan
                         isPanning = false;
                     }
-                }, 500); 
+                }, 350); 
             }
 
             return true; 
@@ -821,13 +820,15 @@ function handleInteractMove(clientX, clientY) {
     let dy = clientY - startY;
     let dist = Math.sqrt(dx*dx + dy*dy);
     
-    // Nếu chưa vào chế độ Dragging (đang trong thời gian chờ Long-press)
-    // Nếu di chuyển quá 20px thì hủy Long-press để quay về chế độ PAN
-    if (!isDragging && !isLongPress && dist > 20) {
-        clearTimeout(longPressTimeout);
-        isPanning = true; // Quay lại cho phép PAN màn hình
+    // v26.6: Cảm biến di chuyển Threshold 5px để hỗ trợ click chính xác trên mobile
+    if (dist > 5) {
+        if (!isDragging && !isLongPress && dist > 20) {
+            clearTimeout(longPressTimeout);
+            isPanning = true; // Quay lại cho phép PAN màn hình
+        }
         isDragMoved = true;
     }
+
 
     if (isDragging && dragTarget && isLongPress) {
         // --- CHẾ ĐỘ KÉO ĐỐI TƯỢNG (Sau khi Long-press thành công) ---
@@ -909,17 +910,15 @@ function handleInteractEnd(e) {
         }
         setTimeout(() => { window.isOpeningModal = false; }, 200);
     } else if (!isDragMoved && !isLongPress && !targetRef) {
-        // v26.4: Bấm vùng trống -> Tự động đóng Popup nhưng KHÔNG thoát toàn màn hình
-        if (window.innerWidth <= 768) {
-            let modalEl = document.getElementById('mobileSettingModal');
-            if (modalEl && modalEl.style.display === 'flex') {
-                if (typeof window.closeMobileModal === 'function') {
-                    console.log("Interact: Blank click on canvas, closing settings modal");
-                    window.closeMobileModal();
-                }
+        // v26.4: Bấm vùng trống -> Tự động đóng Popup luôn
+        if (window.innerWidth <= 768 || isFS) {
+            if (typeof window.closeMobileModal === 'function') {
+                console.log("Interact: Blank click, auto closing modal");
+                window.closeMobileModal();
             }
         }
     }
+
 
 
     // v26.6: Bảo vệ Pinch - Nếu đang Zoom 2 ngón tay thì KHÔNG đóng popup

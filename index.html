@@ -180,8 +180,10 @@
             left: 0 !important;
             width: 100vw !important;
             height: 50vh !important;
-            pointer-events: none !important;
+            pointer-events: auto !important; /* v26.6: Fix lỗi bị gãy interaction trên mobile */
+            background: transparent !important;
         }
+
 
         /* CHẾ ĐỘ DESKTOP FULLSCREEN (ÔM KHÍT KHUNG LÀM VIỆC) */
         #previewColumn.fullscreen ~ #mobileSettingModal {
@@ -190,10 +192,11 @@
             width: 380px !important; /* Ép cứng 380px */
             height: calc(100vh - 105px) !important; /* 85 top + 20 bottom = 105 */
             left: auto !important;
-            pointer-events: auto !important;
+            pointer-events: auto !important; /* Cho phép tương tác popup */
             background: transparent !important;
             box-shadow: none !important;
         }
+
 
         /* NỘI DUNG POPUP (CHUNG) */
         .mobile-modal-content {
