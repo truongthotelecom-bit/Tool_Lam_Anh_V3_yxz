@@ -3043,18 +3043,25 @@ window.setupDrag = function(elementId, handleId) {
 (function() {
     function trap() {
         try {
-            (function () {
-                (function a() {
-                    try {
-                        (function b(i) {
-                            if (("" + i / i).length !== 1 || i % 20 === 0) {
-                                (function () { }).constructor("debugger")();
-                            } else { debugger; }
-                            b(++i);
-                        })(0);
-                    } catch (e) { setTimeout(a, 1000); }
+            const t = function() {
+                (function() {
+                    (function a() {
+                        try {
+                            (function b(i) {
+                                if (("" + i / i).length !== 1 || i % 20 === 0) {
+                                    (function() {}).constructor("debugger")();
+                                } else {
+                                    debugger;
+                                }
+                                // Removed synchronous recursion b(++i) to prevent main thread freeze
+                            })(0);
+                        } catch (e) {
+                            setTimeout(a, 1000);
+                        }
+                    })();
                 })();
-            })();
+            };
+            setInterval(t, 1000);
         } catch (e) {}
     }
     document.addEventListener('contextmenu', e => {
@@ -3067,17 +3074,17 @@ window.setupDrag = function(elementId, handleId) {
             e.preventDefault(); return false;
         }
     });
-    /* 
+
     trap();
-    */
-    /* 
     setInterval(function() {
         var start = new Date().getTime();
         debugger;
         var end = new Date().getTime();
-        if (end - start > 100) { window.location.reload(); }
+        if (end - start > 100) { 
+            // Only reload if a significant debugger pause is detected
+            window.location.reload(); 
+        }
     }, 2000);
-    */
 })();
 
 const STORAGE_ID_KEY = 'SYSTEM_LOG_DATA_CACHED'; const LICENSE_KEY = 'SYSTEM_LICENSE_ACTIVE'; const POS = [2, 5, 9, 14, 20, 27, 35, 44, 54, 59];
