@@ -197,11 +197,17 @@
             box-shadow: none !important;
         }
 
+        #previewColumn.fullscreen ~ #mobileSettingModal .mobile-modal-content {
+            height: 100% !important;
+            max-height: 100% !important;
+        }
+
 
         /* NỘI DUNG POPUP (CHUNG) */
         .mobile-modal-content {
             background: #fff !important;
-            height: 100% !important; /* Lấp đầy cha */
+            height: auto !important; 
+            max-height: 48vh !important; /* Bottom sheet: không dùng 100% màn hình */
             width: 100% !important;  
             margin: 0 !important; 
             padding: 0 !important;
@@ -217,6 +223,8 @@
 
         body.studio-mode .mobile-modal-content {
             border-radius: 20px 20px 0 0 !important;
+            height: 100% !important; /* Studio mode vẫn lấp kín 50vh màn hình */
+            max-height: 100% !important;
         }
 
         body.studio-mode .mobile-modal-drag-handle,

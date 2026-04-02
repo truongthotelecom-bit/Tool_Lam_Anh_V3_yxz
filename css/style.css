@@ -138,11 +138,7 @@
     .drm-btn:hover { background: #2ecc71; }
     #drmMessage { color: #e74c3c; font-weight: bold; margin-top: 15px; font-size: 14px; }
     
-    /* --- MOBILE MODAL: BACKDROP NHẤP VÀO ĐỂ ĐÓNG --- */
-    #mobileSettingModal {
-        background: rgba(0,0,0,0.25) !important;
-        pointer-events: auto !important;
-    }
+    /* --- LỚP BẢO VỆ ĐÃ BỊ XOÁ BỎ THEO YÊU CẦU ĐỂ TƯƠNG TÁC XUYÊN THẤU --- */
     .mobile-modal-content {
         pointer-events: auto !important;
         box-shadow: 0 -8px 32px rgba(0,0,0,0.2) !important;
