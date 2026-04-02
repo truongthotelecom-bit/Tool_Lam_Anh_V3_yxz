@@ -993,7 +993,6 @@
         </div>
     </div>
     <div id="paletteModalOverlay"
-        onclick="if(event.target === this) this.style.display = 'none'"
         style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2100000; justify-content: center; align-items: center; padding: 15px; backdrop-filter: blur(4px);">
         <div
             style="background: #fff; padding: 20px; border-radius: 15px; width: 100%; max-width: 450px; position: relative; box-shadow: 0 15px 50px rgba(0,0,0,0.4);">
@@ -1017,7 +1016,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <div id="modal-bg-cloud"
-        onclick="if(event.target === this) this.style.display = 'none'"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000000; justify-content:center; align-items:center; padding: 15px; box-sizing: border-box; backdrop-filter: blur(3px);">
         <div
             style="background:#fff; width:100%; max-width:600px; border-radius:15px; padding:20px; box-shadow:0 15px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; position: relative;">
@@ -1064,7 +1062,7 @@
     <input type="file" id="globalFontInput" style="display:none" accept=".ttf,.otf,.woff,.woff2"
         onchange="handleGlobalFontUpload(event)">
 
-    <div id="helpModalOverlay" class="help-modal-overlay" onclick="if(event.target === this) closeHelpModal()">
+    <div id="helpModalOverlay" class="help-modal-overlay">
         <div class="help-modal-content">
             <span class="help-close" onclick="closeHelpModal()">✖</span>
             <h2 style="color:#2c3e50; border-bottom:2px solid #3498db; padding-bottom:10px;">📖 HƯỚNG DẪN SỬ DỤNG</h2>
@@ -1081,7 +1079,7 @@
         </div>
     </div>
 
-    <div id="mobileSimListModal" onclick="if(event.target === this) window.closeSimListModal()">
+    <div id="mobileSimListModal">
         <div class="sim-modal-header">
             <b style="font-size: 16px;">📝 NHẬP DANH SÁCH SIM</b>
             <span onclick="window.closeSimListModal()" style="cursor: pointer; font-size: 24px; color: #ff4757;">✖</span>

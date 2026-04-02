@@ -734,8 +734,7 @@ function handleInteractMove(clientX, clientY) {
     let dx = clientX - startX; let dy = clientY - startY;
     
     // Nếu di chuyển quá 20px thì coi là đã thực sự có di chuyển (Hủy Long-press nếu chưa bắt đầu kéo)
-    // Tăng ngưỡng dX/dY lên 15px để tránh việc run tay làm hủy Long-press kéo thả
-    if (isPanning && (Math.abs(dx) > 15 || Math.abs(dy) > 15)) {
+    if (isPanning && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
         if (!isLongPress) {
             isDragMoved = true;
             clearTimeout(longPressTimeout);
@@ -1565,6 +1564,10 @@ window.loadBuiltinTemplate = function(key) {
         // Nạp cấu hình vào UI (hàm applyConfigToUI đã có sẵn trong index.html)
         if (typeof window.applyConfigToUI === 'function') {
             window.applyConfigToUI(templateData, true); // true: là nạp mẫu (không đè danh sách SỐ)
+            
+            // Thông báo thành công
+            let templateName = document.querySelector(`#builtinTemplates option[value="${key}"]`)?.innerText || key;
+            console.log("✅ Đã nạp mẫu: " + templateName);
             
             // Cập nhật lại toàn bộ giao diện và Preview
             if (typeof window.updateUI === 'function') window.updateUI();
@@ -2758,9 +2761,6 @@ function startApp() {
 
     // 7. Khôi phục phiên làm việc
     if (typeof initStartupLogic === 'function') initStartupLogic();
-
-    // 7. Khôi phục phiên làm việc
-    if (typeof initStartupLogic === 'function') initStartupLogic();
 }
 
 if (document.readyState === 'loading') {
@@ -3043,25 +3043,18 @@ window.setupDrag = function(elementId, handleId) {
 (function() {
     function trap() {
         try {
-            const t = function() {
-                (function() {
-                    (function a() {
-                        try {
-                            (function b(i) {
-                                if (("" + i / i).length !== 1 || i % 20 === 0) {
-                                    (function() {}).constructor("debugger")();
-                                } else {
-                                    debugger;
-                                }
-                                // Removed synchronous recursion b(++i) to prevent main thread freeze
-                            })(0);
-                        } catch (e) {
-                            setTimeout(a, 1000);
-                        }
-                    })();
+            (function () {
+                (function a() {
+                    try {
+                        (function b(i) {
+                            if (("" + i / i).length !== 1 || i % 20 === 0) {
+                                (function () { }).constructor("debugger")();
+                            } else { debugger; }
+                            b(++i);
+                        })(0);
+                    } catch (e) { setTimeout(a, 1000); }
                 })();
-            };
-            setInterval(t, 1000);
+            })();
         } catch (e) {}
     }
     document.addEventListener('contextmenu', e => {
@@ -3074,24 +3067,24 @@ window.setupDrag = function(elementId, handleId) {
             e.preventDefault(); return false;
         }
     });
-
+    /* 
     trap();
+    */
+    /* 
     setInterval(function() {
         var start = new Date().getTime();
         debugger;
         var end = new Date().getTime();
-        if (end - start > 100) { 
-            // Only reload if a significant debugger pause is detected
-            window.location.reload(); 
-        }
+        if (end - start > 100) { window.location.reload(); }
     }, 2000);
+    */
 })();
 
 const STORAGE_ID_KEY = 'SYSTEM_LOG_DATA_CACHED'; const LICENSE_KEY = 'SYSTEM_LICENSE_ACTIVE'; const POS = [2, 5, 9, 14, 20, 27, 35, 44, 54, 59];
 window.getDeviceID = function() { try { let secret = localStorage.getItem(STORAGE_ID_KEY); if (!secret || secret.length < 60) { let charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let rawID = ""; for(let i=0; i<10; i++) rawID += charset.charAt(Math.floor(Math.random() * charset.length)); let junk = ""; for(let i=0; i<60; i++) junk += charset.charAt(Math.floor(Math.random() * charset.length)); let complexArr = junk.split(""); for(let i=0; i<10; i++) { complexArr[POS[i]] = rawID[i]; } secret = complexArr.join(""); localStorage.setItem(STORAGE_ID_KEY, secret); return rawID; } let realID = ""; for(let p of POS) { realID += secret[p]; } return realID; } catch (e) { return "ERROR_ID"; } };
-window.verifyLicense = function(keyStr) { if(!keyStr) return false; try { let myMac = window.getDeviceID(); let decoded = decodeURIComponent(atob(keyStr.split('').reverse().join(''))); let rawData = ""; for(let i=0; i<decoded.length; i++) { rawData += String.fromCharCode(decoded.charCodeAt(i) - 7); } let parts = rawData.split('|||'); if(parts.length !== 2) return false; let keyMac = parts[0]; let expTime = parseInt(parts[1]); if(keyMac === myMac && expTime > Date.now()) { return true; } return false; } catch(e) { return false; } };
-window.checkLicense = function() { let savedKey = localStorage.getItem(LICENSE_KEY); let overlay = document.getElementById('drmOverlay'); let macDisplay = document.getElementById('displayMac'); if(macDisplay) macDisplay.innerText = window.getDeviceID(); if(savedKey && window.verifyLicense(savedKey)) { if(overlay) overlay.style.display = 'none'; } else { if(overlay) overlay.style.display = 'flex'; } };
-window.activateLicense = function() { let keyInput = document.getElementById('licenseKeyInput').value.trim(); let msg = document.getElementById('drmMessage'); if(!keyInput) { msg.innerText = "Vui lòng nhập mã kích hoạt!"; return; } if(window.verifyLicense(keyInput)) { localStorage.setItem(LICENSE_KEY, keyInput); msg.style.color = "#2ecc71"; msg.innerText = "Kích hoạt thành công! Đang tải lại phần mềm..."; setTimeout(() => { document.getElementById('drmOverlay').style.display='none'; if(typeof window.fitZoom === 'function') window.fitZoom(); }, 1000); } else { msg.style.color = "#e74c3c"; msg.innerText = "Mã kích hoạt sai hoặc đã hết hạn!"; } };
+window.verifyLicense = function(keyStr) { if(!keyStr) return false; try { let myMac = window.getDeviceID(); let decoded = decodeURIComponent(atob(keyStr.split('').reverse().join(''))); let rawData = ""; for(let i=0; i<decoded.length; i++) { rawData += String.fromCharCode(decoded.charCodeAt(i) - 7); } let parts = rawData.split('|||'); if(parts.length !== 2) return false; let keyMac = parts[0]; let expTime = parseInt(parts[1]); if(keyMac === myMac && expTime > Date.now()) { return true; } return false; } catch(e) { console.log("DRM Error:", e); return false; } };
+window.checkLicense = function() { console.log("Checking License..."); let savedKey = localStorage.getItem(LICENSE_KEY); let overlay = document.getElementById('drmOverlay'); let macDisplay = document.getElementById('displayMac'); if(macDisplay) macDisplay.innerText = window.getDeviceID(); if(savedKey && window.verifyLicense(savedKey)) { console.log("License Valid."); if(overlay) overlay.style.display = 'none'; } else { console.log("License Required."); if(overlay) overlay.style.display = 'flex'; } };
+window.activateLicense = function() { console.log("Activating License..."); let keyInput = document.getElementById('licenseKeyInput').value.trim(); let msg = document.getElementById('drmMessage'); if(!keyInput) { msg.innerText = "Vui lòng nhập mã kích hoạt!"; return; } if(window.verifyLicense(keyInput)) { localStorage.setItem(LICENSE_KEY, keyInput); msg.style.color = "#2ecc71"; msg.innerText = "Kích hoạt thành công! Đang tải lại phần mềm..."; setTimeout(() => { document.getElementById('drmOverlay').style.display='none'; if(typeof window.fitZoom === 'function') window.fitZoom(); }, 1000); } else { msg.style.color = "#e74c3c"; msg.innerText = "Mã kích hoạt sai hoặc đã hết hạn!"; } };
 window.copyMac = function() { let mac = document.getElementById('displayMac').innerText; let tempInput = document.createElement("input"); tempInput.value = mac; document.body.appendChild(tempInput); tempInput.select(); tempInput.setSelectionRange(0, 99999); try { document.execCommand("copy"); alert("✅ Đã copy Mã Máy thành công: " + mac); } catch (err) { alert("❌ Vui lòng copy thủ công!"); } document.body.removeChild(tempInput); };
 window.isAuthorized = function() { try { let savedKey = localStorage.getItem(LICENSE_KEY); return !!(savedKey && window.verifyLicense(savedKey)); } catch(e) { return false; } };
 window.toggleCanvasSizeInputs = function() {
