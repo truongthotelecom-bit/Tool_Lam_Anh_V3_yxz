@@ -1094,6 +1094,13 @@ window.updateMobileNavUI = function() {
     let bodyEl = document.getElementById('mobileModalBody');
     let activeTabContent = bodyEl ? bodyEl.querySelector('.tab-content.active') : null;
     
+    // Yêu cầu: Bản Desktop (khi bật Fullscreen) phải giữ NGUYÊN cấu trúc Popup như cũ
+    let isMobile = window.innerWidth <= 768 || document.body.classList.contains('studio-mode');
+    if (!isMobile) {
+        if (window.mobileNavLevel1Html) menu.innerHTML = window.mobileNavLevel1Html;
+        return;
+    }
+
     if (!activeTabContent || window.mobileStackLevel === 1) {
         menu.innerHTML = window.mobileNavLevel1Html;
         return;
@@ -1114,7 +1121,9 @@ window.updateMobileNavUI = function() {
                     let isActive = btn.classList.contains('active') ? 'active' : '';
                     let bid = btn.id;
                     if (!bid) { bid = 'gen_btn_' + Math.floor(Math.random()*1000000); btn.id = bid; }
-                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; document.getElementById('${bid}').click()">${btn.innerHTML}</button>`;
+                    let rawOnClick = btn.getAttribute('onclick') || '';
+                    let hookedCode = rawOnClick.replace(/\bthis\b/g, `document.getElementById('${bid}')`);
+                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; ${hookedCode}">${btn.innerHTML}</button>`;
                 });
                 menu.innerHTML = html;
                 setTimeout(() => { let ab = menu.querySelector('.active'); if(ab) ab.scrollIntoView({behavior: 'smooth', inline: 'center'}); }, 50);
@@ -1137,7 +1146,9 @@ window.updateMobileNavUI = function() {
                     let isActive = btn.classList.contains('active') ? 'active' : '';
                     let bid = btn.id;
                     if (!bid) { bid = 'gen_btn_' + Math.floor(Math.random()*1000000); btn.id = bid; }
-                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; document.getElementById('${bid}').click()">${btn.innerHTML}</button>`;
+                    let rawOnClick = btn.getAttribute('onclick') || '';
+                    let hookedCode = rawOnClick.replace(/\bthis\b/g, `document.getElementById('${bid}')`);
+                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; ${hookedCode}">${btn.innerHTML}</button>`;
                  });
                  menu.innerHTML = html;
                  setTimeout(() => { let ab = menu.querySelector('.active'); if(ab) ab.scrollIntoView({behavior: 'smooth', inline: 'center'}); }, 50);
