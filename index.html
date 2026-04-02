@@ -9,7 +9,7 @@
         href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Oswald:wght@400;700&family=Pattaya&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;700&family=Outfit:wght@400;700&family=Playfair+Display:wght@400;700&family=Bungee&family=Lobster&family=Pacifico&family=Saira+Stencil+One&family=Charm:wght@400;700&family=Sedgwick+Ave+Display&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <script src="js/fonts_config.js"></script>
+    <script src="js/configs.js"></script>
     <style>
         /* CSS GIAO DIỆN PRO-BOX MỚI TỪ BẢN THAM KHẢO */
         .setting-box {
@@ -237,16 +237,19 @@
             padding-bottom: 100px !important;
         }
 
-        /* Khung chứa preview */
+        /* Khung chứa preview - Tối ưu cho không gian thiết kế */
         #canvasWrapper {
             width: 100%;
             height: 85vh;
             background: #e9ecef;
             overflow: auto;
             display: flex;
-            padding: 20px;
+            justify-content: center;
+            align-items: flex-start; /* Nhảy lên đỉnh để không bị "co" ở giữa */
+            padding: 60px 40px;
             box-sizing: border-box;
             cursor: grab;
+            scroll-behavior: smooth;
         }
 
         #canvasWrapper:active {
@@ -256,8 +259,9 @@
         #preview {
             display: block;
             flex-shrink: 0;
-            margin: auto;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            margin: 0; /* Bỏ auto để không bị ép vào giữa theo chiều dọc */
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid #ddd;
         }
 
         /* CSS Đám Mây - Vòng Xoay & Item */
