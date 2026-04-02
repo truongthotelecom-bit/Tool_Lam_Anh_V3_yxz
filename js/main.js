@@ -23,6 +23,9 @@ let isPinching = false;
 let lastTouchX = 0;
 let lastTouchY = 0;
 
+window.isSyncingTabs = false; 
+window.currentSubSubTab = 'pos'; 
+
 // --- 2. HÀM TIỆN ÍCH CƠ BẢN ---
 function getVal(id, def=0) { let el = document.getElementById(id); return el ? (isNaN(parseFloat(el.value)) ? el.value : parseFloat(el.value)) : def; }
 function isChecked(id) { let el = document.getElementById(id); return el ? el.checked : false; }
@@ -731,7 +734,8 @@ function handleInteractMove(clientX, clientY) {
     let dx = clientX - startX; let dy = clientY - startY;
     
     // Nếu di chuyển quá 20px thì coi là đã thực sự có di chuyển (Hủy Long-press nếu chưa bắt đầu kéo)
-    if (isPanning && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
+    // Tăng ngưỡng dX/dY lên 15px để tránh việc run tay làm hủy Long-press kéo thả
+    if (isPanning && (Math.abs(dx) > 15 || Math.abs(dy) > 15)) {
         if (!isLongPress) {
             isDragMoved = true;
             clearTimeout(longPressTimeout);
@@ -896,21 +900,40 @@ window.switchTab = function(tabId, btn) {
     let target = document.getElementById(tabId); if(target) target.classList.add('active'); if(btn) btn.classList.add('active'); 
     syncTabUX(target); 
 }
-window.switchSubTab = function(tabId, btn) { 
-    if (tabId.endsWith('-format') || tabId.endsWith('-pos') || tabId.endsWith('-bg')) window.currentUXCategory = tabId.substring(tabId.lastIndexOf('-'));
-    let container = btn.closest('.tab-content'); 
-    container.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active')); 
-    container.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active')); 
-    let target = document.getElementById(tabId); if(target) target.classList.add('active'); if(btn) btn.classList.add('active'); 
-    syncTabUX(target); 
-}
-window.switchSubSubTab = function(tabId, btn) { 
-    if (tabId.endsWith('-format') || tabId.endsWith('-pos') || tabId.endsWith('-bg')) window.currentUXCategory = tabId.substring(tabId.lastIndexOf('-'));
-    let container = btn.closest('.sub-tab-content'); 
-    container.querySelectorAll('.sub-sub-tab-content').forEach(el => el.classList.remove('active')); 
-    container.querySelectorAll('.sub-sub-tab-btn').forEach(el => el.classList.remove('active')); 
-    let target = document.getElementById(tabId); if(target) target.classList.add('active'); if(btn) btn.classList.add('active'); 
-}
+window.switchSubTab = function(subTabId, btn) {
+    if (!btn) return;
+    const parent = btn.closest('.tab-content');
+    if (!parent) return;
+    
+    // Chỉ tìm các nút tab con trực tiếp của tab-content này (tránh nhầm với sub-sub-tab)
+    parent.querySelectorAll('.sub-tabs:first-child .sub-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Chuyển nội dung tab cấp 2
+    parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.remove('active'));
+    const target = document.getElementById(subTabId);
+    if (target) {
+        target.classList.add('active');
+        // Kích hoạt nút con cấp 3 mặc định nếu có
+        let firstSubSub = target.querySelector('.sub-sub-tab-btn');
+        if (firstSubSub) firstSubSub.click();
+    }
+    if (typeof window.debouncedSave === 'function') window.debouncedSave();
+};
+
+window.switchSubSubTab = function(subSubTabId, btn) {
+    if (!btn) return;
+    const parentScope = btn.closest('.sub-tab-content');
+    if (!parentScope) return;
+
+    parentScope.querySelectorAll('.sub-sub-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    parentScope.querySelectorAll('.sub-sub-tab-content').forEach(c => c.classList.remove('active'));
+    const target = document.getElementById(subSubTabId);
+    if (target) target.classList.add('active');
+    if (typeof window.debouncedSave === 'function') window.debouncedSave();
+};
 function syncTabUX(container) {
     if(isSyncingTab || !container || !window.currentUXCategory) return;
     isSyncingTab = true;
@@ -971,8 +994,6 @@ window.updateUI = function() {
     let zebraContainer = document.getElementById('zebraSettingsContainer');
     if (useZebra && zebraContainer) {
         zebraContainer.style.display = useZebra.checked ? 'block' : 'none';
-        
-        // --- ĐỒNG BỘ HIỂN THỊ CỘT TRONG ZEBRA (V26.6) ---
         const syncZebra = (chkId, grpPrefix) => {
             let chk = document.getElementById(chkId);
             let gOdd = document.getElementById('zebraOdd' + grpPrefix + 'Grp');
@@ -986,6 +1007,14 @@ window.updateUI = function() {
         syncZebra('chkNum', 'Num'); syncZebra('chkPrice', 'Price'); syncZebra('chkMenh', 'Menh');
         syncZebra('chkMang', 'Mang'); syncZebra('chkData1', 'Data1'); syncZebra('chkData2', 'Data2');
     }
+    
+    // --- BỔ SUNG TỪ SCRIPT.JS ---
+    let prefixes = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2', 'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum', 'cell'];
+    prefixes.forEach(p => { 
+        if((p === 'menh' || p === 'mang') && typeof window.toggleShapeOptions === 'function') {
+            window.toggleShapeOptions(p);
+        }
+    });
 };
 
 window.drawGlobalBackground = function(ctx, canvasW, canvasH) {
@@ -1127,19 +1156,12 @@ window.focusDesktopTab = function(tid) {
     if (typeof syncTabUX === 'function' && targetTab1) { syncTabUX(targetTab1); }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    setInterval(() => {
-        let modalOverlay = document.getElementById('mobileSettingModal');
-        let modalContent = document.querySelector('.mobile-modal-content');
-        if (modalOverlay) {
-            modalOverlay.style.setProperty('pointer-events', 'none', 'important');
-            modalOverlay.style.setProperty('background', 'transparent', 'important');
-            modalOverlay.style.setProperty('backdrop-filter', 'none', 'important');
-            modalOverlay.removeAttribute('onclick');
-        }
-        if (modalContent) { modalContent.style.setProperty('pointer-events', 'auto', 'important'); }
-    }, 500);
-});
+// --- MOBILE MODAL POINTER EVENTS FIX ---
+function initModalPointerEvents() {
+    // Đã gỡ bỏ logic pointer-events cũ gây lỗi không đóng được popup
+    console.log("Modal events initialized.");
+}
+
 
 window.copyCanvas = function() {
     if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
@@ -1555,10 +1577,6 @@ window.loadBuiltinTemplate = function(key) {
         if (typeof window.applyConfigToUI === 'function') {
             window.applyConfigToUI(templateData, true); // true: là nạp mẫu (không đè danh sách SỐ)
             
-            // Thông báo thành công
-            let templateName = document.querySelector(`#builtinTemplates option[value="${key}"]`)?.innerText || key;
-            console.log("✅ Đã nạp mẫu: " + templateName);
-            
             // Cập nhật lại toàn bộ giao diện và Preview
             if (typeof window.updateUI === 'function') window.updateUI();
             if (typeof window.drawCanvas === 'function') window.drawCanvas();
@@ -1624,12 +1642,10 @@ window.pasteList = async function () {
 };
 
 // --- A. KHỞI TẠO DOM & SỰ KIỆN CƠ BẢN ---
-document.addEventListener('DOMContentLoaded', () => {
-    // getVal đã có trong main.js nên không định nghĩa lại tại đây
-    window.customFonts = [];
-    window.initFontSelectors = function (forceRefresh = false) {
-        document.querySelectorAll('.font-selector').forEach(sel => {
-            if (!forceRefresh && sel.children.length > 0) return;
+window.customFonts = [];
+window.initFontSelectors = function (forceRefresh = false) {
+    document.querySelectorAll('.font-selector').forEach(sel => {
+        if (!forceRefresh && sel.children.length > 0) return;
             let currentVal = sel.value;
             sel.innerHTML = '';
             const allFonts = [...(window.sysFonts || []), ...window.customFonts];
@@ -1648,84 +1664,58 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    window.handleGlobalFontUpload = function (event) {
-        let file = event.target.files[0];
+
+window.handleGlobalFontUpload = function (event) {
+    let file = event.target.files[0];
+    if (!file) return;
+    let fontName = file.name.split('.')[0].replace(/[^a-z0-9]/gi, '_');
+    let reader = new FileReader();
+    reader.onload = async function (e) {
+        try {
+            let fontFace = new FontFace(fontName, e.target.result);
+            await fontFace.load();
+            document.fonts.add(fontFace);
+            if (!window.customFonts.includes(fontName)) window.customFonts.push(fontName);
+            document.querySelectorAll('.font-selector').forEach(sel => { sel.dataset.lastUpload = fontName; });
+            window.initFontSelectors(true);
+            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+            alert("✅ Đã nạp font: " + fontName);
+        } catch (err) { alert("❌ Lỗi nạp font: " + err.message); }
+    };
+    reader.readAsArrayBuffer(file);
+    event.target.value = '';
+};
+
+window.initFontSelectors();
+
+window.setupAdvancedUploader = function (inputId, globalVarName) {
+    let inputEl = document.getElementById(inputId);
+    if (!inputEl) return;
+    let newEl = inputEl.cloneNode(true);
+    inputEl.parentNode.replaceChild(newEl, inputEl);
+    newEl.addEventListener('change', function (e) {
+        let file = e.target.files[0];
         if (!file) return;
-        let fontName = file.name.split('.')[0].replace(/[^a-z0-9]/gi, '_');
         let reader = new FileReader();
-        reader.onload = async function (e) {
-            try {
-                let fontFace = new FontFace(fontName, e.target.result);
-                await fontFace.load();
-                document.fonts.add(fontFace);
-                if (!window.customFonts.includes(fontName)) window.customFonts.push(fontName);
-                document.querySelectorAll('.font-selector').forEach(sel => { sel.dataset.lastUpload = fontName; });
-                window.initFontSelectors(true);
+        reader.onload = function (event) {
+            let img = new Image();
+            img.onload = function () {
+                window[globalVarName] = img;
+                let modeSelectId = inputId.replace('Input', 'Mode');
+                let modeSelect = document.getElementById(modeSelectId);
+                if (modeSelect) { modeSelect.value = 'image'; modeSelect.dispatchEvent(new Event('change')); }
+                let statusId = (globalVarName === 'bgImage') ? 'mainBgStatus' : (globalVarName === 'cellBgImage' ? 'cellBgStatus' : 'cellBorderStatus');
+                let statusEl = document.getElementById(statusId);
+                if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh";
+                if (typeof window.updateUI === 'function') window.updateUI();
                 if (typeof window.drawCanvas === 'function') window.drawCanvas();
-                alert("✅ Đã nạp font: " + fontName);
-            } catch (err) { alert("❌ Lỗi nạp font: " + err.message); }
-        };
-        reader.readAsArrayBuffer(file);
-        event.target.value = '';
-    };
-
-    window.initFontSelectors();
-
-    window.setupAdvancedUploader = function (inputId, globalVarName) {
-        let inputEl = document.getElementById(inputId);
-        if (!inputEl) return;
-        let newEl = inputEl.cloneNode(true);
-        inputEl.parentNode.replaceChild(newEl, inputEl);
-        newEl.addEventListener('change', function (e) {
-            let file = e.target.files[0];
-            if (!file) return;
-            let reader = new FileReader();
-            reader.onload = function (event) {
-                let img = new Image();
-                img.onload = function () {
-                    window[globalVarName] = img;
-                    let modeSelectId = inputId.replace('Input', 'Mode');
-                    let modeSelect = document.getElementById(modeSelectId);
-                    if (modeSelect) { modeSelect.value = 'image'; modeSelect.dispatchEvent(new Event('change')); }
-                    let statusId = (globalVarName === 'bgImage') ? 'mainBgStatus' : (globalVarName === 'cellBgImage' ? 'cellBgStatus' : 'cellBorderStatus');
-                    let statusEl = document.getElementById(statusId);
-                    if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh";
-                    if (typeof window.updateUI === 'function') window.updateUI();
-                    if (typeof window.drawCanvas === 'function') window.drawCanvas();
-                    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-                };
-                img.src = event.target.result;
+                if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
             };
-            reader.readAsDataURL(file);
-        });
-    };
-
-    setTimeout(() => {
-        document.querySelectorAll('input[type="file"]').forEach(el => {
-            if (el.id && el.id.includes('Input')) {
-                let varName = el.id.replace('Input', 'Image');
-                window.setupAdvancedUploader(el.id, varName);
-            }
-        });
-        if (typeof window.updateUI === 'function') window.updateUI();
-        if (typeof window.drawCanvas === 'function') window.drawCanvas();
-    }, 500);
-
-    document.body.addEventListener('input', e => {
-        if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) && e.target.type !== 'file') {
-            if (typeof window.drawCanvas === 'function') window.drawCanvas();
-            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-        }
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
     });
-
-    document.body.addEventListener('change', e => {
-        if (['SELECT', 'INPUT'].includes(e.target.tagName) && e.target.type !== 'file') {
-            if (typeof window.updateUI === 'function') window.updateUI();
-            if (typeof window.drawCanvas === 'function') window.drawCanvas();
-            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-        }
-    });
-});
+};
 
 // --- B. QUICK SLIDER ---
 let originalValue = 0; let currentEditingInput = null; let longPressTimer = null;
@@ -1838,12 +1828,16 @@ window.renderTemplates = function(data) {
             let m = thumb.match(/[-\w]{25,}/);
             if (m) thumb = `https://drive.google.com/thumbnail?id=${m[0]}&sz=w400`;
         }
-        return `<div class="cloud-template-item" onclick="importFromCloudID('${pt.id}', '${pt.name.replace(/'/g, "\\")}')">
-            <img src="${thumb}" onerror="this.src='https://placehold.co/200x100?text=No+Image'">
-            <div style="padding:5px; text-align:center;">
-                <b>${pt.name}</b>
-                <div style="font-size:9px; color:#007bff;">${pt.tags || '#NoTag'}</div>
+        return `<div class="cloud-item-card" onclick="importFromCloudID('${pt.id}', '${pt.name.replace(/'/g, "\\")}')">
+            <div class="cloud-item-thumb">
+                <img src="${thumb}" onerror="this.src='https://placehold.co/200x120?text=No+Preview'">
+                <div class="cloud-item-badge">HOT</div>
             </div>
+            <div class="cloud-item-info">
+                <b class="cloud-item-title">${pt.name}</b>
+                <div class="cloud-item-tags">${pt.tags || '#VIP #PRO'}</div>
+            </div>
+            <div class="cloud-item-action">SỬ DỤNG NGAY</div>
         </div>`;
     }).join('');
 };
@@ -1867,10 +1861,15 @@ window.loadCloudBackgrounds = async function() {
 
 window.renderBackgrounds = function(data) {
     const gallery = document.getElementById('bgCloudList'); if (!gallery) return;
-    gallery.innerHTML = data.map(bg => `<div class="cloud-item-wrapper" onclick="window.handleCloudItemClick(this, '${bg.id}', 'image')">
+    gallery.innerHTML = data.map(bg => `<div class="cloud-bg-card" onclick="window.handleCloudItemClick(this, '${bg.id}', 'image')">
         <div class="local-loading-overlay"><div class="local-spinner"></div></div>
-        <img src="https://drive.google.com/thumbnail?id=${bg.id}&sz=w300" onerror="this.src='https://placehold.co/200x100?text=Lỗi+Ảnh'">
-        <div style="padding: 6px;"><b>${bg.name}</b></div>
+        <div class="cloud-bg-thumb">
+            <img src="https://drive.google.com/thumbnail?id=${bg.id}&sz=w400" onerror="this.src='https://placehold.co/200x120?text=Lỗi+Ảnh'">
+        </div>
+        <div class="cloud-bg-info">
+            <b title="${bg.name}">${bg.name}</b>
+            <div style="font-size:9px; color:#f1c40f; margin-top:2px;">${bg.tags || '#Background'}</div>
+        </div>
     </div>`).join('');
 };
 
@@ -2066,7 +2065,7 @@ window.restoreSession = function () {
 };
 
 // --- STARTUP LOGIC ---
-document.addEventListener('DOMContentLoaded', () => {
+function initStartupLogic() {
     setTimeout(() => {
         const restored = window.restoreSession();
         if (!restored && typeof window.loadDefaultTemplate === 'function') window.loadDefaultTemplate();
@@ -2080,7 +2079,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (sizeDisplay.innerText !== currentText) sizeDisplay.innerText = currentText;
         }
     }, 500);
-});
+}
 
 // --- MOBILE SIM LIST MODAL ---
 window.openSimListModal = function() {
@@ -2465,7 +2464,6 @@ window.generateHeaderTab = function(prefix, title, defX, defW, defY = 0, ax = 'c
 // --- INITIALIZE DYNAMIC UI ---
 window.initDynamicUI = function() {
     const container = document.getElementById('dynamic-tabs-container');
-    const gTabsContainer = document.getElementById('globalTextTabs');
     if (!container) return;
 
     let layoutHtml = `<div id="tab-layout" class="tab-content active"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-luoi-chung', this)">Lưới Chung</button><button class="sub-tab-btn" onclick="switchSubTab('sub-num', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-price', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-menh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-mang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data2', this)">DL 2</button></div>`;
@@ -2650,7 +2648,7 @@ window.initDynamicUI = function() {
     </div>
 
     <div class="setting-row" id="bgSolidGrp" style="display:none;"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="bgColor" value="#000000" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
-    <div class="setting-row" id="bgGradGrp"><label>Màu 1 ➔ 2</label><div class="setting-inputs"><input type="color" id="bgGradient1" value="#ffffff" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>➔</span><input type="color" id="bgGradient2" value="#006680" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Góc:</span><input type="number" id="bgGradAngle" value="0" style="width:45px;" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><button type="button" class="btn-mini" style="background:#8e44ad;" onclick="window.togglePalette(true)">🎨 PHỐI MÀU</button></div></div>
+    <div class="setting-row" id="bgGradGrp"><label>Màu 1 ➔ 2</label><div class="setting-inputs"><input type="color" id="bgGradient1" value="#ffffff" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>➔</span><input type="color" id="bgGradient2" value="#006680" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Góc:</span><input type="number" id="bgGradAngle" value="0" style="width:45px;" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
     
     <div class="setting-row" id="bgImgGrp" style="display:none; align-items: flex-start;">
         <label style="margin-top: 8px;">Úp Ảnh Nền</label>
@@ -2679,17 +2677,72 @@ window.initDynamicUI = function() {
 <div class="setting-row"><label>Watermark</label><div class="setting-inputs"><label><input type="checkbox" id="useWatermark" onchange="drawCanvas()"> Bật chữ ký</label><input type="text" id="watermarkText" value="VIP SIM TOOL" placeholder="Nội dung..." oninput="drawCanvas()"></div></div>
 <div class="setting-row"><label>Định dạng</label><div class="setting-inputs"><select id="exportFormat" class="flex-1"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option></select></div></div></div>
 </div>
-</div>
-`;
-
+</div>`;
     container.innerHTML = layoutHtml + headHtml + globHtml + genHtml;
+    
+    // Sau khi đã gán innerHTML thì mới lấy được các thẻ con bên trong
+    const gTabsContainer = document.getElementById('globalTextTabs');
     if (gTabsContainer) gTabsContainer.innerHTML = gTabs;
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof window.initDynamicUI === 'function') window.initDynamicUI();
-    if (typeof window.populatePalettes === 'function') window.populatePalettes();
-});
+function startApp() {
+    try {
+        console.log("Starting App Initialization...");
+        // 1. Phải chạy initDynamicUI đầu tiên để tạo các thẻ DOM
+        if (typeof window.initDynamicUI === 'function') {
+            window.initDynamicUI();
+        }
+    } catch (e) { console.error("Error in initDynamicUI:", e); }
+
+    try {
+        // 2. Khởi tạo các thành phần giao diện khác
+        if (typeof window.initFontSelectors === 'function') window.initFontSelectors();
+        if (typeof window.initModalPointerEvents === 'function') window.initModalPointerEvents();
+    } catch (e) { console.error("Error in UI initialization:", e); }
+
+    try {
+        // 3. Thiếp lập Uploaders (từ script.js)
+        let prefixes = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2', 'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum', 'cell'];
+        prefixes.forEach(p => {
+            if (typeof window.setupAdvancedUploader === 'function') {
+                window.setupAdvancedUploader(p + 'ColorInput', p + 'ColorImage');
+                window.setupAdvancedUploader(p + 'BgInput', p + 'BgImage');
+                window.setupAdvancedUploader(p + 'BorderInput', p + 'BorderImage');
+            }
+        });
+        if (typeof window.setupAdvancedUploader === 'function') window.setupAdvancedUploader('bgInput', 'bgImage');
+    } catch (e) { console.error("Error in Uploaders:", e); }
+
+    try {
+        // 4. Cập nhật UI ban đầu
+        if (typeof window.updateUI === 'function') window.updateUI();
+
+        // 5. Gắn sự kiện cho các Input
+        document.querySelectorAll('input, select, textarea').forEach(el => {
+            el.addEventListener('input', () => {
+                if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                if (typeof window.debouncedSave === 'function') window.debouncedSave();
+            });
+            if (el.tagName === 'SELECT' || el.type === 'checkbox') el.addEventListener('change', () => {
+                if (typeof window.updateUI === 'function') window.updateUI();
+                if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                if (typeof window.debouncedSave === 'function') window.debouncedSave();
+            });
+        });
+    } catch (e) { console.error("Error in Inputs/Events:", e); }
+
+    try {
+        // 6. Security & DRM
+        console.log("Checking DRM & License...");
+        if (typeof window.checkLicense === 'function') window.checkLicense();
+        if (typeof window.setupDrag === 'function') window.setupDrag('unifiedMenuContainer', 'unifiedMenuBtn');
+    } catch (e) { console.error("Error in DRM/Security:", e); }
+
+    try {
+        // 7. Khôi phục phiên làm việc
+        if (typeof initStartupLogic === 'function') initStartupLogic();
+    } catch (e) { console.error("Error in Startup Logic:", e); }
+}
 
 // --- PALETTE SYSTEM ---
 window.populatePalettes = function() {
@@ -2733,3 +2786,318 @@ window.applyPalette = function(c1, c2) {
         window.togglePalette(false);
     }
 };
+
+// --- BỔ SUNG TỪ SCRIPT.JS ---
+window.applyZoom = function(val) {
+    let zVal = document.getElementById('zoomVal'); if(zVal) zVal.innerText = val + '%';
+    let canvas = document.getElementById('preview'); if(canvas) { canvas.style.transform = `scale(${val / 100})`; canvas.style.transformOrigin = 'top center'; }
+};
+
+window.fitZoom = function() {
+    let wrapper = document.getElementById('canvasWrapper'); let canvas = document.getElementById('preview');
+    if(!wrapper || !canvas || canvas.width === 0) return;
+    let scale = Math.min(1, (wrapper.clientWidth - 20) / canvas.width);
+    let finalVal = Math.floor(scale * 100);
+    let zSlider = document.getElementById('zoomSlider'); if(zSlider) zSlider.value = finalVal;
+    window.applyZoom(finalVal);
+};
+
+window.toggleFullscreen = function() {
+    let col = document.getElementById('previewColumn'); let btn = document.getElementById('toggleFullBtn');
+    if(!col) return;
+    let isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+        document.body.classList.toggle('studio-mode');
+        window.isFullscreen = document.body.classList.contains('studio-mode');
+        if (window.isFullscreen) {
+            if (btn) btn.innerText = '↙ Thu nhỏ';
+            if (typeof window.openMobileModal === 'function') window.openMobileModal('layout');
+        } else {
+            if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH';
+            if (typeof window.closeMobileModal === 'function') window.closeMobileModal();
+        }
+    } else {
+        col.classList.toggle('fullscreen');
+        window.isFullscreen = col.classList.contains('fullscreen');
+        if (window.isFullscreen) { if (btn) btn.innerText = '↙ Thu nhỏ'; } 
+        else { 
+            if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH'; 
+            if (typeof window.closeMobileModal === 'function') window.closeMobileModal(); 
+        }
+    }
+    setTimeout(window.fitZoom, 300);
+};
+
+window.updatePagination = function() {
+    let r = parseInt(document.getElementById('tableRows')?.value) || 10;
+    let c = parseInt(document.getElementById('tableCols')?.value) || 2;
+    let listLen = 0; if(typeof window.parseList === 'function') listLen = window.parseList().length;
+    let tot = Math.max(1, Math.ceil(listLen / (r * c)));
+    if(window.currentStep >= tot) window.currentStep = Math.max(0, tot - 1);
+    let pInp = document.getElementById('pageInput'); if(pInp) pInp.value = window.currentStep + 1;
+    let tTxt = document.getElementById('totalPagesText'); if(tTxt) tTxt.innerText = tot;
+};
+
+window.prevStep = function() { if(window.currentStep > 0) { window.currentStep--; if(typeof window.drawCanvas === 'function') window.drawCanvas(); } };
+window.nextStep = function() {
+    let r = parseInt(document.getElementById('tableRows')?.value) || 10; let c = parseInt(document.getElementById('tableCols')?.value) || 2;
+    let listLen = 0; if(typeof window.parseList === 'function') listLen = window.parseList().length;
+    let tot = Math.max(1, Math.ceil(listLen / (r * c)));
+    if(window.currentStep < tot - 1) { window.currentStep++; if(typeof window.drawCanvas === 'function') window.drawCanvas(); }
+};
+
+window.switchSubTab = function(tabId, btn) {
+    let parent = btn.closest('.tab-content') || document.getElementById('mobileModalBody');
+    if(!parent) return;
+    parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.remove('active'));
+    parent.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+    let target = document.getElementById(tabId);
+    if(target) target.classList.add('active');
+    if(btn) btn.classList.add('active');
+    if(target && window.currentSubSubTab) {
+        let activeSubSubBtn = target.querySelector(`.sub-sub-tab-btn[onclick*="-${window.currentSubSubTab}'"], .sub-sub-tab-btn[onclick*='-${window.currentSubSubTab}"']`);
+        if(activeSubSubBtn && !activeSubSubBtn.classList.contains('active')) {
+            let match = activeSubSubBtn.getAttribute('onclick').match(/['"]([^'"]+)['"]/);
+            if(match) window.switchSubSubTab(match[1], activeSubSubBtn, true);
+        }
+    }
+};
+
+window.switchSubSubTab = function(tabId, btn, isAutoSync = false) {
+    if (window.isSyncingTabs) return;
+    let parent = btn.closest('.sub-tab-content'); if(!parent) return;
+    parent.querySelectorAll('.sub-sub-tab-content').forEach(c => c.classList.remove('active'));
+    parent.querySelectorAll('.sub-sub-tab-btn').forEach(b => b.classList.remove('active'));
+    let target = document.getElementById(tabId);
+    if(target) target.classList.add('active');
+    if(btn) btn.classList.add('active');
+    let parts = tabId.split('-'); let category = parts[parts.length - 1]; 
+    if (!isAutoSync && ['pos', 'format', 'bg'].includes(category)) {
+        window.currentSubSubTab = category; window.isSyncingTabs = true;
+        let allBtns = document.querySelectorAll(`.sub-sub-tab-btn[onclick*="-${category}'"], .sub-sub-tab-btn[onclick*='-${category}"']`);
+        allBtns.forEach(b => {
+            if (b !== btn) {
+                let match = b.getAttribute('onclick').match(/['"]([^'"]+)['"]/);
+                if (match) {
+                    let t = document.getElementById(match[1]);
+                    if(t) {
+                        b.closest('.sub-tab-content').querySelectorAll('.sub-sub-tab-content').forEach(c => c.classList.remove('active'));
+                        b.closest('.sub-tab-content').querySelectorAll('.sub-sub-tab-btn').forEach(x => x.classList.remove('active'));
+                        t.classList.add('active'); b.classList.add('active');
+                    }
+                }
+            }
+        });
+        window.isSyncingTabs = false;
+    }
+};
+
+window.applyAIColor = function(prefix) {
+    const list = typeof window.parseList === 'function' ? window.parseList() : [];
+    let designMenh = 'KIM';
+    if (list.length > 0) {
+        let firstSim = list[0][0] || "";
+        designMenh = (typeof getMenhFromPhone === 'function' ? getMenhFromPhone(firstSim) : 'KIM') || 'KIM';
+    }
+    const aiPalettes = {
+        'KIM': { main: '#ff9900', sub: '#ffffff', grad: '#ffd700' },
+        'MỘC': { main: '#0a8f0a', sub: '#ffffff', grad: '#2ecc71' },
+        'THỦY': { main: '#0066ff', sub: '#ffffff', grad: '#3498db' },
+        'HỎA': { main: '#ff0000', sub: '#ffffff', grad: '#e74c3c' },
+        'THỔ': { main: '#8b4513', sub: '#ffffff', grad: '#d35400' }
+    };
+    let p = aiPalettes[designMenh] || aiPalettes['KIM'];
+    let colorEl = document.getElementById(prefix + 'Color');
+    let grad1 = document.getElementById(prefix + 'ColorGradient1');
+    let grad2 = document.getElementById(prefix + 'ColorGradient2');
+    if (colorEl) colorEl.value = p.main;
+    if (grad1) grad1.value = p.main;
+    if (grad2) grad2.value = p.grad;
+    let bgEl = document.getElementById(prefix + 'Bg');
+    if (bgEl) {
+        bgEl.value = p.main;
+        let bgG1 = document.getElementById(prefix + 'BgGradient1');
+        let bgG2 = document.getElementById(prefix + 'BgGradient2');
+        if (bgG1) bgG1.value = p.main;
+        if (bgG2) bgG2.value = p.grad;
+    }
+    if (prefix === 'all') {
+        const prefixes = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2'];
+        prefixes.forEach(pf => {
+            let colorEl = document.getElementById(pf + 'Color');
+            if (colorEl) colorEl.value = p.main;
+            let g1 = document.getElementById(pf + 'ColorGradient1');
+            let g2 = document.getElementById(pf + 'ColorGradient2');
+            if (g1) g1.value = p.main;
+            if (g2) g2.value = p.grad;
+        });
+        alert(`✨ AI đã phối màu ĐỒNG BỘ cho mệnh ${designMenh}!`);
+    } else {
+        alert(`✨ AI đã gợi ý bộ màu cho mệnh ${designMenh}!`);
+    }
+    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+}
+
+window.exportToPDF = async function() {
+    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
+        alert("⚠ PHẦN MỀM CHƯA KÍCH HOẠT!\nVui lòng nhập mã bản quyền để sử dụng tính năng này.");
+        return;
+    }
+    const { jsPDF } = window.jspdf;
+    const list = typeof window.parseList === 'function' ? window.parseList() : [];
+    const r = parseInt(document.getElementById('tableRows')?.value) || 10;
+    const c = parseInt(document.getElementById('tableCols')?.value) || 2;
+    const totalCells = r * c;
+    const totalPages = Math.max(1, Math.ceil(list.length / totalCells));
+    const loading = document.getElementById('globalLoading');
+    if (loading) loading.style.display = 'flex';
+    const lText = document.getElementById('loadingText');
+    if (lText) lText.innerText = "Đang chuẩn bị PDF...";
+    try {
+        const oldStep = window.currentStep;
+        const pdf = new jsPDF({
+            orientation: 'p', unit: 'px',
+            format: [canvas.width / getVal('exportScale', 1), canvas.height / getVal('exportScale', 1)]
+        });
+        for (let i = 0; i < totalPages; i++) {
+            if (lText) lText.innerText = `Đang xử lý trang ${i + 1}/${totalPages}`;
+            window.currentStep = i;
+            await new Promise(resolve => { window.drawCanvas(); setTimeout(resolve, 300); });
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            if (i > 0) pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+        }
+        pdf.save(`VIP_SIM_CATALOG_${new Date().getTime()}.pdf`);
+        window.currentStep = oldStep; window.drawCanvas();
+    } catch (err) { console.error(err); alert("❌ Lỗi khi xuất PDF!"); }
+    finally { if (loading) loading.style.display = 'none'; }
+};
+
+window.setupDrag = function(elementId, handleId) {
+    const el = document.getElementById(elementId); 
+    const handle = document.getElementById(handleId) || el;
+    if(!el || !handle) return; 
+    let isDragging = false, moved = false, startX, startY, initX, initY;
+    const start = (e) => { 
+        if(['BUTTON','INPUT','SELECT','A'].includes(e.target.tagName)) return; 
+        isDragging = true; moved = false; 
+        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
+        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
+        startX = clientX; startY = clientY; 
+        let rect = el.getBoundingClientRect();
+        initX = rect.left; initY = rect.top; 
+        el.style.left = initX + 'px'; el.style.top = initY + 'px';
+        el.style.bottom = 'auto'; el.style.right = 'auto'; el.style.margin = '0'; el.style.transform = 'none'; 
+    };
+    const move = (e) => { 
+        if(!isDragging) return; 
+        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
+        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
+        let dx = clientX - startX; let dy = clientY - startY; 
+        if(Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true; 
+        if(moved) { 
+            e.preventDefault(); 
+            let maxX = window.innerWidth - el.offsetWidth; 
+            let maxY = window.innerHeight - el.offsetHeight; 
+            let newX = Math.max(0, Math.min(initX + dx, maxX));
+            let newY = Math.max(0, Math.min(initY + dy, maxY));
+            el.style.left = newX + 'px'; el.style.top = newY + 'px'; 
+        } 
+    };
+    const end = () => { isDragging = false; };
+    handle.addEventListener('mousedown', start); 
+    handle.addEventListener('touchstart', start, {passive: false}); 
+    window.addEventListener('mousemove', move, {passive: false}); 
+    window.addEventListener('touchmove', move, {passive: false}); 
+    window.addEventListener('mouseup', end); 
+    window.addEventListener('touchend', end);
+    return () => moved;
+};
+
+// --- BẢO MẬT & DRM ---
+    function trap() {
+        try {
+            const t = function() {
+                (function() {
+                    (function a() {
+                        try {
+                            (function b(i) {
+                                if (("" + i / i).length !== 1 || i % 20 === 0) {
+                                    (function() {}).constructor("debugger")();
+                                } else {
+                                    debugger;
+                                }
+                                // Removed synchronous recursion b(++i) to prevent main thread freeze
+                            })(0);
+                        } catch (e) {
+                            setTimeout(a, 1000);
+                        }
+                    })();
+                })();
+            };
+            setInterval(t, 1000);
+        } catch (e) {}
+    }
+    document.addEventListener('contextmenu', e => {
+        if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.id === 'displayMac') return;
+        e.preventDefault();
+    }, false);
+    document.addEventListener('keydown', e => {
+        if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || 
+            (e.ctrlKey && [85, 83, 80, 65, 70].includes(e.keyCode))) {
+            e.preventDefault(); return false;
+        }
+    });
+
+const STORAGE_ID_KEY = 'SYSTEM_LOG_DATA_CACHED';
+const LICENSE_KEY = 'SYSTEM_LICENSE_ACTIVE';
+const POS = [2, 5, 9, 14, 20, 27, 35, 44, 54, 59];
+window.getDeviceID = function() { try { let secret = localStorage.getItem(STORAGE_ID_KEY); if (!secret || secret.length < 60) { let charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let rawID = ""; for(let i=0; i<10; i++) rawID += charset.charAt(Math.floor(Math.random() * charset.length)); let junk = ""; for(let i=0; i<60; i++) junk += charset.charAt(Math.floor(Math.random() * charset.length)); let complexArr = junk.split(""); for(let i=0; i<10; i++) { complexArr[POS[i]] = rawID[i]; } secret = complexArr.join(""); localStorage.setItem(STORAGE_ID_KEY, secret); return rawID; } let realID = ""; for(let p of POS) { realID += secret[p]; } return realID; } catch (e) { return "ERROR_ID"; } };
+window.verifyLicense = function(keyStr) { if(!keyStr) return false; try { let myMac = window.getDeviceID(); let decoded = decodeURIComponent(atob(keyStr.split('').reverse().join(''))); let rawData = ""; for(let i=0; i<decoded.length; i++) { rawData += String.fromCharCode(decoded.charCodeAt(i) - 7); } let parts = rawData.split('|||'); if(parts.length !== 2) return false; let keyMac = parts[0]; let expTime = parseInt(parts[1]); if(keyMac === myMac && expTime > Date.now()) { return true; } return false; } catch(e) { return false; } };
+window.checkLicense = function() { 
+    try {
+        let savedKey = localStorage.getItem(LICENSE_KEY); 
+        let overlay = document.getElementById('drmOverlay'); 
+        let macDisplay = document.getElementById('displayMac'); 
+        let myID = window.getDeviceID();
+        
+        console.log("DRM System: Generated ID is", myID);
+        
+        if (macDisplay) {
+            macDisplay.innerText = myID;
+            // Retry once after 1s just in case of DOM lag
+            if (macDisplay.innerText.includes("ĐANG")) {
+                setTimeout(() => { macDisplay.innerText = myID; }, 1000);
+            }
+        }
+        
+        if (savedKey && window.verifyLicense(savedKey)) { 
+            if (overlay) overlay.style.display = 'none'; 
+            console.log("DRM System: License Valid.");
+        } else { 
+            if (overlay) overlay.style.display = 'flex'; 
+            console.log("DRM System: License Required.");
+        } 
+    } catch (e) {
+        console.error("DRM System Error:", e);
+    }
+};
+window.activateLicense = function() { let keyInput = document.getElementById('licenseKeyInput').value.trim(); let msg = document.getElementById('drmMessage'); if(!keyInput) { msg.innerText = "Vui lòng nhập mã kích hoạt!"; return; } if(window.verifyLicense(keyInput)) { localStorage.setItem(LICENSE_KEY, keyInput); msg.style.color = "#2ecc71"; msg.innerText = "Kích hoạt thành công! Đang tải lại phần mềm..."; setTimeout(() => { document.getElementById('drmOverlay').style.display='none'; if(typeof window.fitZoom === 'function') window.fitZoom(); }, 1000); } else { msg.style.color = "#e74c3c"; msg.innerText = "Mã kích hoạt sai hoặc đã hết hạn!"; } };
+window.copyMac = function() { let mac = document.getElementById('displayMac').innerText; let tempInput = document.createElement("input"); tempInput.value = mac; document.body.appendChild(tempInput); tempInput.select(); tempInput.setSelectionRange(0, 99999); try { document.execCommand("copy"); alert("✅ Đã copy Mã Máy thành công: " + mac); } catch (err) { alert("❌ Vui lòng copy thủ công!"); } document.body.removeChild(tempInput); };
+window.isAuthorized = function() { try { let savedKey = localStorage.getItem(LICENSE_KEY); return !!(savedKey && window.verifyLicense(savedKey)); } catch(e) { return false; } };
+window.toggleCanvasSizeInputs = function() {
+    let mode = document.getElementById('canvasSizeMode')?.value;
+    let wrapper = document.getElementById('customCanvasSizeWrapper');
+    if(!wrapper) return;
+    wrapper.style.display = mode === 'auto' ? 'none' : 'flex';
+    let cH = document.getElementById('customCanvasH'); let lH = document.getElementById('labelCustomH');
+    if(cH) cH.style.display = mode === 'ratio' ? 'none' : 'block';
+    if(lH) lH.style.display = mode === 'ratio' ? 'none' : 'block';
+};
+
+// --- ENTRY POINT ---
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startApp);
+} else {
+    setTimeout(startApp, 500); // Tăng delay lên 500ms để đảm bảo ổn định
+}

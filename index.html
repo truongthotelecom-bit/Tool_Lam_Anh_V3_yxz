@@ -605,6 +605,147 @@
             box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
         }
 
+        /* --- CSS TAB CẤP 3 (MICRO-TABS) --- */
+        .sub-sub-tab-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            background: #fdfdfd;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            color: #777;
+            font-weight: 600;
+            text-transform: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .sub-sub-tab-btn:hover { 
+            background: #f0f7ff;
+            border-color: #3498db;
+            color: #3498db;
+            transform: translateY(-1px);
+        }
+        .sub-sub-tab-btn.active {
+            background: #f1c40f;
+            color: #000;
+            border-color: #f39c12;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(241, 196, 15, 0.3);
+        }
+        .sub-sub-tab-content { 
+            display: none; 
+            padding-top: 10px;
+            animation: fadeInSubSub 0.3s ease;
+        }
+        .sub-sub-tab-content.active { display: block; }
+        
+        @keyframes fadeInSubSub {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- CLOUD UI RESTORATION CLASSIC PRO --- */
+        .cloud-item-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .cloud-item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            border-color: #3498db;
+        }
+        .cloud-item-thumb {
+            width: 100%;
+            height: 100px;
+            background: #f8f9fa;
+            position: relative;
+            overflow: hidden;
+        }
+        .cloud-item-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .cloud-item-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .cloud-item-info {
+            padding: 10px;
+            flex-grow: 1;
+        }
+        .cloud-item-title {
+            font-size: 13px;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cloud-item-tags {
+            font-size: 10px;
+            color: #3498db;
+            font-weight: 600;
+        }
+        .cloud-item-action {
+            background: #f8f9fa;
+            color: #3498db;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 8px;
+            text-align: center;
+            border-top: 1px solid #f0f0f0;
+            transition: 0.2s;
+        }
+        .cloud-item-card:hover .cloud-item-action {
+            background: #3498db;
+            color: #fff;
+        }
+
+        /* Classic Cloud Background Grid */
+        .cloud-bg-card {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #eee;
+            transition: 0.3s;
+            cursor: pointer;
+            background: #000;
+        }
+        .cloud-bg-card:hover { border-color: #3498db; transform: scale(1.03); z-index: 10; }
+        .cloud-bg-thumb { height: 120px; overflow: hidden; opacity: 0.85; transition: 0.3s; }
+        .cloud-bg-card:hover .cloud-bg-thumb { opacity: 1; }
+        .cloud-bg-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .cloud-bg-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: #fff;
+            padding: 20px 8px 5px 8px;
+            font-size: 11px;
+            text-align: center;
+        }
+
         /* Fix trượt cuối trang trên điện thoại */
         #themeModalContent {
             max-height: 90vh;
@@ -756,7 +897,6 @@
                 <button onclick="exportToExcel()" class="btn-mini" style="background:#20c997; border-radius:15px;">📊
                     Xuất Excel</button>
             </div>
-            <div class="sub-menu-item" onclick="openHelpModal();">📖 Hướng Dẫn</div>
             <div class="sub-menu-item" onclick="undo(); toggleUnifiedMenu();" id="btnUndo">↩ Hoàn tác (0)</div>
         </div>
         <div class="main-menu-btn" id="unifiedMenuBtn" onclick="toggleUnifiedMenu()" title="Mở Danh Mục Chức Năng">☰
@@ -764,6 +904,7 @@
     </div>
 
     <div id="themeModalOverlay"
+        onclick="if(event.target===this) this.style.display='none'"
         style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 3000000; justify-content: center; align-items: center; padding: 15px;">
         <div id="themeModalContent"
             style="background: #fff; padding: 20px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
@@ -911,53 +1052,6 @@
         <div id="dynamic-tabs-container"></div>
     </div>
 
-    <div id="helpModalOverlay"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; animation: fadeIn 0.2s; backdrop-filter: blur(3px);">
-        <div
-            style="background: #fff; padding: 20px; border-radius: 15px; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; box-shadow: 0 15px 50px rgba(0,0,0,0.4); position: relative;">
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 15px;">
-                <h3 style="margin: 0; color: #d35400; font-size: 16px; text-transform: uppercase;">📖 HƯỚNG DẪN NHẬP DỮ
-                    LIỆU</h3>
-                <span style="cursor: pointer; font-size: 24px; color: #999; line-height: 1; padding: 0 5px;"
-                    onclick="closeHelpModal()">✖</span>
-            </div>
-            <div style="font-size: 13px; color: #333; line-height: 1.6;">
-                <p>Hệ thống tự động nhận diện dữ liệu theo từng dòng. Bạn có thể nhập theo các định dạng sau:</p>
-
-                <b style="color: var(--primary);">1. Nhập Cơ Bản (Chỉ hiện Số và Giá):</b>
-                <p style="margin: 4px 0; color: #666; font-size: 12px;">Phân cách Số và Giá bằng Khoảng trắng, Dấu chấm,
-                    hoặc Dấu gạch ngang.</p>
-                <div
-                    style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; margin: 5px 0 15px 0; border-left: 3px solid var(--primary);">
-                    0909.123.456 500k<br>
-                    0988-888-888 1.500.000<br>
-                    090.999.9999 = 2 Triệu
-                </div>
-
-                <b style="color: #e84393;">2. Nhập Nâng Cao (Thêm Dữ Liệu 1 & Dữ Liệu 2):</b>
-                <p style="margin: 4px 0; color: #666; font-size: 12px;">Sử dụng dấu gạch đứng <code
-                        style="color:red; font-weight:bold;">|</code> để phân cách các cột.</p>
-                <div
-                    style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; margin: 5px 0 15px 0; border-left: 3px solid #e84393;">
-                    <b>Cú pháp:</b> Số | Giá | Dữ liệu 1 | Dữ liệu 2<br><br>
-                    0909.123.456 | 500k | Sim Vip | Mới về<br>
-                    0988.88.88.88 | 50 Tr | Trả sau | Khuyến mãi lớn<br>
-                    0912.345.678 | Liên hệ | | Số độc
-                </div>
-
-                <ul style="padding-left: 20px; margin-bottom: 0; color: var(--danger); font-weight: bold;">
-                    <li>Nếu không nhập DL1 hoặc DL2, ô tương ứng sẽ tự động tàng hình!</li>
-                    <li>Cột Mệnh và Nhà Mạng sẽ tự động được AI phân tích từ Số SIM.</li>
-                </ul>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button onclick="closeHelpModal()"
-                    style="background: #f39c12; color: #fff; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);">Đã
-                    Hiểu</button>
-            </div>
-        </div>
-    </div>
 
     <div id="mobileSettingModal" onclick="if(event.target===this)window.closeMobileModal()">
         <div class="mobile-modal-content">
@@ -992,32 +1086,13 @@
             <div id="drmMessage"></div>
         </div>
     </div>
-    <div id="paletteModalOverlay"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2100000; justify-content: center; align-items: center; padding: 15px; backdrop-filter: blur(4px);">
-        <div
-            style="background: #fff; padding: 20px; border-radius: 15px; width: 100%; max-width: 450px; position: relative; box-shadow: 0 15px 50px rgba(0,0,0,0.4);">
-            <div
-                style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #8e44ad; padding-bottom:10px; margin-bottom:15px;">
-                <h3 style="margin:0; color:#8e44ad; font-size:16px;">🎨 BẢNG MÀU GỢI Ý CHUYÊN NGHIỆP</h3>
-                <span style="cursor:pointer; font-size:24px; color:#999;"
-                    onclick="document.getElementById('paletteModalOverlay').style.display='none'">✖</span>
-            </div>
-            <div id="paletteContainer"
-                style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; max-height:400px; overflow-y:auto; padding:5px;">
-                <!-- Palette items injected by JS -->
-            </div>
-            <div style="text-align:center; margin-top:15px; font-size:11px; color:#888;">Chọn bộ màu để áp dụng ngay cho
-                thành phần đang được chọn!</div>
-        </div>
-    </div>
     <div id="printArea"></div>
 
     <script src="https://stuk.github.io/jszip/dist/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="js/script.js"></script>
-    <script src="js/main.js"></script>
 
     <div id="modal-bg-cloud"
+        onclick="if(event.target === this) this.style.display = 'none'"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000000; justify-content:center; align-items:center; padding: 15px; box-sizing: border-box; backdrop-filter: blur(3px);">
         <div
             style="background:#fff; width:100%; max-width:600px; border-radius:15px; padding:20px; box-shadow:0 15px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; position: relative;">
@@ -1064,7 +1139,7 @@
     <input type="file" id="globalFontInput" style="display:none" accept=".ttf,.otf,.woff,.woff2"
         onchange="handleGlobalFontUpload(event)">
 
-    <div id="helpModalOverlay" class="help-modal-overlay">
+    <div id="helpModalOverlay" class="help-modal-overlay" onclick="if(event.target === this) closeHelpModal()">
         <div class="help-modal-content">
             <span class="help-close" onclick="closeHelpModal()">✖</span>
             <h2 style="color:#2c3e50; border-bottom:2px solid #3498db; padding-bottom:10px;">📖 HƯỚNG DẪN SỬ DỤNG</h2>
@@ -1081,7 +1156,7 @@
         </div>
     </div>
 
-    <div id="mobileSimListModal">
+    <div id="mobileSimListModal" onclick="if(event.target === this) window.closeSimListModal()">
         <div class="sim-modal-header">
             <b style="font-size: 16px;">📝 NHẬP DANH SÁCH SIM</b>
             <span onclick="window.closeSimListModal()" style="cursor: pointer; font-size: 24px; color: #ff4757;">✖</span>
@@ -1097,8 +1172,6 @@
     </div>
     
     <!-- Scripts loaded from external files -->
-    <script src="js/configs.js"></script>
-    <script src="js/script.js"></script>
     <script src="js/main.js"></script>
 </body>
 
