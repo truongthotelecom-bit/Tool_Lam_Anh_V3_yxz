@@ -1112,7 +1112,9 @@ window.updateMobileNavUI = function() {
                 let html = `<button class="m-tab-lvl1" style="background:#e74c3c; color:white; border:none;" onclick="window.navGoBack()">${backName}</button>`;
                 btns.forEach(btn => {
                     let isActive = btn.classList.contains('active') ? 'active' : '';
-                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; ${btn.getAttribute('onclick')}">${btn.innerHTML}</button>`;
+                    let bid = btn.id;
+                    if (!bid) { bid = 'gen_btn_' + Math.floor(Math.random()*1000000); btn.id = bid; }
+                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; document.getElementById('${bid}').click()">${btn.innerHTML}</button>`;
                 });
                 menu.innerHTML = html;
                 setTimeout(() => { let ab = menu.querySelector('.active'); if(ab) ab.scrollIntoView({behavior: 'smooth', inline: 'center'}); }, 50);
@@ -1133,7 +1135,9 @@ window.updateMobileNavUI = function() {
                  let html = `<button class="m-tab-lvl1" style="background:#e74c3c; color:white; border:none;" onclick="window.navGoBack()">${backName}</button>`;
                  btns.forEach(btn => {
                     let isActive = btn.classList.contains('active') ? 'active' : '';
-                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; ${btn.getAttribute('onclick')}">${btn.innerHTML}</button>`;
+                    let bid = btn.id;
+                    if (!bid) { bid = 'gen_btn_' + Math.floor(Math.random()*1000000); btn.id = bid; }
+                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; document.getElementById('${bid}').click()">${btn.innerHTML}</button>`;
                  });
                  menu.innerHTML = html;
                  setTimeout(() => { let ab = menu.querySelector('.active'); if(ab) ab.scrollIntoView({behavior: 'smooth', inline: 'center'}); }, 50);
