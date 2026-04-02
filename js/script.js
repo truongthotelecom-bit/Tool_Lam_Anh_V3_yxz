@@ -254,6 +254,11 @@ window.applyAIColor = function(prefix) {
 }
 
 window.exportToPDF = async function() {
+    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
+        alert("⚠ PHẦN MỀM CHƯA KÍCH HOẠT!\nVui lòng nhập mã bản quyền để sử dụng tính năng này.");
+        return;
+    }
+
     const { jsPDF } = window.jspdf;
     const list = typeof window.parseList === 'function' ? window.parseList() : [];
     const r = parseInt(document.getElementById('tableRows')?.value) || 10;
@@ -358,14 +363,72 @@ function setupDrag(elementId, handleId) {
 }
 setupDrag('unifiedMenuContainer', 'unifiedMenuBtn'); 
 
+// ==========================================
+// 🛡️ HỆ THỐNG BẢO MẬT & CHỐNG CAN THIỆP (Anti-F12)
+// ==========================================
+(function() {
+    function trap() {
+        try {
+            (function () {
+                (function a() {
+                    try {
+                        (function b(i) {
+                            if (("" + i / i).length !== 1 || i % 20 === 0) {
+                                (function () { }).constructor("debugger")();
+                            } else {
+                                debugger;
+                            }
+                            b(++i);
+                        })(0);
+                    } catch (e) {
+                        setTimeout(a, 1000);
+                    }
+                })();
+            })();
+        } catch (e) {}
+    }
+
+    // Chặn phím tắt và chuột phải
+    document.addEventListener('contextmenu', e => {
+        if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.id === 'displayMac') return;
+        e.preventDefault();
+    }, false);
+
+    document.addEventListener('keydown', e => {
+        if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || 
+            (e.ctrlKey && [85, 83, 80, 65, 70].includes(e.keyCode))) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Kích hoạt bẫy
+    trap();
+
+    // Phát hiện console mở bằng timing
+    setInterval(function() {
+        var start = new Date().getTime();
+        debugger;
+        var end = new Date().getTime();
+        if (end - start > 100) {
+            window.location.reload();
+        }
+    }, 2000);
+})();
+
 const STORAGE_ID_KEY = 'SYSTEM_LOG_DATA_CACHED'; const LICENSE_KEY = 'SYSTEM_LICENSE_ACTIVE'; const POS = [2, 5, 9, 14, 20, 27, 35, 44, 54, 59];
-document.addEventListener('contextmenu', function(e) { if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.id === 'displayMac') return; e.preventDefault(); }, false);
-document.addEventListener('keydown', function(e) { if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && (e.keyCode===73||e.keyCode===74||e.keyCode===67)) || (e.ctrlKey && e.keyCode===85) || (e.ctrlKey && e.keyCode===83) || (e.ctrlKey && e.keyCode===80)) { e.preventDefault(); return false; } });
 function getDeviceID() { try { let secret = localStorage.getItem(STORAGE_ID_KEY); if (!secret || secret.length < 60) { let charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let rawID = ""; for(let i=0; i<10; i++) rawID += charset.charAt(Math.floor(Math.random() * charset.length)); let junk = ""; for(let i=0; i<60; i++) junk += charset.charAt(Math.floor(Math.random() * charset.length)); let complexArr = junk.split(""); for(let i=0; i<10; i++) { complexArr[POS[i]] = rawID[i]; } secret = complexArr.join(""); localStorage.setItem(STORAGE_ID_KEY, secret); return rawID; } let realID = ""; for(let p of POS) { realID += secret[p]; } return realID; } catch (e) { return "ERROR_ID"; } }
 function verifyLicense(keyStr) { if(!keyStr) return false; try { let myMac = getDeviceID(); let decoded = decodeURIComponent(atob(keyStr.split('').reverse().join(''))); let rawData = ""; for(let i=0; i<decoded.length; i++) { rawData += String.fromCharCode(decoded.charCodeAt(i) - 7); } let parts = rawData.split('|||'); if(parts.length !== 2) return false; let keyMac = parts[0]; let expTime = parseInt(parts[1]); if(keyMac === myMac && expTime > Date.now()) { return true; } return false; } catch(e) { return false; } }
 function checkLicense() { let savedKey = localStorage.getItem(LICENSE_KEY); let overlay = document.getElementById('drmOverlay'); let macDisplay = document.getElementById('displayMac'); if(macDisplay) macDisplay.innerText = getDeviceID(); if(savedKey && verifyLicense(savedKey)) { if(overlay) overlay.style.display = 'none'; } else { if(overlay) overlay.style.display = 'flex'; } }
 function activateLicense() { let keyInput = document.getElementById('licenseKeyInput').value.trim(); let msg = document.getElementById('drmMessage'); if(!keyInput) { msg.innerText = "Vui lòng nhập mã kích hoạt!"; return; } if(verifyLicense(keyInput)) { localStorage.setItem(LICENSE_KEY, keyInput); msg.style.color = "#2ecc71"; msg.innerText = "Kích hoạt thành công! Đang tải lại phần mềm..."; setTimeout(() => { document.getElementById('drmOverlay').style.display='none'; if(typeof window.fitZoom === 'function') window.fitZoom(); }, 1000); } else { msg.style.color = "#e74c3c"; msg.innerText = "Mã kích hoạt sai hoặc đã hết hạn!"; } }
 function copyMac() { let mac = document.getElementById('displayMac').innerText; let tempInput = document.createElement("input"); tempInput.value = mac; document.body.appendChild(tempInput); tempInput.select(); tempInput.setSelectionRange(0, 99999); try { document.execCommand("copy"); alert("✅ Đã copy Mã Máy thành công: " + mac); } catch (err) { alert("❌ Vui lòng copy thủ công!"); } document.body.removeChild(tempInput); }
+window.isAuthorized = function() {
+    try {
+        let savedKey = localStorage.getItem(LICENSE_KEY);
+        return !!(savedKey && verifyLicense(savedKey));
+    } catch(e) { return false; }
+};
+
 checkLicense();
 
 window.toggleCanvasSizeInputs = function() {

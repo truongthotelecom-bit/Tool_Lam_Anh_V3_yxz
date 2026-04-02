@@ -362,6 +362,20 @@ window.drawProElement = function(ctx, prefix, text, cx, cy, w, h, radius, angle,
 // 6. HÀM DRAW CANVAS CHÍNH 
 // =========================================================
 window.drawCanvas = function() {
+    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
+        if (ctx && canvas) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#1a1a1a";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 24px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("VUI LÒNG KÍCH HOẠT BẢN QUYỀN", canvas.width / 2, canvas.height / 2);
+            ctx.font = "16px Arial";
+            ctx.fillText("Để sử dụng đầy đủ tính năng của phần mềm", canvas.width / 2, canvas.height / 2 + 40);
+        }
+        return;
+    }
     if(!ctx) return; 
     hitBoxes = []; 
     let list = typeof window.parseList === 'function' ? window.parseList() : []; 
@@ -1128,6 +1142,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.copyCanvas = function() {
+    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
+        alert("⚠ PHẦN MỀM CHƯA KÍCH HOẠT!\nVui lòng nhập mã bản quyền để sử dụng tính năng này.");
+        return;
+    }
     let canvas = document.getElementById('preview'); if (!canvas) return;
     window.isExporting = true; if (typeof updatePreviewImmediate === 'function') updatePreviewImmediate(); else window.drawCanvas();
     try {
@@ -1142,6 +1160,10 @@ window.copyCanvas = function() {
 };
 
 window.downloadSingleImage = function() {
+    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
+        alert("⚠ PHẦN MỀM CHƯA KÍCH HOẠT!\nVui lòng nhập mã bản quyền để sử dụng tính năng này.");
+        return;
+    }
     let canvas = document.getElementById('preview'); if (!canvas) return;
     window.isExporting = true; if (typeof updatePreviewImmediate === 'function') updatePreviewImmediate(); else window.drawCanvas();
     try {
@@ -1157,6 +1179,10 @@ window.downloadSingleImage = function() {
 };
 
 window.generateAllImages = async function() {
+    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
+        alert("⚠ PHẦN MỀM CHƯA KÍCH HOẠT!\nVui lòng nhập mã bản quyền để sử dụng tính năng này.");
+        return;
+    }
     let list = typeof window.parseList === 'function' ? window.parseList() : [];
     if (list.length === 0) return alert("❌ Danh sách trống, không có gì để tải!");
     let canvas = document.getElementById('preview');
@@ -1195,6 +1221,10 @@ window.generateAllImages = async function() {
 };
 
 window.printAllPages = async function() {
+    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
+        alert("⚠ PHẦN MỀM CHƯA KÍCH HOẠT!\nVui lòng nhập mã bản quyền để sử dụng tính năng này.");
+        return;
+    }
     let list = typeof window.parseList === 'function' ? window.parseList() : [];
     if (list.length === 0) return alert("❌ Danh sách trống!");
 
@@ -1236,6 +1266,10 @@ window.printAllPages = async function() {
 };
 
 window.exportToExcel = function() {
+    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
+        alert("⚠ PHẦN MỀM CHƯA KÍCH HOẠT!\nVui lòng nhập mã bản quyền để sử dụng tính năng này.");
+        return;
+    }
     let list = typeof window.parseList === 'function' ? window.parseList() : [];
     if (list.length === 0) return alert("❌ Danh sách trống, không có gì để xuất!");
 
