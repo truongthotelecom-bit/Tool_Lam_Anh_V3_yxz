@@ -15,7 +15,7 @@ function showToast(message) {
     clearTimeout(window.toastTimer);
     window.toastTimer = setTimeout(() => {
         toast.classList.remove('show');
-    }, 2500);
+    }, 1500);
 }
 
 
@@ -912,9 +912,11 @@ function handleInteractEnd(e) {
     } else if (!isDragMoved && !isLongPress && !targetRef) {
         // v26.4: Bấm vùng trống -> Tự động đóng Popup luôn
         if (window.innerWidth <= 768 || isFS) {
-            if (typeof window.closeMobileModal === 'function') {
-                console.log("Interact: Blank click, auto closing modal");
-                window.closeMobileModal();
+            if (!document.body.classList.contains('studio-mode')) {
+                if (typeof window.closeMobileModal === 'function') {
+                    console.log("Interact: Blank click, auto closing modal");
+                    window.closeMobileModal();
+                }
             }
         }
     }
