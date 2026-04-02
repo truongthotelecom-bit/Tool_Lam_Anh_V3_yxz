@@ -2218,6 +2218,8 @@ window.saveSession = async function () {
         });
         localStorage.setItem('VIP_SIM_TOOL_SESSION_DATA', JSON.stringify(cfg));
         const keys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
+        const pfx = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2', 'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum'];
+        pfx.forEach(p => keys.push(p + 'ColorImage', p + 'BgImage', p + 'BorderImage', p + 'ShapeBorderImage'));
         for (let k of keys) {
             if (window[k] && window[k] instanceof Image && window[k].src.startsWith('data:image')) {
                 try { localStorage.setItem('VIP_SIM_TOOL_IMG_' + k, window[k].src); } catch (e) {}
@@ -2235,6 +2237,8 @@ window.restoreSession = function () {
         let cfg = JSON.parse(raw); if (!cfg) return false;
         window.applyConfigToUI(cfg);
         const keys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
+        const pfx = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2', 'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum'];
+        pfx.forEach(p => keys.push(p + 'ColorImage', p + 'BgImage', p + 'BorderImage', p + 'ShapeBorderImage'));
         keys.forEach(k => {
             let s = localStorage.getItem('VIP_SIM_TOOL_IMG_' + k);
             if (s) {
