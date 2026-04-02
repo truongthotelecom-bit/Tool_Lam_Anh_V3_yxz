@@ -3067,13 +3067,17 @@ window.setupDrag = function(elementId, handleId) {
             e.preventDefault(); return false;
         }
     });
+    /* 
     trap();
+    */
+    /* 
     setInterval(function() {
         var start = new Date().getTime();
         debugger;
         var end = new Date().getTime();
         if (end - start > 100) { window.location.reload(); }
     }, 2000);
+    */
 })();
 
 const STORAGE_ID_KEY = 'SYSTEM_LOG_DATA_CACHED'; const LICENSE_KEY = 'SYSTEM_LICENSE_ACTIVE'; const POS = [2, 5, 9, 14, 20, 27, 35, 44, 54, 59];
