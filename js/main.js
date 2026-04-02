@@ -908,15 +908,19 @@ function handleInteractEnd(e) {
             }
         }
         setTimeout(() => { window.isOpeningModal = false; }, 200);
-    } else if (!isDragMoved && !wasLongPress && !targetRef) {
-        // v26.4: Bấm vùng trống -> Tự động đóng Popup
-        if (isFS || window.innerWidth <= 768) {
-            if (typeof window.closeMobileModal === 'function') {
-                console.log("Interact: Blank click on canvas, closing modal");
-                window.closeMobileModal();
+    } else if (!isDragMoved && !isLongPress && !targetRef) {
+        // v26.4: Bấm vùng trống -> Tự động đóng Popup nhưng KHÔNG thoát toàn màn hình
+        if (window.innerWidth <= 768) {
+            let modalEl = document.getElementById('mobileSettingModal');
+            if (modalEl && modalEl.style.display === 'flex') {
+                if (typeof window.closeMobileModal === 'function') {
+                    console.log("Interact: Blank click on canvas, closing settings modal");
+                    window.closeMobileModal();
+                }
             }
         }
     }
+
 
     // v26.6: Bảo vệ Pinch - Nếu đang Zoom 2 ngón tay thì KHÔNG đóng popup
     if (typeof isPinching !== 'undefined' && isPinching) {
@@ -996,14 +1000,9 @@ if(canvas) {
 window.closeMobileModal = function() {
     let modalEl = document.getElementById('mobileSettingModal'); if (modalEl) modalEl.style.display = 'none';
     
-    // Nếu đang ở Studio Mode thì thoát ra luôn
-    if (document.body.classList.contains('studio-mode')) {
-        document.body.classList.remove('studio-mode');
-        window.isFullscreen = false;
-        let btn = document.getElementById('toggleFullBtn');
-        if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH';
-        setTimeout(window.fitZoom, 300);
-    }
+    // v26.6: KHÔNG tự động thoát Studio Mode khi đóng Popup. 
+    // Việc thoát Studio Mode chỉ được thực hiện bởi toggleFullscreen().
+
 
     document.querySelectorAll('.m-tab-lvl1').forEach(btn => btn.classList.remove('active'));
     if (window.activeMobileElement && window.placeholderNode && window.placeholderNode.parentNode) {
@@ -1075,40 +1074,36 @@ window.switchSubSubTab = function(subSubTabId, btn) {
 };
 
 function syncTabUX(container) {
-    if(isSyncingTab || !container || !window.currentUXCategory) return;
+    if(isSyncingTab || !window.currentUXCategory) return;
     isSyncingTab = true;
     let cat = window.currentUXCategory;
-    console.log("UX Sync Global: Target Category", cat);
     
-    // Selector hỗ trợ cả nháy đơn và nháy kép
+    // Chỉ tìm trong phạm vi content đang active để tránh click nhầm vào các tab đang ẩn
+    let scope = container;
+    if (container.id === 'dynamic-tabs-container') {
+        scope = container.querySelector('.tab-content.active') || container;
+    }
+    
+    // Selector hỗ trợ cả nháy đơn và nháy kép trong onclick
     let selector = `.sub-sub-tab-btn[onclick*="-${cat}'"], .sub-sub-tab-btn[onclick*='-${cat}"']`;
     
-    // 1. Tìm trong container được truyền vào
-    let subSubBtn = container.querySelector(selector);
-    
-    // 2. Nếu không thấy, tìm diện rộng trong vùng cài đặt Desktop
-    if (!subSubBtn) {
-        let root = document.getElementById('dynamic-tabs-container');
-        if (root) {
-            // Tìm trong các phân vùng content đang hiển thị (active)
-            subSubBtn = root.querySelector(`.tab-content.active .sub-sub-tab-btn[onclick*="-${cat}'"]`);
-            if (!subSubBtn) subSubBtn = root.querySelector(`.tab-content.active .sub-tab-content.active .sub-sub-tab-btn[onclick*="-${cat}'"]`);
-        }
-    }
+    // Tìm nút trong phạm vi sub-tab đang hiện hữu
+    let subSubBtn = scope.querySelector('.sub-tab-content.active ' + selector) || scope.querySelector(selector);
     
     if (subSubBtn) {
-        console.log("UX Sync Action: Auto-clicking", subSubBtn.innerText);
+        console.log("UX Sync: Found category", cat, "in", scope.id || 'current scope');
         if (!subSubBtn.classList.contains('active')) subSubBtn.click();
     } else {
-        // Nếu không tìm thấy category cũ, click cái đầu tiên (Thường là vị trí)
-        let activeScope = container.querySelector('.sub-tab-content.active') || container;
-        let firstBtn = activeScope.querySelector(`.sub-sub-tab-btn[onclick*="-pos'"]`) || activeScope.querySelector('.sub-sub-tab-btn');
-        if (firstBtn && !firstBtn.classList.contains('active')) firstBtn.click();
+        // Mặc định quay về tab "Vị trí" nếu không tìm thấy phân mục cũ
+        let defBtn = scope.querySelector('.sub-tab-content.active .sub-sub-tab-btn[onclick*="-pos\'"]') || 
+                     scope.querySelector('.sub-sub-tab-btn[onclick*="-pos\'"]') ||
+                     scope.querySelector('.sub-sub-tab-btn');
+        if (defBtn && !defBtn.classList.contains('active')) defBtn.click();
     }
-
     
     isSyncingTab = false;
 }
+
 function updatePreview(){clearTimeout(window.previewTimeout); window.previewTimeout=setTimeout(window.updatePreviewImmediate,150);}
 window.updatePreviewImmediate = function(){ if(typeof window.updatePagination==='function') window.updatePagination(); window.drawCanvas(); }
 

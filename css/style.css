@@ -294,13 +294,14 @@
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.4); 
+    background: transparent; /* v26.6: Xóa nền mờ để nhìn xuyên thấu Canvas */
     z-index: 10000000;
     flex-direction: column;
     justify-content: flex-end; 
     animation: fadeInOverlay 0.25s ease;
-    backdrop-filter: blur(2px);
+    pointer-events: none; /* v26.6: Cho phép chạm xuyên qua khoảng không vào Canvas */
 }
+
 
 .mobile-modal-content {
     background: #f4f7f6;
