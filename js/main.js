@@ -23,6 +23,9 @@ let isPinching = false;
 let lastTouchX = 0;
 let lastTouchY = 0;
 
+window.isSyncingTabs = false; 
+window.currentSubSubTab = 'pos'; 
+
 // --- 2. HÀM TIỆN ÍCH CƠ BẢN ---
 function getVal(id, def=0) { let el = document.getElementById(id); return el ? (isNaN(parseFloat(el.value)) ? el.value : parseFloat(el.value)) : def; }
 function isChecked(id) { let el = document.getElementById(id); return el ? el.checked : false; }
@@ -731,7 +734,8 @@ function handleInteractMove(clientX, clientY) {
     let dx = clientX - startX; let dy = clientY - startY;
     
     // Nếu di chuyển quá 20px thì coi là đã thực sự có di chuyển (Hủy Long-press nếu chưa bắt đầu kéo)
-    if (isPanning && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
+    // Tăng ngưỡng dX/dY lên 15px để tránh việc run tay làm hủy Long-press kéo thả
+    if (isPanning && (Math.abs(dx) > 15 || Math.abs(dy) > 15)) {
         if (!isLongPress) {
             isDragMoved = true;
             clearTimeout(longPressTimeout);
@@ -971,8 +975,6 @@ window.updateUI = function() {
     let zebraContainer = document.getElementById('zebraSettingsContainer');
     if (useZebra && zebraContainer) {
         zebraContainer.style.display = useZebra.checked ? 'block' : 'none';
-        
-        // --- ĐỒNG BỘ HIỂN THỊ CỘT TRONG ZEBRA (V26.6) ---
         const syncZebra = (chkId, grpPrefix) => {
             let chk = document.getElementById(chkId);
             let gOdd = document.getElementById('zebraOdd' + grpPrefix + 'Grp');
@@ -986,6 +988,14 @@ window.updateUI = function() {
         syncZebra('chkNum', 'Num'); syncZebra('chkPrice', 'Price'); syncZebra('chkMenh', 'Menh');
         syncZebra('chkMang', 'Mang'); syncZebra('chkData1', 'Data1'); syncZebra('chkData2', 'Data2');
     }
+    
+    // --- BỔ SUNG TỪ SCRIPT.JS ---
+    let prefixes = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2', 'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum', 'cell'];
+    prefixes.forEach(p => { 
+        if((p === 'menh' || p === 'mang') && typeof window.toggleShapeOptions === 'function') {
+            window.toggleShapeOptions(p);
+        }
+    });
 };
 
 window.drawGlobalBackground = function(ctx, canvasW, canvasH) {
@@ -1127,7 +1137,8 @@ window.focusDesktopTab = function(tid) {
     if (typeof syncTabUX === 'function' && targetTab1) { syncTabUX(targetTab1); }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+// --- MOBILE MODAL POINTER EVENTS FIX ---
+function initModalPointerEvents() {
     setInterval(() => {
         let modalOverlay = document.getElementById('mobileSettingModal');
         let modalContent = document.querySelector('.mobile-modal-content');
@@ -1139,7 +1150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (modalContent) { modalContent.style.setProperty('pointer-events', 'auto', 'important'); }
     }, 500);
-});
+}
 
 window.copyCanvas = function() {
     if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
@@ -1555,10 +1566,6 @@ window.loadBuiltinTemplate = function(key) {
         if (typeof window.applyConfigToUI === 'function') {
             window.applyConfigToUI(templateData, true); // true: là nạp mẫu (không đè danh sách SỐ)
             
-            // Thông báo thành công
-            let templateName = document.querySelector(`#builtinTemplates option[value="${key}"]`)?.innerText || key;
-            console.log("✅ Đã nạp mẫu: " + templateName);
-            
             // Cập nhật lại toàn bộ giao diện và Preview
             if (typeof window.updateUI === 'function') window.updateUI();
             if (typeof window.drawCanvas === 'function') window.drawCanvas();
@@ -1573,6 +1580,1515 @@ window.loadBuiltinTemplate = function(key) {
 };
 
 // Đảm bảo updatePreviewImmediate gọi drawCanvas
-window.updatePreviewImmediate = function() {
+
+// ============================================================================
+// 🚀 MÃ NGUỒN CHUYỂN TỪ INDEX.HTML (MODULARIZED)
+// ============================================================================
+
+// --- A0. HÀM TIỆN ÍCH TOÀN CỤC ---
+window.setLocalImage = function (inputEl, globalVarName, statusId) {
+    let file = inputEl.files[0];
+    if (!file) return;
+    let reader = new FileReader();
+    reader.onload = function (e) {
+        let img = new Image();
+        img.onload = function () {
+            window[globalVarName] = img;
+            if (globalVarName === 'globalBgImage') window.bgImage = img;
+            let statusEl = document.getElementById(statusId);
+            if (statusEl) statusEl.innerHTML = '✅ Đã nạp ảnh';
+            if (typeof window.updateUI === 'function') window.updateUI();
+            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+};
+
+window.removeImage = function (globalVarName, inputId, statusId) {
+    window[globalVarName] = null;
+    if (globalVarName === 'globalBgImage') window.bgImage = null;
+    let inputEl = document.getElementById(inputId);
+    if (inputEl) inputEl.value = '';
+    let statusEl = document.getElementById(statusId);
+    if (statusEl) statusEl.innerHTML = '❌ Chưa có ảnh';
     if (typeof window.drawCanvas === 'function') window.drawCanvas();
+    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+};
+
+window.pasteList = async function () {
+    try {
+        let text = await navigator.clipboard.readText();
+        let listEl = document.getElementById('list');
+        if (listEl && text) {
+            listEl.value = text;
+            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        }
+    } catch (e) {
+        alert('❌ Không thể đọc clipboard! Hãy dán (Ctrl+V) trực tiếp vào ô nhập liệu.');
+    }
+};
+
+// --- A. KHỞI TẠO DOM & SỰ KIỆN CƠ BẢN ---
+window.customFonts = [];
+window.initFontSelectors = function (forceRefresh = false) {
+    document.querySelectorAll('.font-selector').forEach(sel => {
+        if (!forceRefresh && sel.children.length > 0) return;
+            let currentVal = sel.value;
+            sel.innerHTML = '';
+            const allFonts = [...(window.sysFonts || []), ...window.customFonts];
+            allFonts.forEach(f => {
+                let opt = document.createElement('option');
+                opt.value = f; opt.innerText = f;
+                opt.style.fontFamily = `"${f}", sans-serif`;
+                sel.appendChild(opt);
+            });
+            if (forceRefresh && sel.dataset.lastUpload) {
+                sel.value = sel.dataset.lastUpload;
+                delete sel.dataset.lastUpload;
+            } else {
+                sel.value = currentVal || allFonts[0];
+            }
+        });
+    };
+
+
+window.handleGlobalFontUpload = function (event) {
+    let file = event.target.files[0];
+    if (!file) return;
+    let fontName = file.name.split('.')[0].replace(/[^a-z0-9]/gi, '_');
+    let reader = new FileReader();
+    reader.onload = async function (e) {
+        try {
+            let fontFace = new FontFace(fontName, e.target.result);
+            await fontFace.load();
+            document.fonts.add(fontFace);
+            if (!window.customFonts.includes(fontName)) window.customFonts.push(fontName);
+            document.querySelectorAll('.font-selector').forEach(sel => { sel.dataset.lastUpload = fontName; });
+            window.initFontSelectors(true);
+            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+            alert("✅ Đã nạp font: " + fontName);
+        } catch (err) { alert("❌ Lỗi nạp font: " + err.message); }
+    };
+    reader.readAsArrayBuffer(file);
+    event.target.value = '';
+};
+
+window.initFontSelectors();
+
+window.setupAdvancedUploader = function (inputId, globalVarName) {
+    let inputEl = document.getElementById(inputId);
+    if (!inputEl) return;
+    let newEl = inputEl.cloneNode(true);
+    inputEl.parentNode.replaceChild(newEl, inputEl);
+    newEl.addEventListener('change', function (e) {
+        let file = e.target.files[0];
+        if (!file) return;
+        let reader = new FileReader();
+        reader.onload = function (event) {
+            let img = new Image();
+            img.onload = function () {
+                window[globalVarName] = img;
+                let modeSelectId = inputId.replace('Input', 'Mode');
+                let modeSelect = document.getElementById(modeSelectId);
+                if (modeSelect) { modeSelect.value = 'image'; modeSelect.dispatchEvent(new Event('change')); }
+                let statusId = (globalVarName === 'bgImage') ? 'mainBgStatus' : (globalVarName === 'cellBgImage' ? 'cellBgStatus' : 'cellBorderStatus');
+                let statusEl = document.getElementById(statusId);
+                if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh";
+                if (typeof window.updateUI === 'function') window.updateUI();
+                if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+};
+
+// --- B. QUICK SLIDER ---
+let originalValue = 0; let currentEditingInput = null; let longPressTimer = null;
+window.closeQuickSlider = function() {
+    const qsContainer = document.getElementById('quickSliderContainer');
+    if (qsContainer) {
+        qsContainer.style.display = 'none';
+        currentEditingInput = null;
+        qsContainer.style.top = ''; qsContainer.style.left = '50%'; qsContainer.style.bottom = '20px'; qsContainer.style.transform = 'translateX(-50%)';
+    }
+};
+
+document.addEventListener('focusin', e => {
+    if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+        const input = e.target;
+        if (input.id === 'quickSliderValueInput' || input.id === 'pageInput') return;
+        currentEditingInput = input; originalValue = parseFloat(input.value) || 0;
+        const sliderContainer = document.getElementById('quickSliderContainer');
+        const slider = document.getElementById('quickSlider');
+        const sliderInput = document.getElementById('quickSliderValueInput');
+        const sliderLabel = document.getElementById('quickSliderLabel');
+        let labelText = "Chỉnh thông số";
+        const row = input.closest('.setting-row');
+        if (row) { const lb = row.querySelector('label'); if (lb) labelText = lb.innerText; }
+        sliderLabel.innerText = labelText;
+        let cv = parseFloat(input.value) || 0;
+        let min = 0, max = 100, step = 1;
+        if (input.id.includes('ScaleY')) { min = 0.1; max = 3; step = 0.1; }
+        else if (input.id.includes('Angle')) { min = -360; max = 360; step = 1; }
+        else if (input.id.includes('Size') || input.id.includes('TextScale')) { min = 8; max = 150; step = 1; }
+        else if (input.id.includes('W') || input.id.includes('H') || input.id.includes('Width') || input.id.includes('Height')) { min = 0; max = 800; step = 1; }
+        else if (input.id.includes('X') || input.id.includes('Y')) { min = -500; max = 500; step = 1; }
+        slider.min = min; slider.max = max; slider.step = step;
+        slider.value = cv; if (sliderInput) sliderInput.value = cv;
+        sliderContainer.style.display = 'block';
+        const updateAll = (nv) => {
+            let v = parseFloat(nv); if (isNaN(v)) v = 0;
+            if (input.value != v) input.value = v;
+            if (slider.value != v) slider.value = v;
+            if (sliderInput && sliderInput.value != v) sliderInput.value = v;
+            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+            if (typeof window.debouncedSave === 'function') window.debouncedSave();
+        };
+        slider.oninput = function () { updateAll(this.value); };
+        if (sliderInput) {
+            sliderInput.oninput = function () { updateAll(this.value); };
+            sliderInput.onkeydown = function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); updateAll(this.value); } };
+        }
+        const setupBtn = (bid, d) => {
+            const b = document.getElementById(bid); if (!b) return;
+            const start = (ev) => { ev.preventDefault(); let val = parseFloat(input.value); updateAll((val + d).toFixed(step < 1 ? 1 : 0)); longPressTimer = setInterval(() => { let v = parseFloat(input.value); updateAll((v + d).toFixed(step < 1 ? 1 : 0)); }, 80); };
+            const stop = () => clearInterval(longPressTimer);
+            b.ontouchstart = start; b.ontouchend = stop; b.onmousedown = start; b.onmouseup = stop; b.onmouseleave = stop;
+        };
+        setupBtn('btnSliderMinus', -step); setupBtn('btnSliderPlus', step);
+        document.getElementById('btnSliderReset').onclick = (ev) => { ev.preventDefault(); updateAll(originalValue); };
+    }
+});
+
+document.addEventListener('mousedown', e => {
+    const container = document.getElementById('quickSliderContainer');
+    if (container && container.style.display === 'block') {
+        if (!container.contains(e.target) && e.target !== currentEditingInput) { window.closeQuickSlider(); }
+    }
+});
+
+// --- C. HỆ THỐNG ĐÁM MÂY ---
+const CLOUD_JSON_URL = "https://script.google.com/macros/s/AKfycbxowiVuOyMhN-ua15GgfARcYUvD-Gf8iqFNdT88oTjzKV74OwJwxTD3EXAlsTzhsLDp/exec";
+window.allTemplates = []; window.cloudBgData = []; window.currentBgTarget = 'global';
+
+window.openThemeModal = function () {
+    const modal = document.getElementById('themeModalOverlay');
+    if (modal) { modal.style.display = 'flex'; window.loadCloudTemplates(); }
+};
+window.closeThemeModal = function () {
+    let modal = document.getElementById('themeModalOverlay');
+    if (modal) modal.style.display = 'none';
+};
+document.getElementById('themeModalOverlay')?.addEventListener('click', function (e) { if (e.target === this) window.closeThemeModal(); });
+
+window.toggleLoading = function(show, actionText = "Đang xử lý", mainText = "Vui lòng chờ") {
+    const loader = document.getElementById('globalLoading');
+    const act = document.getElementById('loadingAction');
+    const txt = document.getElementById('loadingText');
+    if (loader) {
+        if (show) { loader.style.display = 'flex'; act.innerText = actionText; txt.innerText = mainText; }
+        else { loader.style.opacity = '0'; setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 300); }
+    }
+};
+
+window.loadCloudTemplates = async function() {
+    const listContainer = document.getElementById('cloudTemplatesList');
+    if (!listContainer) return;
+    try {
+        listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px 0; font-size: 12px; color: #888;">⏳ Đang đồng bộ Kho mẫu đám mây...</div>';
+        const resp = await fetch(CLOUD_JSON_URL + "?type=template");
+        window.allTemplates = await resp.json();
+        window.renderTemplates(window.allTemplates);
+    } catch (err) {
+        listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px 0; font-size: 12px; color: #e74c3c;">❌ Lỗi kết nối máy chủ!</div>';
+    }
+};
+
+window.renderTemplates = function(data) {
+    const listContainer = document.getElementById('cloudTemplatesList');
+    if (!listContainer) return;
+    listContainer.innerHTML = data.map(pt => {
+        let thumb = pt.thumb || "";
+        if (thumb.includes('drive.google.com')) {
+            let m = thumb.match(/[-\w]{25,}/);
+            if (m) thumb = `https://drive.google.com/thumbnail?id=${m[0]}&sz=w400`;
+        }
+        return `<div class="cloud-template-item" onclick="importFromCloudID('${pt.id}', '${pt.name.replace(/'/g, "\\")}')">
+            <img src="${thumb}" onerror="this.src='https://placehold.co/200x100?text=No+Image'">
+            <div style="padding:5px; text-align:center;">
+                <b>${pt.name}</b>
+                <div style="font-size:9px; color:#007bff;">${pt.tags || '#NoTag'}</div>
+            </div>
+        </div>`;
+    }).join('');
+};
+
+window.openBgCloudModal = function (target, statusId = null) {
+    window.currentBgTarget = target; window.currentStatusId = statusId;
+    const modal = document.getElementById('modal-bg-cloud');
+    if (modal) { modal.style.display = 'flex'; window.loadCloudBackgrounds(); }
+};
+
+window.loadCloudBackgrounds = async function() {
+    const gallery = document.getElementById('bgCloudList');
+    if (!gallery) return;
+    try {
+        gallery.innerHTML = "<div style='grid-column:1/-1; text-align:center;'>⏳ Đang tải...</div>";
+        const resp = await fetch(CLOUD_JSON_URL + "?type=bg");
+        window.cloudBgData = await resp.json();
+        window.renderBackgrounds(window.cloudBgData);
+    } catch (err) { gallery.innerHTML = "Lỗi tải kho nền."; }
+};
+
+window.renderBackgrounds = function(data) {
+    const gallery = document.getElementById('bgCloudList'); if (!gallery) return;
+    gallery.innerHTML = data.map(bg => `<div class="cloud-item-wrapper" onclick="window.handleCloudItemClick(this, '${bg.id}', 'image')">
+        <div class="local-loading-overlay"><div class="local-spinner"></div></div>
+        <img src="https://drive.google.com/thumbnail?id=${bg.id}&sz=w300" onerror="this.src='https://placehold.co/200x100?text=Lỗi+Ảnh'">
+        <div style="padding: 6px;"><b>${bg.name}</b></div>
+    </div>`).join('');
+};
+
+window.handleCloudItemClick = function (element, fileId, type) {
+    const overlay = element.querySelector('.local-loading-overlay');
+    if (overlay) overlay.style.display = 'flex';
+    element.parentElement.style.pointerEvents = 'none';
+    if (type === 'image') window.applyCloudBackground(fileId, overlay, element.parentElement);
+    else window.importFromCloudID(fileId, overlay, element.parentElement);
+};
+
+window.applyCloudBackground = async function(fileId, loaderOverlay, galleryElement) {
+    try {
+        let resp = await fetch(CLOUD_JSON_URL + "?action=get_image&id=" + fileId);
+        let dataUrl = await resp.text();
+        let img = new Image(); img.crossOrigin = "anonymous"; img.src = dataUrl;
+        img.onload = () => {
+            const target = window.currentBgTarget;
+            if (target === 'global') window.bgImage = img;
+            else if (target === 'cellBgImage') window.cellBgImage = img;
+            else if (target === 'cellBorderImage') window.cellBorderImage = img;
+            else window[target] = img;
+            if (window.currentStatusId) { let st = document.getElementById(window.currentStatusId); if (st) st.innerHTML = '☁️ Đang dùng ảnh Mây'; }
+            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+            if (loaderOverlay) loaderOverlay.style.display = 'none';
+            galleryElement.style.pointerEvents = 'auto';
+            document.querySelectorAll('#bgCloudModalOverlay, #modal-bg-cloud').forEach(m => m.style.display = 'none');
+        };
+    } catch (err) { galleryElement.style.pointerEvents = 'auto'; alert("Lỗi tải ảnh!"); }
+};
+
+// --- 7. HỆ THỐNG QUẢN LÝ MẪU ---
+window.compressImage = function (imgElement, maxWidth = 800, quality = 0.7) {
+    return new Promise((resolve) => {
+        try {
+            if (!imgElement || !imgElement.naturalWidth) { resolve(null); return; }
+            let canvas = document.createElement('canvas'); let ctx = canvas.getContext('2d');
+            let ow = imgElement.naturalWidth; let oh = imgElement.naturalHeight;
+            let sc = 1; if (ow > maxWidth) sc = maxWidth / ow;
+            canvas.width = Math.round(ow * sc); canvas.height = Math.round(oh * sc);
+            ctx.drawImage(imgElement, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+        } catch (e) { resolve(imgElement.src.startsWith('data:image') ? imgElement.src : null); }
+    });
+};
+
+window.exportConfig = async function () {
+    let cfg = {}; let inputs = document.querySelectorAll('.col-settings input, .col-settings select');
+    inputs.forEach(el => {
+        if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+        cfg[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
+    });
+    cfg.savedImages = {};
+    const keys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
+    const pfx = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2', 'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum'];
+    pfx.forEach(p => keys.push(p + 'ColorImage', p + 'BgImage', p + 'BorderImage', p + 'ShapeBorderImage'));
+    if (typeof window.toggleLoading === 'function') window.toggleLoading(true, "ĐANG NÉN ẢNH", "Chuẩn bị xuất file .lite...");
+    let cnt = 0;
+    for (let k of keys) {
+        if (window[k] && window[k] instanceof Image && window[k].complete && window[k].naturalWidth > 0) {
+            let res = await window.compressImage(window[k], 800, 0.7);
+            if (res) { let skey = (k === 'globalBgImage') ? 'bgImage' : k; cfg.savedImages[skey] = res; cnt++; }
+        }
+    }
+    if (typeof window.toggleLoading === 'function') window.toggleLoading(false);
+    let blob = new Blob([JSON.stringify(cfg)], { type: 'application/json' });
+    let dl = document.createElement('a'); dl.href = URL.createObjectURL(blob);
+    let d = new Date(); dl.download = `Mau_Thiet_Ke_VIP_${d.getDate()}_${d.getMonth()+1}_${d.getFullYear()}.lite`;
+    document.body.appendChild(dl); dl.click(); setTimeout(() => { document.body.removeChild(dl); URL.revokeObjectURL(dl.href); }, 500);
+    alert(`✅ Đã xuất file .lite thành công!\n📦 Đã nén ${cnt} hình ảnh`);
+};
+
+window.handleImport = function (event) {
+    let file = event.target.files[0]; if (!file) return;
+    let reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            let raw = e.target.result.trim(); let cfg;
+            try { cfg = JSON.parse(raw); } catch (je) {
+                const b = atob(raw); const bytes = new Uint8Array(b.length);
+                for (let i = 0; i < b.length; i++) bytes[i] = b.charCodeAt(i);
+                cfg = JSON.parse(new TextDecoder().decode(bytes));
+            }
+            window.applyConfigToUI(cfg, true);
+        } catch (err) { alert('❌ Lỗi: File không đúng định dạng!'); }
+        event.target.value = '';
+    };
+    reader.readAsText(file);
+};
+
+window.applyConfigToUI = function (cfg, isTemplate = false) {
+    let inputs = document.querySelectorAll('.col-settings input, .col-settings select, #list, #filterMenh');
+    inputs.forEach(el => {
+        if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+        if (isTemplate && (el.id === 'list' || el.id === 'filterMenh')) return;
+        if (cfg.hasOwnProperty(el.id)) {
+            if (el.type === 'checkbox') el.checked = cfg[el.id];
+            else el.value = cfg[el.id];
+            if (el.id === 'list' && typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        } else if (el.type === 'checkbox') { el.checked = (el.id === 'showHeaderRow'); }
+        else if (el.tagName === 'SELECT' && el.id.includes('ShapeType')) { el.value = 'none'; }
+    });
+    window.globalBgImage = null; window.bgImage = null; window.cellBgImage = null; window.cellBorderImage = null;
+    if (cfg.savedImages && Object.keys(cfg.savedImages).length > 0) {
+        let keys = Object.keys(cfg.savedImages); let total = keys.length; let loaded = 0;
+        if (typeof window.toggleLoading === 'function') window.toggleLoading(true, "ĐANG KHÔI PHỤC", `Nạp ${total} hình ảnh...`);
+        keys.forEach(k => {
+            let img = new Image();
+            img.onload = () => {
+                if (k === 'bgImage') { window.bgImage = img; window.globalBgImage = img; } else window[k] = img;
+                let sid = (k === 'bgImage') ? 'mainBgStatus' : (k === 'cellBgImage' ? 'cellBgStatus' : 'cellBorderStatus');
+                let sel = document.getElementById(sid); if (sel) sel.innerHTML = "✅ Đã nạp ảnh từ file Lite";
+                loaded++; if (loaded === total) finish();
+            };
+            img.onerror = () => { loaded++; if (loaded === total) finish(); };
+            img.src = cfg.savedImages[k];
+        });
+        function finish() {
+            if (typeof window.toggleLoading === 'function') setTimeout(() => window.toggleLoading(false), 300);
+            if (typeof window.updateUI === 'function') window.updateUI();
+            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        }
+    } else {
+        if (typeof window.updateUI === 'function') window.updateUI();
+        if (typeof window.drawCanvas === 'function') window.drawCanvas();
+        if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+    }
+};
+
+window.createNewLite = function () {
+    if (confirm('Tạo mới sẽ xóa toàn bộ cài đặt hiện tại trên màn hình. Bạn có chắc không?')) {
+        document.querySelectorAll('.col-settings input[type="checkbox"]').forEach(el => el.checked = false);
+        document.querySelectorAll('.col-settings input[type="color"]').forEach(el => {
+            if (el.id.includes('Bg') || el.id.includes('ColorGradient1')) el.value = '#ffffff';
+            else el.value = '#000000';
+        });
+        document.querySelectorAll('.col-settings input[type="text"]').forEach(el => el.value = '');
+        window.globalBgImage = null; window.bgImage = null; window.cellBgImage = null; window.cellBorderImage = null;
+        ['mainBgStatus', 'cellBgStatus'].forEach(id => { let el = document.getElementById(id); if (el) el.innerHTML = '❌ Chưa có ảnh'; });
+        if (document.getElementById('chkNum')) document.getElementById('chkNum').checked = true;
+        if (document.getElementById('chkPrice')) document.getElementById('chkPrice').checked = true;
+        if (document.getElementById('cellBgTrans')) document.getElementById('cellBgTrans').checked = true;
+        if (typeof window.updateUI === 'function') window.updateUI();
+        if (typeof window.drawCanvas === 'function') window.drawCanvas();
+        window.closeThemeModal();
+    }
+};
+
+window.resetToDefault = function () { if (confirm('Khôi phục về trạng thái gốc mặc định của phần mềm?')) { location.reload(); } };
+
+// --- AUTO-SAVE & SESSION RECOVERY ---
+window.saveSession = async function () {
+    try {
+        let cfg = {}; let inputs = document.querySelectorAll('.col-settings input, .col-settings select, #list');
+        inputs.forEach(el => {
+            if (!el.id || el.type === 'file' || el.id.includes('search')) return;
+            cfg[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
+        });
+        localStorage.setItem('VIP_SIM_TOOL_SESSION_DATA', JSON.stringify(cfg));
+        const keys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
+        for (let k of keys) {
+            if (window[k] && window[k] instanceof Image && window[k].src.startsWith('data:image')) {
+                try { localStorage.setItem('VIP_SIM_TOOL_IMG_' + k, window[k].src); } catch (e) {}
+            }
+        }
+    } catch (err) {}
+};
+
+let saveTimeout = null;
+window.debouncedSave = function () { clearTimeout(saveTimeout); saveTimeout = setTimeout(window.saveSession, 1500); };
+
+window.restoreSession = function () {
+    try {
+        let raw = localStorage.getItem('VIP_SIM_TOOL_SESSION_DATA'); if (!raw) return false;
+        let cfg = JSON.parse(raw); if (!cfg) return false;
+        window.applyConfigToUI(cfg);
+        const keys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
+        keys.forEach(k => {
+            let s = localStorage.getItem('VIP_SIM_TOOL_IMG_' + k);
+            if (s) {
+                let img = new Image(); img.onload = () => {
+                    if (k === 'globalBgImage' || k === 'bgImage') { window.globalBgImage = img; window.bgImage = img; }
+                    else window[k] = img;
+                    if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                }; img.src = s;
+            }
+        });
+        let t = document.createElement('div'); t.style = "position:fixed; bottom:20px; left:20px; background:rgba(46, 204, 113, 0.9); color:white; padding:10px 20px; border-radius:50px; font-weight:bold; z-index:9999;";
+        t.innerHTML = "✨ Đã khôi phục phiên làm việc!"; document.body.appendChild(t); setTimeout(() => t.remove(), 4000);
+        return true;
+    } catch (err) { return false; }
+};
+
+// --- STARTUP LOGIC ---
+function initStartupLogic() {
+    setTimeout(() => {
+        const restored = window.restoreSession();
+        if (!restored && typeof window.loadDefaultTemplate === 'function') window.loadDefaultTemplate();
+    }, 400);
+
+    setInterval(() => {
+        const canvas = document.getElementById('preview');
+        const sizeDisplay = document.getElementById('canvasSizeDisplay');
+        if (canvas && sizeDisplay && canvas.width > 0) {
+            const currentText = `Size: ${canvas.width} x ${canvas.height} px`;
+            if (sizeDisplay.innerText !== currentText) sizeDisplay.innerText = currentText;
+        }
+    }, 500);
+}
+
+// --- MOBILE SIM LIST MODAL ---
+window.openSimListModal = function() {
+    let listEl = document.getElementById('list');
+    let mListArea = document.getElementById('mobileListArea');
+    let modal = document.getElementById('mobileSimListModal');
+    if (listEl && mListArea && modal) {
+        mListArea.value = listEl.value;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeSimListModal = function() {
+    let modal = document.getElementById('mobileSimListModal');
+    if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+};
+
+window.applySimList = function() {
+    let listEl = document.getElementById('list');
+    let mListArea = document.getElementById('mobileListArea');
+    if (listEl && mListArea) {
+        listEl.value = mListArea.value;
+        if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        if (typeof window.debouncedSave === 'function') window.debouncedSave();
+    }
+    window.closeSimListModal();
+};
+
+window.pasteToMobileList = async function() {
+    try {
+        let text = await navigator.clipboard.readText();
+        let mListArea = document.getElementById('mobileListArea');
+        if (mListArea && text) mListArea.value = text;
+    } catch (e) { alert('❌ Không thể truy cập bộ nhớ tạm!'); }
+};
+
+// --- HELP MODAL ---
+window.openHelpModal = function() {
+    const modal = document.getElementById('helpModalOverlay');
+    if (modal) modal.style.display = 'flex';
+};
+window.closeHelpModal = function() {
+    const modal = document.getElementById('helpModalOverlay');
+    if (modal) modal.style.display = 'none';
+};
+
+
+
+// --- PALETTE SYSTEM ---
+window.togglePalette = function(isShow) {
+    const modal = document.getElementById('paletteModalOverlay');
+    if (modal) modal.style.display = isShow ? 'flex' : 'none';
+};
+
+window.generateColTab = function(prefix, title, defX, hasShape, defW, defBg) {
+    let html = `
+    <div id="sub-${prefix}" class="sub-tab-content">
+        <div class="sub-tabs">
+            <button class="sub-tab-btn active" onclick="switchSubSubTab('ssub-${prefix}-pos', this)">📐 Vị Trí</button>
+            <button class="sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-format', this)">📝 Chữ & Bóng</button>
+            <button class="sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-bg', this)">🎨 Nền Ô</button>
+            ${hasShape ? `<button class="sub-tab-btn" style="color: #e74c3c; font-weight: bold;" onclick="switchSubSubTab('ssub-${prefix}-shape', this)">💎 Khối Độc Lập</button>` : ''}
+        </div>
+
+        <div id="ssub-${prefix}-pos" class="sub-sub-tab-content active">
+            <div class="setting-box"><div class="setting-title">📐 Vị Trí & Kích Thước</div>
+            <div class="setting-row"><label>Kích thước</label><div class="setting-inputs"><span>W:</span><input type="number" id="${prefix}W" value="${defW}"><span>H:</span><input type="number" id="${prefix}H" value="50"></div></div>
+            <div class="setting-row"><label>Lệch vị trí</label><div class="setting-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="0"></div></div>
+            <div class="setting-row"><label>Xoay (Góc)</label><div class="setting-inputs"><span>∠:</span><input type="number" id="${prefix}Angle" value="0" style="width:45px;"> <input type="range" min="-180" max="180" value="0" oninput="document.getElementById('${prefix}Angle').value=this.value; typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="flex:1;"></div></div>
+            <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs"><select id="${prefix}AlignX"><option value="left" ${prefix === 'num' ? 'selected' : ''}>Trái</option><option value="center" ${prefix === 'price' || prefix === 'data1' || prefix === 'data2' ? 'selected' : ''}>Giữa</option><option value="right" ${prefix === 'menh' || prefix === 'mang' ? 'selected' : ''}>Phải</option></select><select id="${prefix}AlignY"><option value="top">Trên</option><option value="middle" selected>Giữa</option><option value="bottom">Dưới</option></select><label style="color:red;"><input type="checkbox" id="${prefix}Locked">🔒 Khóa</label></div></div>
+            </div>
+        </div>
+
+        <div id="ssub-${prefix}-format" class="sub-sub-tab-content">
+            <div class="setting-box"><div class="setting-title" style="background:#2ecc71;">🔠 Định Dạng Chữ</div>
+            <div class="setting-row"><label>Font & Cỡ</label><div class="setting-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><button type="button" class="btn-mini" style="background:#8e44ad; padding:2px 8px; font-weight:bold;" onclick="document.getElementById('globalFontInput').click()" title="Tải font riêng (.ttf, .otf)">+ Font</button><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
+            <div class="setting-row"><label>Canh & Lệch</label><div class="setting-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
+            <div class="setting-row"><label>Màu Chữ</label><div class="setting-inputs">
+                <select id="${prefix}ColorMode" onchange="document.getElementById('${prefix}ColorSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}ColorGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}ColorImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select>
+            </div></div>
+            <div class="setting-row" id="${prefix}ColorSolidGrp"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="${prefix}Color" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+            <div class="setting-row" id="${prefix}ColorGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}ColorGradient1" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}ColorGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}ColorGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+            <div class="setting-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                <div style="display:flex; gap:5px; width:100%;">
+                    <input type="file" id="${prefix}ColorInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}ColorImage', '${prefix}ColorStatus')">
+                    <button type="button" onclick="openBgCloudModal('${prefix}ColorImage', '${prefix}ColorStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                    <button type="button" onclick="removeImage('${prefix}ColorImage', '${prefix}ColorInput', '${prefix}ColorStatus')" class="btn-remove">✕</button>
+                </div>
+                <div id="${prefix}ColorStatus" class="status-info">❌ Chưa có ảnh</div>
+            </div></div>
+            <div class="setting-row"><label>Trang trí</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}Bold" checked><b>B</b></label><label><input type="checkbox" id="${prefix}Italic"><i>I</i></label><label><input type="checkbox" id="${prefix}Underline"><u>U</u></label><label><input type="checkbox" id="${prefix}Stroke">Viền</label><input type="color" id="${prefix}StrokeColor" value="#ffffff"><input type="number" id="${prefix}StrokeWidth" value="1"></div></div>
+            </div>
+            <div class="setting-box" style="border: 1px solid #27ae60;"><div class="setting-title" style="background:#e8f4e8; color:#27ae60;">⛅ BÓNG CHỮ RIÊNG</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}ObjShadow"> Bật bóng chữ</label><span>X:</span><input type="number" id="${prefix}ObjShadowX" value="3"><span>Y:</span><input type="number" id="${prefix}ObjShadowY" value="3"><span>Mờ:</span><input type="number" id="${prefix}ObjShadowBlur" value="5"><input type="color" id="${prefix}ObjShadowColor" value="#000000"></div></div></div>
+            ${prefix === 'price' ? `
+            <div class="setting-box" style="background:#fafffa; border: 1px solid #2ecc71; margin-top: 10px;">
+                <div class="setting-title" style="background:#2ecc71;">✂️ ĐỊNH DẠNG GIÁ</div>
+                <div class="setting-row"><label>Kèm chữ</label><div class="setting-inputs"><span>Đầu:</span><input type="text" id="pricePrefix" value="" style="width:50px;" oninput="drawCanvas()"><span>Cuối:</span><input type="text" id="priceSuffix" value="đ" style="width:50px;" oninput="drawCanvas()"></div></div>
+                <div class="setting-row"><label>Rút gọn</label><div class="setting-inputs"><select id="priceFormatMode" style="flex:1;" onchange="drawCanvas()"><option value="auto_compact">Rút gọn: 5.5Tr</option><option value="auto_slang">Tiếng lóng: 5Tr5</option><option value="auto_k">Quy ra K: 500K</option><option value="auto" selected>Cơ bản: 5.5 Tr</option><option value="dot">Dấu chấm: 5.000</option><option value="comma">Dấu phẩy: 5,000</option></select></div></div>
+            </div>
+            ` : ''}
+            ${prefix === 'menh' ? `
+            <div class="setting-box" style="background:#fffcf0; border: 1px solid #f39c12; margin-top: 10px;">
+                <div class="setting-title" style="background:#f39c12;">✂️ ĐỊNH DẠNG MỆNH</div>
+                <div class="setting-row"><label>Kiểu chữ</label><div class="setting-inputs"><select id="menhMode" style="flex:1;" onchange="drawCanvas()"><option value="proper" selected>Viết hoa đầu (Thuỷ)</option><option value="upper">Viết hoa hết (THUỶ)</option><option value="short">Chữ cái đầu (T)</option></select></div></div>
+                <div class="setting-row"><label>Kèm chữ</label><div class="setting-inputs"><span>Đầu:</span><input type="text" id="menhPrefix" value="" style="width:60px;" oninput="drawCanvas()"><span>Cuối:</span><input type="text" id="menhSuffix" value="" style="width:60px;" oninput="drawCanvas()"></div></div>
+            </div>
+            ` : ''}
+            ${prefix === 'mang' ? `
+            <div class="setting-box" style="background:#f0fbff; border: 1px solid #3498db; margin-top: 10px;">
+                <div class="setting-title" style="background:#3498db;">✂️ ĐỊNH DẠNG MẠNG</div>
+                <div class="setting-row"><label>Kiểu chữ</label><div class="setting-inputs"><select id="mangMode" style="flex:1;" onchange="drawCanvas()"><option value="proper" selected>Viết hoa đầu (từ short2)</option><option value="short2">Viết hoa hết (từ short2)</option><option value="key">Rút gọn (VT, VN)</option><option value="short1">Dữ liệu chuẩn (short1)</option></select></div></div>
+                <div class="setting-row"><label>Kèm chữ</label><div class="setting-inputs"><span>Đầu:</span><input type="text" id="mangPrefix" value="" style="width:60px;" oninput="drawCanvas()"><span>Cuối:</span><input type="text" id="mangSuffix" value="" style="width:60px;" oninput="drawCanvas()"></div></div>
+            </div>
+            ` : ''}
+        </div>
+
+        <div id="ssub-${prefix}-bg" class="sub-sub-tab-content">             
+            <div class="setting-box">
+                <div class="setting-title" style="background:#3498db;">🎨 NỀN Ô KHUNG</div>
+                <div class="setting-row"><label>Kiểu nền</label><div class="setting-inputs">
+                    <select id="${prefix}BgMode" onchange="document.getElementById('${prefix}BgSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}BgGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}BgImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh lót</option></select>
+                    <label><input type="checkbox" id="${prefix}BgTrans" checked>Ẩn</label>
+                </div></div>
+                <div class="setting-row" id="${prefix}BgSolidGrp"><label>Màu lót</label><div class="setting-inputs"><input type="color" id="${prefix}Bg" value="${defBg}" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="setting-row" id="${prefix}BgGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BgGradient1" value="${defBg}" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}BgGradient2" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}BgGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="setting-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                    <div style="display:flex; gap:5px; width:100%;">
+                        <input type="file" id="${prefix}BgInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}BgImage', '${prefix}BgStatus')">
+                        <button type="button" onclick="openBgCloudModal('${prefix}BgImage', '${prefix}BgStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                        <button type="button" onclick="removeImage('${prefix}BgImage', '${prefix}BgInput', '${prefix}BgStatus')" class="btn-remove">✕</button>
+                    </div>
+                    <div id="${prefix}BgStatus" class="status-info">❌ Chưa có ảnh</div>
+                </div></div>
+            </div>
+            <div class="setting-box">
+                <div class="setting-title" style="background:#f39c12;">🔲 VIỀN Ô KHUNG</div>
+                <div class="setting-row"><label>Kiểu viền</label><div class="setting-inputs">
+                    <select id="${prefix}BorderMode" onchange="document.getElementById('${prefix}BorderSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}BorderGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}BorderImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh</option></select>
+                    <label><input type="checkbox" id="${prefix}BorderTrans" checked>Ẩn</label>
+                </div></div>
+                <div class="setting-row" id="${prefix}BorderSolidGrp"><label>Màu viền</label><div class="setting-inputs"><input type="color" id="${prefix}BorderColor" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="setting-row" id="${prefix}BorderGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BorderGradient1" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>➔</span><input type="color" id="${prefix}BorderGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Góc:</span><input type="number" id="${prefix}BorderGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"></div></div>
+                <div class="setting-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                    <div style="display:flex; gap:5px; width:100%;">
+                        <input type="file" id="${prefix}BorderInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}BorderImage', '${prefix}BorderStatus')">
+                        <button type="button" onclick="openBgCloudModal('${prefix}BorderImage', '${prefix}BorderStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                        <button type="button" onclick="removeImage('${prefix}BorderImage', '${prefix}BorderInput', '${prefix}BorderStatus')" class="btn-remove">✕</button>
+                    </div>
+                    <div id="${prefix}BorderStatus" class="status-info">❌ Chưa có ảnh</div>
+                </div></div>
+                <div class="setting-row"><label>Dày/Bo</label><div class="setting-inputs"><span>Dày:</span><input type="number" id="${prefix}BorderW" value="2" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><span>Bo(R):</span><input type="number" id="${prefix}Radius" value="8" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><select id="${prefix}BorderStyle" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div>
+            </div>
+            <div class="setting-box" style="border: 1px solid #d35400;">
+                <div class="setting-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG NỀN Ô</div>
+                <div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}BoxShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> Bật bóng Nền</label><span>X:</span><input type="number" id="${prefix}BoxShadowX" value="5"><span>Y:</span><input type="number" id="${prefix}BoxShadowY" value="5"><span>Mờ:</span><input type="number" id="${prefix}BoxShadowBlur" value="10"><input type="color" id="${prefix}BoxShadowColor" value="#000000"></div></div>
+            </div>
+            <div class="setting-box" style="border: 1px solid #e67e22;">
+                <div class="setting-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div>
+                <div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}BorderShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> Bật bóng Viền</label><span>X:</span><input type="number" id="${prefix}BorderShadowX" value="2"><span>Y:</span><input type="number" id="${prefix}BorderShadowY" value="2"><span>Mờ:</span><input type="number" id="${prefix}BorderShadowBlur" value="4"><input type="color" id="${prefix}BorderShadowColor" value="#000000"></div></div>
+            </div>
+        </div>
+
+        ${hasShape ? `
+        <div id="ssub-${prefix}-shape" class="sub-sub-tab-content">
+            <div class="setting-box" style="border: 2px solid #e74c3c;">
+                <div class="setting-title" style="background:#fff0f0; color:#e74c3c; display: flex; justify-content: space-between; align-items: center;">
+                    <span>💎 THIẾT KẾ KHỐI ĐỘC LẬP</span>
+                    <label style="font-size: 11px; cursor: pointer; color: #e74c3c; display: flex; align-items: center; gap: 4px;">
+                        <input type="checkbox" id="${prefix}Shape3D" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> BẬT BÓNG 3D
+                    </label>
+                </div>
+                
+                <div class="setting-row">
+                    <label>1. Chọn dáng</label>
+                    <div class="setting-inputs">
+                        <select id="${prefix}ShapeType" onchange="toggleShapeOptions('${prefix}'); typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="font-weight:bold; color:#e74c3c;">
+                            <option value="none" selected>Không dùng khối</option>
+                            <option value="text_only">Chữ theo màu mạng</option>
+                            <option disabled>--- Nền Bo/Vuông Mới ---</option>
+                            <option value="rect_round_tight">Vuông bo tròn (Gần khít)</option>
+                            <option disabled>--- Các Loại Khối Cũ ---</option>
+                            <option value="circle">Hình tròn</option>
+                            <option value="diamond">Hình Thoi</option>
+                            <option value="pentagon">Ngũ giác (5)</option>
+                            <option value="hexagon">Lục giác (6)</option>
+                            <option value="octagon">Bát giác (8)</option>
+                            <option value="teardrop">Giọt nước</option>
+                            <option value="star">Ngôi sao</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="${prefix}ShapeOptions" style="display: none; border-top: 1px dashed #e74c3c; padding-top: 10px; margin-top: 8px;">
+                    
+                    <div class="setting-row" id="${prefix}ShapeSizeRow">
+                        <label>5. KÍCH THƯỚC</label>
+                        <div class="setting-inputs" style="flex-wrap: wrap; gap: 5px;">
+                            <div style="display:flex; align-items:center; gap:3px; background:#fafffa; padding:2px 5px; border-radius:4px; border:1px solid #2ecc71;">
+                                <span>W:</span><input type="number" id="${prefix}ShapeW" value="45" style="width:45px;" oninput="drawCanvas()">
+                                <label style="font-size:10px; color:#27ae60; cursor:pointer; font-weight:bold;"><input type="checkbox" id="${prefix}ShapeAutoW" onchange="toggleShapeOptions('${prefix}'); drawCanvas()"> AUTO</label>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:3px; background:#fafffa; padding:2px 5px; border-radius:4px; border:1px solid #2ecc71;">
+                                <span>H:</span><input type="number" id="${prefix}ShapeH" value="45" style="width:45px;" oninput="drawCanvas()">
+                                <label style="font-size:10px; color:#27ae60; cursor:pointer; font-weight:bold;"><input type="checkbox" id="${prefix}ShapeAutoH" onchange="toggleShapeOptions('${prefix}'); drawCanvas()"> AUTO</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-box" style="border: 1px solid #f39c12; margin-top: 10px;">
+                        <div class="setting-title" style="background:#fdf2e9; color:#f39c12;">🔲 VIỀN KHỐI</div>
+                        
+                        <div class="setting-row">
+                            <label>Kiểu viền</label>
+                            <div class="setting-inputs">
+                                <select id="${prefix}ShapeBorderMode" onchange="document.getElementById('${prefix}ShapeBorderSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('${prefix}ShapeBorderGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('${prefix}ShapeBorderImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; typeof updatePreview === 'function' ? updatePreview() : drawCanvas();">
+                                    <option value="solid" selected>Màu trơn</option>
+                                    <option value="gradient">Gradient</option>
+                                    <option value="image">Lồng Ảnh</option>
+                                </select>
+                                <label><input type="checkbox" id="${prefix}ShapeBorderTrans" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> Ẩn</label>
+                            </div>
+                        </div>
+
+                        <div class="setting-row" id="${prefix}ShapeBorderSolidGrp">
+                            <label>Màu viền</label>
+                            <div class="setting-inputs">
+                                <input type="color" id="${prefix}ShapeBorderColor" value="#ffffff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                            </div>
+                        </div>
+
+                        <div class="setting-row" id="${prefix}ShapeBorderGradGrp" style="display:none;">
+                            <label>Gradient</label>
+                            <div class="setting-inputs">
+                                <input type="color" id="${prefix}ShapeBorderGradient1" value="#007bff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>➔</span>
+                                <input type="color" id="${prefix}ShapeBorderGradient2" value="#ff0000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>Góc:</span><input type="number" id="${prefix}ShapeBorderGradAngle" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                            </div>
+                        </div>
+
+                        <div class="setting-row" id="${prefix}ShapeBorderImgGrp" style="display:none;">
+                            <label>Ảnh lồng</label>
+                            <div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                                <div style="display:flex; gap:5px; width:100%;">
+                                    <input type="file" id="${prefix}ShapeBorderInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}ShapeBorderImage', '${prefix}ShapeBorderStatus')">
+                                    <button type="button" onclick="openBgCloudModal('${prefix}ShapeBorderImage', '${prefix}ShapeBorderStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                                    <button type="button" onclick="removeImage('${prefix}ShapeBorderImage', '${prefix}ShapeBorderInput', '${prefix}ShapeBorderStatus')" class="btn-remove">✕</button>
+                                </div>
+                                <div id="${prefix}ShapeBorderStatus" class="status-info">❌ Chưa có ảnh</div>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Dày/Bo</label>
+                            <div class="setting-inputs">
+                                <span>Dày:</span><input type="number" id="${prefix}ShapeBorderW" value="2" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span id="${prefix}ShapeRadiusGrp" style="display:none;">
+                                    <span>Bo(R):</span><input type="number" id="${prefix}ShapeRadius" value="0" style="width:40px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                </span>
+                                <select id="${prefix}ShapeBorderStyle" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                    <option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-box" style="border: 1px solid #d35400; margin-top: 10px;">
+                        <div class="setting-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG KHỐI</div>
+                        <div class="setting-row">
+                            <label>Trạng thái</label>
+                            <div class="setting-inputs">
+                                <input type="checkbox" id="${prefix}ShapeBoxShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> <span>Bật</span>
+                                <span>X:</span><input type="number" id="${prefix}ShapeBoxShadowX" value="2" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>Y:</span><input type="number" id="${prefix}ShapeBoxShadowY" value="2" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>Mờ:</span><input type="number" id="${prefix}ShapeBoxShadowBlur" value="4" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <input type="color" id="${prefix}ShapeBoxShadowColor" value="#000000" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-box" style="border: 1px solid #e67e22; margin-top: 10px;">
+                        <div class="setting-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div>
+                        <div class="setting-row">
+                            <label>Trạng thái</label>
+                            <div class="setting-inputs">
+                                <input type="checkbox" id="${prefix}ShapeBorderShadow" onchange="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()"> <span>Bật</span>
+                                <span>X:</span><input type="number" id="${prefix}ShapeBorderShadowX" value="0" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>Y:</span><input type="number" id="${prefix}ShapeBorderShadowY" value="0" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <span>Mờ:</span><input type="number" id="${prefix}ShapeBorderShadowBlur" value="3" style="width:35px;" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                                <input type="color" id="${prefix}ShapeBorderShadowColor" value="#ffffff" oninput="typeof updatePreview === 'function' ? updatePreview() : drawCanvas()">
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        ` : ''}
+    </div>`;
+    return html;
+};
+
+window.generateHeaderTab = function(prefix, title, defX, defW, defY = 0, ax = 'center', ay = 'top') {
+    let html = `
+        <div id="sub-${prefix}" class="sub-tab-content">
+            <div class="sub-tabs">
+                <button class="sub-tab-btn active" onclick="switchSubSubTab('ssub-${prefix}-pos', this)">📐 Vị Trí</button>
+                <button class="sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-format', this)">📝 Định Dạng</button>
+                <button class="sub-tab-btn" onclick="switchSubSubTab('ssub-${prefix}-bg', this)">🎨 Nền & Viền</button>
+            </div>
+            <div id="ssub-${prefix}-format" class="sub-sub-tab-content">
+                <div class="setting-box"><div class="setting-title" style="background:#2ecc71;">🔠 Định Dạng Chữ</div>
+                <div class="setting-row"><label style="color:#e74c3c;">Tên hiển thị</label><div class="setting-inputs"><input type="text" id="${prefix}Text" value="${title}" class="flex-1"></div></div>
+                <div class="setting-row"><label>Font & Cỡ</label><div class="setting-inputs"><select id="${prefix}Font" class="font-selector" style="max-width:110px;"></select><button type="button" class="btn-mini" style="background:#8e44ad; padding:2px 8px; font-weight:bold;" onclick="document.getElementById('globalFontInput').click()" title="Tải font riêng (.ttf, .otf)">+ Font</button><span>Size:</span><input type="number" id="${prefix}Size" value="24"><span>Dãn:</span><input type="number" id="${prefix}ScaleY" value="1" step="0.1" style="width:40px;"></div></div>
+                <div class="setting-row"><label>Canh & Lệch</label><div class="setting-inputs"><select id="${prefix}TextAlign"><option value="left">Trái</option><option value="center" selected>Giữa</option><option value="right">Phải</option></select><span>Pad:</span><input type="number" id="${prefix}TextPad" value="5"><span>X:</span><input type="number" id="${prefix}TextX" value="0"><span>Y:</span><input type="number" id="${prefix}TextY" value="0"></div></div>
+                <div class="setting-row"><label>Màu Chữ</label><div class="setting-inputs"><select id="${prefix}ColorMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Lồng Ảnh</option></select></div></div>
+                <div class="setting-row" id="${prefix}ColorSolidGrp"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="${prefix}Color" value="#000000"></div></div>
+                <div class="setting-row" id="${prefix}ColorGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}ColorGradient1" value="#000000"><span>➔</span><input type="color" id="${prefix}ColorGradient2" value="#ff0000"><span>Góc:</span><input type="number" id="${prefix}ColorGradAngle" value="0" style="width:40px;"></div></div>
+                <div class="setting-row" id="${prefix}ColorImgGrp" style="display:none;"><label>Ảnh lồng</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                    <div style="display:flex; gap:5px; width:100%;">
+                        <input type="file" id="${prefix}ColorInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}ColorImage', '${prefix}ColorStatus')">
+                        <button type="button" onclick="openBgCloudModal('${prefix}ColorImage', '${prefix}ColorStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                        <button type="button" onclick="removeImage('${prefix}ColorImage', '${prefix}ColorInput', '${prefix}ColorStatus')" class="btn-remove">✕</button>
+                    </div>
+                    <div id="${prefix}ColorStatus" class="status-info">❌ Chưa có ảnh</div>
+                </div></div>
+                <div class="setting-row"><label>Trang trí</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}Bold" checked><b>B</b></label><label><input type="checkbox" id="${prefix}Italic"><i>I</i></label><label><input type="checkbox" id="${prefix}Underline"><u>U</u></label><label><input type="checkbox" id="${prefix}Stroke">Viền</label><input type="color" id="${prefix}StrokeColor" value="#ffffff"><input type="number" id="${prefix}StrokeWidth" value="1"></div></div>
+                </div>
+                <div class="setting-box" style="border: 1px solid #27ae60;"><div class="setting-title" style="background:#e8f4e8; color:#27ae60;">⛅ BÓNG CHỮ (ObjShadow)</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}ObjShadow"> Bật bóng chữ</label><span>X:</span><input type="number" id="${prefix}ObjShadowX" value="3"><span>Y:</span><input type="number" id="${prefix}ObjShadowY" value="3"><span>Mờ:</span><input type="number" id="${prefix}ObjShadowBlur" value="5"><input type="color" id="${prefix}ObjShadowColor" value="#000000"></div></div></div>
+            </div>
+            <div id="ssub-${prefix}-pos" class="sub-sub-tab-content active">
+                <div class="setting-box"><div class="setting-title">📐 Vị Trí & Kích Thước</div>
+                <div class="setting-row"><label>Kích thước</label><div class="setting-inputs"><span>W:</span><input type="number" id="${prefix}W" value="${defW}"><span>H:</span><input type="number" id="${prefix}H" value="40"></div></div>
+                <div class="setting-row"><label>Lệch khối</label><div class="setting-inputs"><span>X:</span><input type="number" id="${prefix}X" value="${defX}"><span>Y:</span><input type="number" id="${prefix}Y" value="${defY}"></div></div>
+                <div class="setting-row"><label>Xoay (Góc)</label><div class="setting-inputs"><span>∠:</span><input type="number" id="${prefix}Angle" value="0" style="width:45px;"> <input type="range" min="-180" max="180" value="0" oninput="document.getElementById('${prefix}Angle').value=this.value; typeof updatePreview === 'function' ? updatePreview() : drawCanvas()" style="flex:1;"></div></div>
+                <div class="setting-row"><label>Khóa/Canh</label><div class="setting-inputs">
+                    <select id="${prefix}AlignX" onchange="drawCanvas(); updateUI();" style="flex:1; padding:5px; border-radius:6px; border:1px solid #ddd;">
+                        <option value="left" ${ax === 'left' ? 'selected' : ''}>Ngang: Trái</option>
+                        <option value="center" ${ax === 'center' ? 'selected' : ''}>Ngang: Giữa</option>
+                        <option value="right" ${ax === 'right' ? 'selected' : ''}>Ngang: Phải</option>
+                        <option value="auto" ${ax === 'auto' ? 'selected' : ''}>✨ Auto (Lật gáy)</option>
+                    </select>
+                    <select id="${prefix}AlignY" onchange="drawCanvas(); updateUI();" style="flex:1; padding:5px; border-radius:6px; border:1px solid #ddd;"><option value="top" ${ay === 'top' ? 'selected' : ''}>Dọc: Trên</option><option value="middle" ${ay === 'middle' ? 'selected' : ''}>Dọc: Giữa</option><option value="bottom" ${ay === 'bottom' ? 'selected' : ''}>Dọc: Dưới</option></select>
+                    <label style="color:red; background:#fff; padding:5px 8px; border-radius:6px; border:1px solid #ddd; cursor:pointer;"><input type="checkbox" id="${prefix}Locked"> Khóa</label>
+                </div></div>
+                </div>
+            </div>
+            <div id="ssub-${prefix}-bg" class="sub-sub-tab-content">
+                <div class="setting-box"><div class="setting-title" style="background:#e74c3c;">🎨 NỀN Ô KHUNG</div>
+                <div class="setting-row"><label>Kiểu nền</label><div class="setting-inputs"><select id="${prefix}BgMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh lót</option></select><label><input type="checkbox" id="${prefix}BgTrans" checked>Ẩn</label></div></div>
+                <div class="setting-row" id="${prefix}BgSolidGrp"><label>Màu lót</label><div class="setting-inputs"><input type="color" id="${prefix}Bg" value="#ffffff"></div></div>
+                <div class="setting-row" id="${prefix}BgGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BgGradient1" value="#ffffff"><span>➔</span><input type="color" id="${prefix}BgGradient2" value="#007bff"><span>Góc:</span><input type="number" id="${prefix}BgGradAngle" value="0" style="width:40px;"></div></div>
+                <div class="setting-row" id="${prefix}BgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                    <div style="display:flex; gap:5px; width:100%;">
+                        <input type="file" id="${prefix}BgInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}BgImage', '${prefix}BgStatus')">
+                        <button type="button" onclick="openBgCloudModal('${prefix}BgImage', '${prefix}BgStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                        <button type="button" onclick="removeImage('${prefix}BgImage', '${prefix}BgInput', '${prefix}BgStatus')" class="btn-remove">✕</button>
+                    </div>
+                    <div id="${prefix}BgStatus" class="status-info">❌ Chưa có ảnh</div>
+                </div></div>
+                </div>
+                <div class="setting-box"><div class="setting-title" style="background:#f39c12;">🔲 VIỀN Ô KHUNG</div>
+                <div class="setting-row"><label>Kiểu viền</label><div class="setting-inputs"><select id="${prefix}BorderMode" onchange="updateUI()"><option value="solid" selected>Màu trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh</option></select><label><input type="checkbox" id="${prefix}BorderTrans" checked>Ẩn</label></div></div>
+                <div class="setting-row" id="${prefix}BorderSolidGrp"><label>Màu viền</label><div class="setting-inputs"><input type="color" id="${prefix}BorderColor" value="#007bff"></div></div>
+                <div class="setting-row" id="${prefix}BorderGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="${prefix}BorderGradient1" value="#007bff"><span>➔</span><input type="color" id="${prefix}BorderGradient2" value="#ff0000"><span>Góc:</span><input type="number" id="${prefix}BorderGradAngle" value="0" style="width:40px;"></div></div>
+                <div class="setting-row" id="${prefix}BorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="setting-inputs" style="flex-direction:column; align-items:flex-start; width:100%;">
+                    <div style="display:flex; gap:5px; width:100%;">
+                        <input type="file" id="${prefix}BorderInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, '${prefix}BorderImage', '${prefix}BorderStatus')">
+                        <button type="button" onclick="openBgCloudModal('${prefix}BorderImage', '${prefix}BorderStatus')" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                        <button type="button" onclick="removeImage('${prefix}BorderImage', '${prefix}BorderInput', '${prefix}BorderStatus')" class="btn-remove">✕</button>
+                    </div>
+                    <div id="${prefix}BorderStatus" class="status-info">❌ Chưa có ảnh</div>
+                </div></div>
+                <div class="setting-row"><label>Dày/Bo</label><div class="setting-inputs"><span>Dày:</span><input type="number" id="${prefix}BorderW" value="2"><span>Bo(R):</span><input type="number" id="${prefix}Radius" value="8"><select id="${prefix}BorderStyle"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div></div>
+                <div class="setting-box" style="border: 1px solid #d35400;"><div class="setting-title" style="background:#fffcf0; color:#d35400;">📦 BÓNG NỀN Ô</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}BoxShadow"> Bật bóng Nền</label><span>X:</span><input type="number" id="${prefix}BoxShadowX" value="5"><span>Y:</span><input type="number" id="${prefix}BoxShadowY" value="5"><span>Mờ:</span><input type="number" id="${prefix}BoxShadowBlur" value="10"><input type="color" id="${prefix}BoxShadowColor" value="#000000"></div></div></div>
+                <div class="setting-box" style="border: 1px solid #e67e22;"><div class="setting-title" style="background:#fdf2e9; color:#e67e22;">🔲 BÓNG NÉT VIỀN</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="${prefix}BorderShadow"> Bật bóng Viền</label><span>X:</span><input type="number" id="${prefix}BorderShadowX" value="2"><span>Y:</span><input type="number" id="${prefix}BorderShadowY" value="2"><span>Mờ:</span><input type="number" id="${prefix}BorderShadowBlur" value="4"><input type="color" id="${prefix}BorderShadowColor" value="#000000"></div></div></div>
+            </div>
+        </div>`;
+    return html;
+};
+
+// --- INITIALIZE DYNAMIC UI ---
+window.initDynamicUI = function() {
+    const container = document.getElementById('dynamic-tabs-container');
+    const gTabsContainer = document.getElementById('globalTextTabs');
+    if (!container) return;
+
+    let layoutHtml = `<div id="tab-layout" class="tab-content active"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-luoi-chung', this)">Lưới Chung</button><button class="sub-tab-btn" onclick="switchSubTab('sub-num', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-price', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-menh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-mang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-data2', this)">DL 2</button></div>`;
+
+    layoutHtml += `<div id="sub-luoi-chung" class="sub-tab-content active">
+    <div class="sub-tabs" style="background:#eee; margin-bottom:15px;">
+        <button class="sub-sub-tab-btn active" onclick="switchSubSubTab('sub-sub-luoi-size', this)">📏 Kích Thước</button>
+        <button class="sub-sub-tab-btn" onclick="switchSubSubTab('sub-sub-luoi-style', this)">🎨 Nền & Viền</button>
+        <button class="sub-sub-tab-btn" onclick="switchSubSubTab('sub-sub-luoi-zebra', this)">🦓 Ngựa Vằn</button>
+    </div>
+
+    <div id="sub-sub-luoi-size" class="sub-sub-tab-content active">
+        <div class="setting-box"><div class="setting-title">📏 Kích Thước Lưới</div>
+            <div class="setting-row"><label>Cột hiển thị</label><div class="setting-inputs"><label><input type="checkbox" id="chkNum" checked onchange="updateUI()">Số</label><label><input type="checkbox" id="chkPrice" checked onchange="updateUI()">Giá</label><label><input type="checkbox" id="chkMenh" checked onchange="updateUI()">Mệnh</label><label><input type="checkbox" id="chkMang" checked onchange="updateUI()">Mạng</label><label><input type="checkbox" id="chkData1" checked onchange="updateUI()">DL1</label><label><input type="checkbox" id="chkData2" checked onchange="updateUI()">DL2</label></div></div>
+            <div class="setting-row"><label>Ô Lưới</label><div class="setting-inputs"><span>W:</span><input type="number" id="cellW" value="380"><span>H:</span><input type="number" id="cellH" value="60"></div></div>
+            <div class="setting-row"><label>Số lượng</label><div class="setting-inputs"><span>Cột:</span><input type="number" id="tableCols" value="2"><span>Dòng:</span><input type="number" id="tableRows" value="10"></div></div>
+            <div class="setting-row"><label>Cách nhau</label><div class="setting-inputs"><span>Cột:</span><input type="number" id="tableGap" value="15"><span>Dòng:</span><input type="number" id="rowGap" value="10"></div></div>
+        </div>
+    </div>
+
+    <div id="sub-sub-luoi-style" class="sub-sub-tab-content">
+        <div class="setting-box">
+            <div class="setting-title" style="background:#f39c12;">🎨 NỀN Ô LƯỚI & BÓNG CELL</div>
+            <div class="setting-row"><label>Nền Ô Lưới</label><div class="setting-inputs">
+                <select id="cellBgMode" onchange="document.getElementById('cellBgSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('cellBgGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('cellBgImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; updateUI();">
+                    <option value="solid" selected>Trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh</option>
+                </select>
+                <label><input type="checkbox" id="cellBgTrans" checked>Ẩn</label></div></div>
+            <div class="setting-row" id="cellBgSolidGrp"><label>Màu nền</label><div class="setting-inputs"><input type="color" id="cellBg" value="#ffffff"></div></div>
+            <div class="setting-row" id="cellBgGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="cellBgGradient1" value="#ffffff"><span>➔</span><input type="color" id="cellBgGradient2" value="#f0f0f0"><span>Góc:</span><input type="number" id="cellBgGradAngle" value="0" style="width:40px;"></div></div>
+            <div class="setting-row" id="cellBgImgGrp" style="display:none;"><label>Ảnh nền</label><div class="setting-inputs" style="flex-direction:column; gap:3px;">
+                <div style="display:flex; gap:5px; width:100%;"><input type="file" id="cellBgInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, 'cellBgImage', 'cellBgStatus')">
+                <button type="button" onclick="document.getElementById('cellBgInput').value=''; document.getElementById('cellBgStatus').innerHTML='☁️ Đang dùng ảnh Mây'; openBgCloudModal('cellBgImage', 'cellBgStatus');" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                <button type="button" onclick="removeImage('cellBgImage', 'cellBgInput', 'cellBgStatus')" class="btn-remove">✕</button></div>
+                <div id="cellBgStatus" class="status-info">❌ Chưa có ảnh</div></div></div>
+            <div class="setting-row"><label>Viền Lưới</label><div class="setting-inputs">
+                <select id="cellBorderMode" onchange="document.getElementById('cellBorderSolidGrp').style.display = this.value === 'solid' ? 'flex' : 'none'; document.getElementById('cellBorderGradGrp').style.display = this.value === 'gradient' ? 'flex' : 'none'; document.getElementById('cellBorderImgGrp').style.display = this.value === 'image' ? 'flex' : 'none'; updateUI();">
+                    <option value="solid" selected>Trơn</option><option value="gradient">Gradient</option><option value="image">Ảnh</option>
+                </select>
+                <label><input type="checkbox" id="cellBorderTrans">Ẩn</label></div></div>
+            <div class="setting-row" id="cellBorderSolidGrp"><label>Màu viền</label><div class="setting-inputs"><input type="color" id="cellBorderColor" value="#cccccc"></div></div>
+            <div class="setting-row" id="cellBorderGradGrp" style="display:none;"><label>Gradient</label><div class="setting-inputs"><input type="color" id="cellBorderGradient1" value="#cccccc"><span>➔</span><input type="color" id="cellBorderGradient2" value="#000000"><span>Góc:</span><input type="number" id="cellBorderGradAngle" value="0" style="width:40px;"></div></div>
+            <div class="setting-row" id="cellBorderImgGrp" style="display:none;"><label>Ảnh viền</label><div class="setting-inputs" style="flex-direction:column; gap:3px;">
+                <div style="display:flex; gap:5px; width:100%;"><input type="file" id="cellBorderInput" accept="image/*" class="mini" style="flex:1;" onchange="setLocalImage(this, 'cellBorderImage', 'cellBorderStatus')">
+                <button type="button" onclick="document.getElementById('cellBorderInput').value=''; document.getElementById('cellBorderStatus').innerHTML='☁️ Đang dùng ảnh Mây'; openBgCloudModal('cellBorderImage', 'cellBorderStatus');" class="btn-mini" style="background:var(--success);">☁️ MÂY</button>
+                <button type="button" onclick="removeImage('cellBorderImage', 'cellBorderInput', 'cellBorderStatus')" class="btn-remove">✕</button></div>
+                <div id="cellBorderStatus" class="status-info">❌ Chưa có ảnh</div></div></div>
+            <div class="setting-row"><label>Dày/Bo</label><div class="setting-inputs"><span>Dày:</span><input type="number" id="cellBorderW" value="1"><span>Bo:</span><input type="number" id="cellRadius" value="0"><select id="cellBorderStyle"><option value="solid">Liền</option><option value="dashed">Đứt</option><option value="dotted">Chấm</option><option value="double">Đôi</option></select></div></div>
+            <div class="setting-row" style="background:#fffcf0;"><label style="color:red;">🔲 Bóng Cell</label><div class="setting-inputs"><label><input type="checkbox" id="cellBoxShadow"> Bật bóng Ô Lưới</label><span>X:</span><input type="number" id="cellBoxShadowX" value="3"><span>Y:</span><input type="number" id="cellBoxShadowY" value="3"><span>Mờ:</span><input type="number" id="cellBoxShadowBlur" value="8"><input type="color" id="cellBoxShadowColor" value="#000000"></div></div>
+        </div>
+    </div>
+
+    <div id="sub-sub-luoi-zebra" class="sub-sub-tab-content">
+        <div class="setting-box" style="border-left: 5px solid #2ecc71;">
+            <div class="setting-title" style="background:#2ecc71; color:white;">🦓 Cài đặt Đổ màu Ngựa Vằn</div>
+            <div class="setting-row" style="background:#e8f4e8;"><label style="color:green;">🦓 Ngựa Vằn</label><div class="setting-inputs"><label><input type="checkbox" id="useZebra" onchange="updateUI()"> Bật nền xen kẽ</label></div></div>
+            <div id="zebraSettingsContainer" style="display:none; background:#f9fff9; border:1px dashed #2ecc71; padding:10px; border-radius:8px; margin-top:5px;">
+                <div class="setting-row" style="border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:5px;">
+                    <label style="color:#27ae60; width:100px; font-size:11px;">Dòng Lẻ (1,3..)</label>
+                    <div class="setting-inputs" style="flex-wrap:wrap; gap:5px;">
+                        <div style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>NỀN:</span><input type="color" id="zebraOddBg" value="#ffffff"></div>
+                        <div id="zebraOddNumGrp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ 🔢:</span><input type="color" id="zebraOddNumColor" value="#000000"></div>
+                        <div id="zebraOddPriceGrp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ 💰:</span><input type="color" id="zebraOddPriceColor" value="#000000"></div>
+                        <div id="zebraOddMenhGrp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ ☯️:</span><input type="color" id="zebraOddMenhColor" value="#000000"></div>
+                        <div id="zebraOddMangGrp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ 🏷️:</span><input type="color" id="zebraOddMangColor" value="#000000"></div>
+                        <div id="zebraOddData1Grp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ DL1:</span><input type="color" id="zebraOddData1Color" value="#000000"></div>
+                        <div id="zebraOddData2Grp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ DL2:</span><input type="color" id="zebraOddData2Color" value="#000000"></div>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <label style="color:#e67e22; width:100px; font-size:11px;">Dòng Chẵn (2,4..)</label>
+                    <div class="setting-inputs" style="flex-wrap:wrap; gap:5px;">
+                        <div style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>NỀN:</span><input type="color" id="zebraEvenBg" value="#f2f2f2"></div>
+                        <div id="zebraEvenNumGrp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ 🔢:</span><input type="color" id="zebraEvenNumColor" value="#000000"></div>
+                        <div id="zebraEvenPriceGrp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ 💰:</span><input type="color" id="zebraEvenPriceColor" value="#000000"></div>
+                        <div id="zebraEvenMenhGrp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ ☯️:</span><input type="color" id="zebraEvenMenhColor" value="#000000"></div>
+                        <div id="zebraEvenMangGrp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ 🏷️:</span><input type="color" id="zebraEvenMangColor" value="#000000"></div>
+                        <div id="zebraEvenData1Grp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ DL1:</span><input type="color" id="zebraEvenData1Color" value="#000000"></div>
+                        <div id="zebraEvenData2Grp" style="display:flex; align-items:center; gap:2px; font-size:10px;"><span>Chữ DL2:</span><input type="color" id="zebraEvenData2Color" value="#000000"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>`;
+
+    layoutHtml += generateColTab('num', 'Cột Số', 0, false, 200, '#ffffff') + generateColTab('price', 'Cột Giá', 65, false, 110, '#ffffff') + generateColTab('menh', 'Cột Mệnh', 0, true, 70, '#ffffff') + generateColTab('mang', 'Cột Mạng', -80, true, 70, '#ffffff') + generateColTab('data1', 'Cột DL 1', 0, false, 100, '#ffffff') + generateColTab('data2', 'Cột DL 2', 0, false, 100, '#ffffff') + `</div>`;
+
+    let headHtml = `<div id="tab-colheader" class="tab-content"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-hCommon', this)">Bật/Tắt Tiêu Đề</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hNum', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hPrice', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMenh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData2', this)">DL 2</button></div>`;
+    headHtml += `<div id="sub-hCommon" class="sub-tab-content active"><div class="setting-box"><div class="setting-title">🏷️ Kích Hoạt Tiêu Đề</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="showHeaderRow" checked> Hiện hàng Tiêu Đề</label><span>Cao(H):</span><input type="number" id="headerRowHeight" value="50"></div></div></div></div>`;
+    headHtml += generateHeaderTab('hNum', 'SỐ ĐẸP VIP', 0, 200) + generateHeaderTab('hPrice', 'GIÁ BÁN', 65, 110) + generateHeaderTab('hMenh', 'MỆNH', 0, 70) + generateHeaderTab('hMang', 'MẠNG', -80, 70) + generateHeaderTab('hData1', 'DỮ LIỆU 1', 0, 100) + generateHeaderTab('hData2', 'DỮ LIỆU 2', 0, 100) + `</div>`;
+
+    let globHtml = `<div id="tab-globaltext" class="tab-content"><div class="sub-tabs" id="globalTextTabs" style="flex-wrap: wrap;"></div><div id="dynamic-globals-container">`;
+    let gT = [
+        { id: 'header1', t: 'Tiêu Đề 1', d: 'BẢNG SIM SỐ ĐẸP', w: 500, y: -25, ax: 'center', ay: 'top' },
+        { id: 'header2', t: 'Tiêu Đề 2', d: 'Uy Tín - Chất Lượng', w: 500, y: 25, ax: 'center', ay: 'top' },
+        { id: 'footer1', t: 'Chân Trang 1', d: 'Giao Sim Tận Nơi', w: 500, y: -25, ax: 'center', ay: 'bottom' },
+        { id: 'footer2', t: 'Chân Trang 2', d: 'Hotline: 0909.123.456', w: 500, y: 25, ax: 'center', ay: 'bottom' },
+        { id: 'ctl', t: 'Trái-Trên', d: 'Hotline', w: 200, y: 0, ax: 'left', ay: 'top' },
+        { id: 'ctr', t: 'Phải-Trên', d: 'Zalo', w: 200, y: 0, ax: 'right', ay: 'top' },
+        { id: 'cbl', t: 'Trái-Dưới', d: 'CSKH', w: 200, y: 0, ax: 'left', ay: 'bottom' },
+        { id: 'cbr', t: 'Phải-Dưới', d: 'UY TÍN', w: 200, y: 0, ax: 'right', ay: 'bottom' },
+        { id: 'pageNum', t: 'Số Trang', d: 'Trang {p}/{t}', w: 150, y: 0, ax: 'auto', ay: 'bottom' }
+    ];
+    let gTabs = '<button class="sub-tab-btn active" onclick="switchSubTab(\'sub-gt-chung\', this)">Bật/Tắt Cụm</button>';
+    globHtml += `<div id="sub-gt-chung" class="sub-tab-content active"><div class="setting-box"><div class="setting-title">BẬT TẮT CHỮ GÓC</div><div class="setting-row"><div class="setting-inputs" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+    <label><input type="checkbox" id="use_header1" checked onchange="updateUI()">T.Đề 1</label>
+    <label><input type="checkbox" id="use_header2" checked onchange="updateUI()">T.Đề 2</label>
+    <label><input type="checkbox" id="use_ctl" checked onchange="updateUI()">Trái Trên</label>
+    <label><input type="checkbox" id="use_ctr" checked onchange="updateUI()">Phải Trên</label>
+    <label><input type="checkbox" id="use_footer1" checked onchange="updateUI()">C.Trang 1</label>
+    <label><input type="checkbox" id="use_footer2" checked onchange="updateUI()">C.Trang 2</label>
+    <label><input type="checkbox" id="use_cbl" checked onchange="updateUI()">Trái Dưới</label>
+    <label><input type="checkbox" id="use_cbr" checked onchange="updateUI()">Phải Dưới</label>
+    <label style="color:red;"><input type="checkbox" id="use_pageNum" checked onchange="updateUI()">Số Trang</label>
+</div></div></div></div>`;
+    gT.forEach(g => {
+        gTabs += `<button class="sub-tab-btn" onclick="switchSubTab('sub-${g.id}', this)">${g.t}</button>`;
+        globHtml += generateHeaderTab(g.id, g.d, 0, g.w, g.y, g.ax, g.ay);
+    });
+    globHtml += `</div></div>`;
+
+    let genHtml = `
+<div id="tab-general" class="tab-content">
+<div class="sub-tabs" style="margin-bottom: 10px;">
+<button class="sub-tab-btn active" onclick="switchSubTab('sub-general-bg', this)">🌄 Khổ Giấy & Nền</button>
+<button class="sub-tab-btn" onclick="switchSubTab('sub-general-margin', this)">📏 Lề & Gáy</button>
+<button class="sub-tab-btn" onclick="switchSubTab('sub-general-export', this)">📦 Xuất File</button>
+</div>
+
+<div id="sub-general-bg" class="sub-tab-content active">
+<div class="setting-box">
+    <div class="setting-title" style="background:#8e44ad;">🌄 KHỔ GIẤY & NỀN TỔNG</div>
+    
+    <div class="setting-row" style="background:#f4f9ff; align-items: flex-start; padding-top: 10px;">
+        <label>Khổ Giấy</label>
+        <div class="setting-inputs" style="flex-wrap: wrap; gap: 8px;">
+            <select id="canvasSizeMode" onchange="
+                let wrap = document.getElementById('customCanvasSizeWrapper');
+                let pre = document.getElementById('fixedSizePreset');
+                let hBox = document.getElementById('wrapCustomH');
+                let wLbl = document.getElementById('lblCustomW');
+                if(this.value === 'fixed') {
+                    wrap.style.display='flex'; pre.style.display='block'; hBox.style.display='flex'; wLbl.innerText='W:';
+                } else if(this.value === 'ratio') {
+                    wrap.style.display='flex'; pre.style.display='none'; hBox.style.display='none'; wLbl.innerText='Cạnh ngang (px):';
+                } else {
+                    wrap.style.display='none';
+                }
+                if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();
+            " style="width: 100%; font-weight: bold; color: var(--primary);">
+                <option value="auto" selected>✨ Tự động (Theo Lưới SIM)</option>
+                <option value="fixed">🔒 Khóa cứng (Tùy chỉnh Size)</option>
+                <option value="ratio">🖼️ Chạy theo tỷ lệ Ảnh Nền</option>
+            </select>
+            
+            <div id="customCanvasSizeWrapper" style="display: none; width: 100%; gap: 10px; margin-top: 5px; flex-direction: column; align-items: flex-start; background: #fff; padding: 8px; border-radius: 6px; border: 1px dashed #ccc;">
+                <select id="fixedSizePreset" style="width:100%; font-size:12px; padding: 6px; border-radius: 4px; border: 1px solid #ccc; outline: none;" onchange="if(this.value){ let sz=this.value.split('x'); document.getElementById('customCanvasW').value=sz[0]; document.getElementById('customCanvasH').value=sz[1]; if(typeof updatePreviewImmediate==='function') updatePreviewImmediate(); }">
+                    <option value="">-- Tự nhập tay --</option>
+                    <option value="1080x1920">📱 Story (1080x1920)</option>
+                    <option value="1080x1080">🟦 Vuông (1080x1080)</option>
+                    <option value="826x1169">📄 A4 Dọc (In ấn)</option>
+                    <option value="1169x826">📄 A4 Ngang (In ấn)</option>
+                </select>
+                <div style="display: flex; gap: 10px; align-items: center; width: 100%; margin-top:5px;">
+                    <div style="display:flex; align-items:center; gap:5px;"><span id="lblCustomW">W:</span><input type="number" id="customCanvasW" value="1080" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();" style="width: 70px;"></div>
+                    <div id="wrapCustomH" style="display:flex; align-items:center; gap:5px;"><span>H:</span><input type="number" id="customCanvasH" value="1920" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();" style="width: 70px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="setting-row">
+        <label>Loại Nền</label>
+        <div class="setting-inputs">
+            <select id="bgMode" onchange="document.getElementById('bgSolidGrp').style.display = (this.value === 'solid' ? 'flex' : 'none'); document.getElementById('bgGradGrp').style.display = (this.value === 'gradient' ? 'flex' : 'none'); document.getElementById('bgImgGrp').style.display = (this.value === 'image' ? 'flex' : 'none'); if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();">
+                <option value="solid">Màu trơn</option>
+                <option value="gradient" selected>Chuyển màu</option> 
+                <option value="image">Ảnh Nền</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="setting-row" id="bgSolidGrp" style="display:none;"><label>Màu trơn</label><div class="setting-inputs"><input type="color" id="bgColor" value="#000000" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div>
+    <div class="setting-row" id="bgGradGrp"><label>Màu 1 ➔ 2</label><div class="setting-inputs"><input type="color" id="bgGradient1" value="#ffffff" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>➔</span><input type="color" id="bgGradient2" value="#006680" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Góc:</span><input type="number" id="bgGradAngle" value="0" style="width:45px;" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><button type="button" class="btn-mini" style="background:#8e44ad;" onclick="window.togglePalette(true)">🎨 PHỐI MÀU</button></div></div>
+    
+    <div class="setting-row" id="bgImgGrp" style="display:none; align-items: flex-start;">
+        <label style="margin-top: 8px;">Úp Ảnh Nền</label>
+        <div class="setting-inputs" style="flex-direction: column; align-items: flex-start; width: 100%; gap: 8px;">
+            <select id="bgFitMode" style="width: 100%; padding: 6px; font-weight: bold; border: 2px solid #f1c40f; border-radius: 4px; outline: none;" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();">
+                <option value="cover">✂️ Cắt xén lấp đầy (Cover)</option>
+                <option value="stretch" selected>↔️ Kéo giãn (Stretch)</option>
+                <option value="contain">🖼️ Vừa vặn (Có lót màu)</option>
+            </select>
+            <div style="display:flex; gap:5px; width:100%;">
+                <input type="file" id="bgInput" accept="image/*" class="mini" style="flex:1;" onchange="if(typeof setLocalImage==='function') setLocalImage(this, 'globalBgImage', 'mainBgStatus');">
+                <button type="button" onclick="document.getElementById('bgInput').value=''; document.getElementById('mainBgStatus').innerHTML='☁️ Đang dùng ảnh Mây'; if(typeof openBgCloudModal==='function') openBgCloudModal('global', 'mainBgStatus');" class="btn-mini" style="background:var(--success); color:white; border:none; padding:0 10px; border-radius:4px;">☁️ MÂY</button>
+                <button type="button" onclick="if(typeof removeImage==='function') removeImage('globalBgImage', 'bgInput', 'mainBgStatus');" class="btn-remove">✕</button>
+            </div>
+            <div id="mainBgStatus" class="status-info">❌ Chưa có ảnh</div>
+            <input type="text" id="bgDriveLink" placeholder="Dán Link Drive..." style="width:100%; padding:6px; border-radius: 4px;" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();">
+        </div>
+    </div>
+</div>
+</div>
+
+<div id="sub-general-margin" class="sub-tab-content"><div class="setting-box"><div class="setting-title" style="background:#8e44ad;">📏 CĂN LỀ & ĐÓNG GÁY</div><div class="setting-row"><label>Lề Dọc</label><div class="setting-inputs"><span>Trán:</span><input type="number" id="tZoneH" value="100" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Chân:</span><input type="number" id="fZoneH" value="80" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div><div class="setting-row" style="background:#fff4f4;"><label style="color:var(--danger)">Đóng gáy in</label><div class="setting-inputs"><select id="bindingMode" class="flex-1" onchange="document.getElementById('grpMarginNormal').style.display = (this.value === 'none' ? 'flex' : 'none'); document.getElementById('grpMarginBinding').style.display = (this.value === 'none' ? 'none' : 'flex'); if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><option value="none">1. Không đóng gáy</option><option value="single">2. Đóng gáy 1 mặt</option><option value="double">3. Đóng gáy 2 mặt (Lẻ/Chẵn)</option></select></div></div><div class="setting-row" id="grpMarginNormal"><label>Lề Ngang</label><div class="setting-inputs"><span>Trái:</span><input type="number" id="mLeft" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Phải:</span><input type="number" id="mRight" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div><div class="setting-row" id="grpMarginBinding" style="display:none; background:#fff4f4;"><label style="color:var(--danger)">Lề Đóng Gáy</label><div class="setting-inputs"><span>Gáy:</span><input type="number" id="marginBinding" value="80" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><span>Lề:</span><input type="number" id="marginNonBinding" value="30" class="mini" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"></div></div></div></div>
+<div id="sub-general-export" class="sub-tab-content">
+<div class="setting-box"><div class="setting-title" style="background:#27ae60;">📦 CHẤT LƯỢNG XUẤT FILE PRO</div>
+<div class="setting-row"><label>Độ nét</label><div class="setting-inputs"><select id="exportScale" class="flex-1" onchange="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"><option value="1">1x (Web)</option><option value="2" selected>2x (HD)</option><option value="3">3x (In Ấn)</option><option value="4">4x (Ultra Pro)</option></select></div></div>
+<div class="setting-row"><label>Watermark</label><div class="setting-inputs"><label><input type="checkbox" id="useWatermark" onchange="drawCanvas()"> Bật chữ ký</label><input type="text" id="watermarkText" value="VIP SIM TOOL" placeholder="Nội dung..." oninput="drawCanvas()"></div></div>
+<div class="setting-row"><label>Định dạng</label><div class="setting-inputs"><select id="exportFormat" class="flex-1"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option></select></div></div></div>
+</div>
+</div>`;
+    let modalHtml = `
+    <!-- Modal Bảng Màu -->
+    <div id="paletteModalOverlay" class="p-modal-overlay" onclick="if(event.target===this) window.togglePalette(false)">
+        <div class="p-modal-content">
+            <div class="p-modal-header">
+                <b>🎨 BỘ PHỐI MÀU CHUYÊN NGHIỆP</b>
+                <span class="p-modal-close" onclick="window.togglePalette(false)">✖</span>
+            </div>
+            <div id="paletteContainer" class="palette-grid">
+                <!-- Palettes will be injected here by populatePalettes() -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Trợ Giúp -->
+    <div id="helpModalOverlay" class="p-modal-overlay" onclick="if(event.target===this) window.closeHelpModal()">
+        <div class="p-modal-content" style="max-width: 500px;">
+            <div class="p-modal-header">
+                <b>❓ TRỢ GIÚP & HƯỚNG DẪN</b>
+                <span class="p-modal-close" onclick="window.closeHelpModal()">✖</span>
+            </div>
+            <div class="p-modal-body" style="padding: 20px; line-height: 1.6;">
+                <p>1. <b>Chọn mẫu:</b> Sử dụng tab Quản lý mẫu để tải thiết kế có sẵn.</p>
+                <p>2. <b>Nhập dữ liệu:</b> Nhập danh sách SIM vào ô nhập liệu chính hoặc dùng file Excel.</p>
+                <p>3. <b>Tùy chỉnh:</b> Sử dụng các tab Cài đặt để thay đổi font, màu sắc, vị trí.</p>
+                <p>4. <b>Xuất file:</b> Chọn chất lượng và định dạng, sau đó nhấn Xuất Ảnh hoặc Xuất PDF.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lớp phủ DRM (Bảo mật) -->
+    <div id="drmOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999999; flex-direction:column; align-items:center; justify-content:center; color:white; font-family:sans-serif; text-align:center; padding:20px;">
+        <div style="background:#1a1a1a; padding:40px; border-radius:15px; border:2px solid #e74c3c; max-width:400px; width:100%; box-shadow:0 0 30px rgba(231,76,60,0.3);">
+            <h1 style="color:#e74c3c; margin-bottom:10px;">⚠ PHẦN MỀM ĐÃ BỊ KHÓA</h1>
+            <p style="opacity:0.8; margin-bottom:20px;">Vui lòng kích hoạt bản quyền để tiếp tục sử dụng toàn bộ tính năng.</p>
+            <div style="background:#000; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #333;">
+                <span style="font-size:12px; color:#888; display:block; margin-bottom:5px;">MÃ MÁY CỦA BẠN:</span>
+                <b id="displayMac" style="font-family:monospace; font-size:20px; color:#2ecc71; letter-spacing:2px;">--------</b>
+            </div>
+            <input type="text" id="licenseKeyInput" placeholder="Nhập mã kích hoạt tại đây..." style="width:100%; padding:15px; border-radius:8px; border:none; margin-bottom:15px; font-size:16px; text-align:center;">
+            <button onclick="window.activateLicense()" style="width:100%; padding:15px; background:#e74c3c; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; transition:0.3s;">KÍCH HOẠT NGAY</button>
+            <p id="drmMessage" style="margin-top:15px; font-size:14px; min-height:20px;"></p>
+            <button onclick="window.copyMac()" style="margin-top:20px; background:none; border:none; color:#3498db; cursor:pointer; font-size:13px; text-decoration:underline;">Copy Mã Máy</button>
+        </div>
+    </div>
+    `;
+
+    container.innerHTML = layoutHtml + headHtml + globHtml + genHtml + modalHtml;
+    if (gTabsContainer) gTabsContainer.innerHTML = gTabs;
+};
+
+// --- FINAL INITIALIZATION ---
+function startApp() {
+    console.log("Starting App Initialization...");
+    // 1. Phải chạy initDynamicUI đầu tiên để tạo các thẻ DOM
+    if (typeof window.initDynamicUI === 'function') {
+        window.initDynamicUI();
+    } else {
+        console.error("initDynamicUI not found!");
+    }
+    
+    // 2. Khởi tạo các thành phần giao diện khác
+    if (typeof window.initFontSelectors === 'function') window.initFontSelectors();
+    if (typeof window.populatePalettes === 'function') window.populatePalettes();
+    if (typeof window.initModalPointerEvents === 'function') window.initModalPointerEvents();
+    
+    // 3. Thiếp lập Uploaders (từ script.js)
+    let prefixes = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2', 'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum', 'cell'];
+    prefixes.forEach(p => {
+        if(typeof window.setupAdvancedUploader === 'function') {
+            window.setupAdvancedUploader(p + 'ColorInput', p + 'ColorImage');
+            window.setupAdvancedUploader(p + 'BgInput', p + 'BgImage');
+            window.setupAdvancedUploader(p + 'BorderInput', p + 'BorderImage');
+        }
+    });
+    if(typeof window.setupAdvancedUploader === 'function') window.setupAdvancedUploader('bgInput', 'bgImage');
+
+    // 4. Cập nhật UI ban đầu
+    if (typeof window.updateUI === 'function') window.updateUI();
+    
+    // 5. Gắn sự kiện cho các Input
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+        el.addEventListener('input', () => { 
+            if(typeof window.drawCanvas === 'function') window.drawCanvas(); 
+            if(typeof window.debouncedSave === 'function') window.debouncedSave();
+        });
+        if (el.tagName === 'SELECT' || el.type === 'checkbox') el.addEventListener('change', () => { 
+            if(typeof window.updateUI === 'function') window.updateUI(); 
+            if(typeof window.drawCanvas === 'function') window.drawCanvas(); 
+            if(typeof window.debouncedSave === 'function') window.debouncedSave();
+        });
+    });
+
+    // 6. Security & DRM
+    if (typeof window.checkLicense === 'function') window.checkLicense();
+    if (typeof window.setupDrag === 'function') window.setupDrag('unifiedMenuContainer', 'unifiedMenuBtn');
+
+    // 7. Khôi phục phiên làm việc
+    if (typeof initStartupLogic === 'function') initStartupLogic();
+
+    // 7. Khôi phục phiên làm việc
+    if (typeof initStartupLogic === 'function') initStartupLogic();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startApp);
+} else {
+    startApp();
+}
+
+// --- PALETTE SYSTEM ---
+window.populatePalettes = function() {
+    const container = document.getElementById('paletteContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    // Professional Gradient Palettes
+    const palettes = [
+        ['#FF5733', '#C70039'], ['#900C3F', '#581845'], ['#581845', '#900C3F'],
+        ['#2c3e50', '#2980b9'], ['#1e3c72', '#2a5298'], ['#000428', '#004e92'],
+        ['#7f00ff', '#e100ff'], ['#d4145a', '#fbb03b'], ['#662d8c', '#ed1e79'],
+        ['#009245', '#fcee21'], ['#00dbde', '#fc00ff'], ['#f83600', '#f9d423'],
+        ['#09203f', '#537895'], ['#b721ff', '#21d4fd'], ['#ee0979', '#ff6a00'],
+        ['#11998e', '#38ef7d'], ['#3a1c71', '#d76d77'], ['#8e2de2', '#4a00e0']
+    ];
+
+    palettes.forEach(p => {
+        const item = document.createElement('div');
+        item.style.width = '100%';
+        item.style.height = '40px';
+        item.style.borderRadius = '8px';
+        item.style.background = `linear-gradient(to right, ${p[0]}, ${p[1]})`;
+        item.style.cursor = 'pointer';
+        item.style.border = '2px solid #eee';
+        item.style.transition = '0.2s';
+        item.onmouseover = () => item.style.transform = 'scale(1.05)';
+        item.onmouseout = () => item.style.transform = 'scale(1)';
+        item.onclick = () => window.applyPalette(p[0], p[1]);
+        container.appendChild(item);
+    });
+};
+
+window.applyPalette = function(c1, c2) {
+    const g1 = document.getElementById('bgGradient1');
+    const g2 = document.getElementById('bgGradient2');
+    if (g1 && g2) {
+        g1.value = c1;
+        g2.value = c2;
+        if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        window.togglePalette(false);
+    }
+};
+
+// --- BỔ SUNG TỪ SCRIPT.JS ---
+window.applyZoom = function(val) {
+    let zVal = document.getElementById('zoomVal'); if(zVal) zVal.innerText = val + '%';
+    let canvas = document.getElementById('preview'); if(canvas) { canvas.style.transform = `scale(${val / 100})`; canvas.style.transformOrigin = 'top center'; }
+};
+
+window.fitZoom = function() {
+    let wrapper = document.getElementById('canvasWrapper'); let canvas = document.getElementById('preview');
+    if(!wrapper || !canvas || canvas.width === 0) return;
+    let scale = Math.min(1, (wrapper.clientWidth - 20) / canvas.width);
+    let finalVal = Math.floor(scale * 100);
+    let zSlider = document.getElementById('zoomSlider'); if(zSlider) zSlider.value = finalVal;
+    window.applyZoom(finalVal);
+};
+
+window.toggleFullscreen = function() {
+    let col = document.getElementById('previewColumn'); let btn = document.getElementById('toggleFullBtn');
+    if(!col) return;
+    let isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+        document.body.classList.toggle('studio-mode');
+        window.isFullscreen = document.body.classList.contains('studio-mode');
+        if (window.isFullscreen) {
+            if (btn) btn.innerText = '↙ Thu nhỏ';
+            if (typeof window.openMobileModal === 'function') window.openMobileModal('layout');
+        } else {
+            if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH';
+            if (typeof window.closeMobileModal === 'function') window.closeMobileModal();
+        }
+    } else {
+        col.classList.toggle('fullscreen');
+        window.isFullscreen = col.classList.contains('fullscreen');
+        if (window.isFullscreen) { if (btn) btn.innerText = '↙ Thu nhỏ'; } 
+        else { 
+            if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH'; 
+            if (typeof window.closeMobileModal === 'function') window.closeMobileModal(); 
+        }
+    }
+    setTimeout(window.fitZoom, 300);
+};
+
+window.updatePagination = function() {
+    let r = parseInt(document.getElementById('tableRows')?.value) || 10;
+    let c = parseInt(document.getElementById('tableCols')?.value) || 2;
+    let listLen = 0; if(typeof window.parseList === 'function') listLen = window.parseList().length;
+    let tot = Math.max(1, Math.ceil(listLen / (r * c)));
+    if(window.currentStep >= tot) window.currentStep = Math.max(0, tot - 1);
+    let pInp = document.getElementById('pageInput'); if(pInp) pInp.value = window.currentStep + 1;
+    let tTxt = document.getElementById('totalPagesText'); if(tTxt) tTxt.innerText = tot;
+};
+
+window.prevStep = function() { if(window.currentStep > 0) { window.currentStep--; if(typeof window.drawCanvas === 'function') window.drawCanvas(); } };
+window.nextStep = function() {
+    let r = parseInt(document.getElementById('tableRows')?.value) || 10; let c = parseInt(document.getElementById('tableCols')?.value) || 2;
+    let listLen = 0; if(typeof window.parseList === 'function') listLen = window.parseList().length;
+    let tot = Math.max(1, Math.ceil(listLen / (r * c)));
+    if(window.currentStep < tot - 1) { window.currentStep++; if(typeof window.drawCanvas === 'function') window.drawCanvas(); }
+};
+
+window.switchSubTab = function(tabId, btn) {
+    let parent = btn.closest('.tab-content') || document.getElementById('mobileModalBody');
+    if(!parent) return;
+    parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.remove('active'));
+    parent.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+    let target = document.getElementById(tabId);
+    if(target) target.classList.add('active');
+    if(btn) btn.classList.add('active');
+    if(target && window.currentSubSubTab) {
+        let activeSubSubBtn = target.querySelector(`.sub-sub-tab-btn[onclick*="-${window.currentSubSubTab}'"], .sub-sub-tab-btn[onclick*='-${window.currentSubSubTab}"']`);
+        if(activeSubSubBtn && !activeSubSubBtn.classList.contains('active')) {
+            let match = activeSubSubBtn.getAttribute('onclick').match(/['"]([^'"]+)['"]/);
+            if(match) window.switchSubSubTab(match[1], activeSubSubBtn, true);
+        }
+    }
+};
+
+window.switchSubSubTab = function(tabId, btn, isAutoSync = false) {
+    if (window.isSyncingTabs) return;
+    let parent = btn.closest('.sub-tab-content'); if(!parent) return;
+    parent.querySelectorAll('.sub-sub-tab-content').forEach(c => c.classList.remove('active'));
+    parent.querySelectorAll('.sub-sub-tab-btn').forEach(b => b.classList.remove('active'));
+    let target = document.getElementById(tabId);
+    if(target) target.classList.add('active');
+    if(btn) btn.classList.add('active');
+    let parts = tabId.split('-'); let category = parts[parts.length - 1]; 
+    if (!isAutoSync && ['pos', 'format', 'bg'].includes(category)) {
+        window.currentSubSubTab = category; window.isSyncingTabs = true;
+        let allBtns = document.querySelectorAll(`.sub-sub-tab-btn[onclick*="-${category}'"], .sub-sub-tab-btn[onclick*='-${category}"']`);
+        allBtns.forEach(b => {
+            if (b !== btn) {
+                let match = b.getAttribute('onclick').match(/['"]([^'"]+)['"]/);
+                if (match) {
+                    let t = document.getElementById(match[1]);
+                    if(t) {
+                        b.closest('.sub-tab-content').querySelectorAll('.sub-sub-tab-content').forEach(c => c.classList.remove('active'));
+                        b.closest('.sub-tab-content').querySelectorAll('.sub-sub-tab-btn').forEach(x => x.classList.remove('active'));
+                        t.classList.add('active'); b.classList.add('active');
+                    }
+                }
+            }
+        });
+        window.isSyncingTabs = false;
+    }
+};
+
+window.applyAIColor = function(prefix) {
+    const list = typeof window.parseList === 'function' ? window.parseList() : [];
+    let designMenh = 'KIM';
+    if (list.length > 0) {
+        let firstSim = list[0][0] || "";
+        designMenh = (typeof getMenhFromPhone === 'function' ? getMenhFromPhone(firstSim) : 'KIM') || 'KIM';
+    }
+    const aiPalettes = {
+        'KIM': { main: '#ff9900', sub: '#ffffff', grad: '#ffd700' },
+        'MỘC': { main: '#0a8f0a', sub: '#ffffff', grad: '#2ecc71' },
+        'THỦY': { main: '#0066ff', sub: '#ffffff', grad: '#3498db' },
+        'HỎA': { main: '#ff0000', sub: '#ffffff', grad: '#e74c3c' },
+        'THỔ': { main: '#8b4513', sub: '#ffffff', grad: '#d35400' }
+    };
+    let p = aiPalettes[designMenh] || aiPalettes['KIM'];
+    let colorEl = document.getElementById(prefix + 'Color');
+    let grad1 = document.getElementById(prefix + 'ColorGradient1');
+    let grad2 = document.getElementById(prefix + 'ColorGradient2');
+    if (colorEl) colorEl.value = p.main;
+    if (grad1) grad1.value = p.main;
+    if (grad2) grad2.value = p.grad;
+    let bgEl = document.getElementById(prefix + 'Bg');
+    if (bgEl) {
+        bgEl.value = p.main;
+        let bgG1 = document.getElementById(prefix + 'BgGradient1');
+        let bgG2 = document.getElementById(prefix + 'BgGradient2');
+        if (bgG1) bgG1.value = p.main;
+        if (bgG2) bgG2.value = p.grad;
+    }
+    if (prefix === 'all') {
+        const prefixes = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2'];
+        prefixes.forEach(pf => {
+            let colorEl = document.getElementById(pf + 'Color');
+            if (colorEl) colorEl.value = p.main;
+            let g1 = document.getElementById(pf + 'ColorGradient1');
+            let g2 = document.getElementById(pf + 'ColorGradient2');
+            if (g1) g1.value = p.main;
+            if (g2) g2.value = p.grad;
+        });
+        alert(`✨ AI đã phối màu ĐỒNG BỘ cho mệnh ${designMenh}!`);
+    } else {
+        alert(`✨ AI đã gợi ý bộ màu cho mệnh ${designMenh}!`);
+    }
+    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+}
+
+window.exportToPDF = async function() {
+    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
+        alert("⚠ PHẦN MỀM CHƯA KÍCH HOẠT!\nVui lòng nhập mã bản quyền để sử dụng tính năng này.");
+        return;
+    }
+    const { jsPDF } = window.jspdf;
+    const list = typeof window.parseList === 'function' ? window.parseList() : [];
+    const r = parseInt(document.getElementById('tableRows')?.value) || 10;
+    const c = parseInt(document.getElementById('tableCols')?.value) || 2;
+    const totalCells = r * c;
+    const totalPages = Math.max(1, Math.ceil(list.length / totalCells));
+    const loading = document.getElementById('globalLoading');
+    if (loading) loading.style.display = 'flex';
+    const lText = document.getElementById('loadingText');
+    if (lText) lText.innerText = "Đang chuẩn bị PDF...";
+    try {
+        const oldStep = window.currentStep;
+        const pdf = new jsPDF({
+            orientation: 'p', unit: 'px',
+            format: [canvas.width / getVal('exportScale', 1), canvas.height / getVal('exportScale', 1)]
+        });
+        for (let i = 0; i < totalPages; i++) {
+            if (lText) lText.innerText = `Đang xử lý trang ${i + 1}/${totalPages}`;
+            window.currentStep = i;
+            await new Promise(resolve => { window.drawCanvas(); setTimeout(resolve, 300); });
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            if (i > 0) pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+        }
+        pdf.save(`VIP_SIM_CATALOG_${new Date().getTime()}.pdf`);
+        window.currentStep = oldStep; window.drawCanvas();
+    } catch (err) { console.error(err); alert("❌ Lỗi khi xuất PDF!"); }
+    finally { if (loading) loading.style.display = 'none'; }
+};
+
+window.setupDrag = function(elementId, handleId) {
+    const el = document.getElementById(elementId); 
+    const handle = document.getElementById(handleId) || el;
+    if(!el || !handle) return; 
+    let isDragging = false, moved = false, startX, startY, initX, initY;
+    const start = (e) => { 
+        if(['BUTTON','INPUT','SELECT','A'].includes(e.target.tagName)) return; 
+        isDragging = true; moved = false; 
+        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
+        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
+        startX = clientX; startY = clientY; 
+        let rect = el.getBoundingClientRect();
+        initX = rect.left; initY = rect.top; 
+        el.style.left = initX + 'px'; el.style.top = initY + 'px';
+        el.style.bottom = 'auto'; el.style.right = 'auto'; el.style.margin = '0'; el.style.transform = 'none'; 
+    };
+    const move = (e) => { 
+        if(!isDragging) return; 
+        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
+        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
+        let dx = clientX - startX; let dy = clientY - startY; 
+        if(Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true; 
+        if(moved) { 
+            e.preventDefault(); 
+            let maxX = window.innerWidth - el.offsetWidth; 
+            let maxY = window.innerHeight - el.offsetHeight; 
+            let newX = Math.max(0, Math.min(initX + dx, maxX));
+            let newY = Math.max(0, Math.min(initY + dy, maxY));
+            el.style.left = newX + 'px'; el.style.top = newY + 'px'; 
+        } 
+    };
+    const end = () => { isDragging = false; };
+    handle.addEventListener('mousedown', start); 
+    handle.addEventListener('touchstart', start, {passive: false}); 
+    window.addEventListener('mousemove', move, {passive: false}); 
+    window.addEventListener('touchmove', move, {passive: false}); 
+    window.addEventListener('mouseup', end); 
+    window.addEventListener('touchend', end);
+    return () => moved;
+};
+
+// --- BẢO MẬT & DRM ---
+(function() {
+    function trap() {
+        try {
+            (function () {
+                (function a() {
+                    try {
+                        (function b(i) {
+                            if (("" + i / i).length !== 1 || i % 20 === 0) {
+                                (function () { }).constructor("debugger")();
+                            } else { debugger; }
+                            b(++i);
+                        })(0);
+                    } catch (e) { setTimeout(a, 1000); }
+                })();
+            })();
+        } catch (e) {}
+    }
+    document.addEventListener('contextmenu', e => {
+        if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.id === 'displayMac') return;
+        e.preventDefault();
+    }, false);
+    document.addEventListener('keydown', e => {
+        if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || 
+            (e.ctrlKey && [85, 83, 80, 65, 70].includes(e.keyCode))) {
+            e.preventDefault(); return false;
+        }
+    });
+    trap();
+    setInterval(function() {
+        var start = new Date().getTime();
+        debugger;
+        var end = new Date().getTime();
+        if (end - start > 100) { window.location.reload(); }
+    }, 2000);
+})();
+
+const STORAGE_ID_KEY = 'SYSTEM_LOG_DATA_CACHED'; const LICENSE_KEY = 'SYSTEM_LICENSE_ACTIVE'; const POS = [2, 5, 9, 14, 20, 27, 35, 44, 54, 59];
+window.getDeviceID = function() { try { let secret = localStorage.getItem(STORAGE_ID_KEY); if (!secret || secret.length < 60) { let charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let rawID = ""; for(let i=0; i<10; i++) rawID += charset.charAt(Math.floor(Math.random() * charset.length)); let junk = ""; for(let i=0; i<60; i++) junk += charset.charAt(Math.floor(Math.random() * charset.length)); let complexArr = junk.split(""); for(let i=0; i<10; i++) { complexArr[POS[i]] = rawID[i]; } secret = complexArr.join(""); localStorage.setItem(STORAGE_ID_KEY, secret); return rawID; } let realID = ""; for(let p of POS) { realID += secret[p]; } return realID; } catch (e) { return "ERROR_ID"; } };
+window.verifyLicense = function(keyStr) { if(!keyStr) return false; try { let myMac = window.getDeviceID(); let decoded = decodeURIComponent(atob(keyStr.split('').reverse().join(''))); let rawData = ""; for(let i=0; i<decoded.length; i++) { rawData += String.fromCharCode(decoded.charCodeAt(i) - 7); } let parts = rawData.split('|||'); if(parts.length !== 2) return false; let keyMac = parts[0]; let expTime = parseInt(parts[1]); if(keyMac === myMac && expTime > Date.now()) { return true; } return false; } catch(e) { return false; } };
+window.checkLicense = function() { let savedKey = localStorage.getItem(LICENSE_KEY); let overlay = document.getElementById('drmOverlay'); let macDisplay = document.getElementById('displayMac'); if(macDisplay) macDisplay.innerText = window.getDeviceID(); if(savedKey && window.verifyLicense(savedKey)) { if(overlay) overlay.style.display = 'none'; } else { if(overlay) overlay.style.display = 'flex'; } };
+window.activateLicense = function() { let keyInput = document.getElementById('licenseKeyInput').value.trim(); let msg = document.getElementById('drmMessage'); if(!keyInput) { msg.innerText = "Vui lòng nhập mã kích hoạt!"; return; } if(window.verifyLicense(keyInput)) { localStorage.setItem(LICENSE_KEY, keyInput); msg.style.color = "#2ecc71"; msg.innerText = "Kích hoạt thành công! Đang tải lại phần mềm..."; setTimeout(() => { document.getElementById('drmOverlay').style.display='none'; if(typeof window.fitZoom === 'function') window.fitZoom(); }, 1000); } else { msg.style.color = "#e74c3c"; msg.innerText = "Mã kích hoạt sai hoặc đã hết hạn!"; } };
+window.copyMac = function() { let mac = document.getElementById('displayMac').innerText; let tempInput = document.createElement("input"); tempInput.value = mac; document.body.appendChild(tempInput); tempInput.select(); tempInput.setSelectionRange(0, 99999); try { document.execCommand("copy"); alert("✅ Đã copy Mã Máy thành công: " + mac); } catch (err) { alert("❌ Vui lòng copy thủ công!"); } document.body.removeChild(tempInput); };
+window.isAuthorized = function() { try { let savedKey = localStorage.getItem(LICENSE_KEY); return !!(savedKey && window.verifyLicense(savedKey)); } catch(e) { return false; } };
+window.toggleCanvasSizeInputs = function() {
+    let mode = document.getElementById('canvasSizeMode')?.value;
+    let wrapper = document.getElementById('customCanvasSizeWrapper');
+    if(!wrapper) return;
+    wrapper.style.display = mode === 'auto' ? 'none' : 'flex';
+    let cH = document.getElementById('customCanvasH'); let lH = document.getElementById('labelCustomH');
+    if(cH) cH.style.display = mode === 'ratio' ? 'none' : 'block';
+    if(lH) lH.style.display = mode === 'ratio' ? 'none' : 'block';
 };
