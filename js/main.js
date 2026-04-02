@@ -23,9 +23,6 @@ let isPinching = false;
 let lastTouchX = 0;
 let lastTouchY = 0;
 
-window.isSyncingTabs = false; 
-window.currentSubSubTab = 'pos'; 
-
 // --- 2. HÀM TIỆN ÍCH CƠ BẢN ---
 function getVal(id, def=0) { let el = document.getElementById(id); return el ? (isNaN(parseFloat(el.value)) ? el.value : parseFloat(el.value)) : def; }
 function isChecked(id) { let el = document.getElementById(id); return el ? el.checked : false; }
@@ -974,6 +971,8 @@ window.updateUI = function() {
     let zebraContainer = document.getElementById('zebraSettingsContainer');
     if (useZebra && zebraContainer) {
         zebraContainer.style.display = useZebra.checked ? 'block' : 'none';
+        
+        // --- ĐỒNG BỘ HIỂN THỊ CỘT TRONG ZEBRA (V26.6) ---
         const syncZebra = (chkId, grpPrefix) => {
             let chk = document.getElementById(chkId);
             let gOdd = document.getElementById('zebraOdd' + grpPrefix + 'Grp');
@@ -987,14 +986,6 @@ window.updateUI = function() {
         syncZebra('chkNum', 'Num'); syncZebra('chkPrice', 'Price'); syncZebra('chkMenh', 'Menh');
         syncZebra('chkMang', 'Mang'); syncZebra('chkData1', 'Data1'); syncZebra('chkData2', 'Data2');
     }
-    
-    // --- BỔ SUNG TỪ SCRIPT.JS ---
-    let prefixes = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2', 'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum', 'cell'];
-    prefixes.forEach(p => { 
-        if((p === 'menh' || p === 'mang') && typeof window.toggleShapeOptions === 'function') {
-            window.toggleShapeOptions(p);
-        }
-    });
 };
 
 window.drawGlobalBackground = function(ctx, canvasW, canvasH) {
@@ -1136,8 +1127,7 @@ window.focusDesktopTab = function(tid) {
     if (typeof syncTabUX === 'function' && targetTab1) { syncTabUX(targetTab1); }
 };
 
-// --- MOBILE MODAL POINTER EVENTS FIX ---
-function initModalPointerEvents() {
+document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {
         let modalOverlay = document.getElementById('mobileSettingModal');
         let modalContent = document.querySelector('.mobile-modal-content');
@@ -1149,7 +1139,7 @@ function initModalPointerEvents() {
         }
         if (modalContent) { modalContent.style.setProperty('pointer-events', 'auto', 'important'); }
     }, 500);
-}
+});
 
 window.copyCanvas = function() {
     if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
@@ -1634,10 +1624,12 @@ window.pasteList = async function () {
 };
 
 // --- A. KHỞI TẠO DOM & SỰ KIỆN CƠ BẢN ---
-window.customFonts = [];
-window.initFontSelectors = function (forceRefresh = false) {
-    document.querySelectorAll('.font-selector').forEach(sel => {
-        if (!forceRefresh && sel.children.length > 0) return;
+document.addEventListener('DOMContentLoaded', () => {
+    // getVal đã có trong main.js nên không định nghĩa lại tại đây
+    window.customFonts = [];
+    window.initFontSelectors = function (forceRefresh = false) {
+        document.querySelectorAll('.font-selector').forEach(sel => {
+            if (!forceRefresh && sel.children.length > 0) return;
             let currentVal = sel.value;
             sel.innerHTML = '';
             const allFonts = [...(window.sysFonts || []), ...window.customFonts];
@@ -1656,58 +1648,84 @@ window.initFontSelectors = function (forceRefresh = false) {
         });
     };
 
-
-window.handleGlobalFontUpload = function (event) {
-    let file = event.target.files[0];
-    if (!file) return;
-    let fontName = file.name.split('.')[0].replace(/[^a-z0-9]/gi, '_');
-    let reader = new FileReader();
-    reader.onload = async function (e) {
-        try {
-            let fontFace = new FontFace(fontName, e.target.result);
-            await fontFace.load();
-            document.fonts.add(fontFace);
-            if (!window.customFonts.includes(fontName)) window.customFonts.push(fontName);
-            document.querySelectorAll('.font-selector').forEach(sel => { sel.dataset.lastUpload = fontName; });
-            window.initFontSelectors(true);
-            if (typeof window.drawCanvas === 'function') window.drawCanvas();
-            alert("✅ Đã nạp font: " + fontName);
-        } catch (err) { alert("❌ Lỗi nạp font: " + err.message); }
-    };
-    reader.readAsArrayBuffer(file);
-    event.target.value = '';
-};
-
-window.initFontSelectors();
-
-window.setupAdvancedUploader = function (inputId, globalVarName) {
-    let inputEl = document.getElementById(inputId);
-    if (!inputEl) return;
-    let newEl = inputEl.cloneNode(true);
-    inputEl.parentNode.replaceChild(newEl, inputEl);
-    newEl.addEventListener('change', function (e) {
-        let file = e.target.files[0];
+    window.handleGlobalFontUpload = function (event) {
+        let file = event.target.files[0];
         if (!file) return;
+        let fontName = file.name.split('.')[0].replace(/[^a-z0-9]/gi, '_');
         let reader = new FileReader();
-        reader.onload = function (event) {
-            let img = new Image();
-            img.onload = function () {
-                window[globalVarName] = img;
-                let modeSelectId = inputId.replace('Input', 'Mode');
-                let modeSelect = document.getElementById(modeSelectId);
-                if (modeSelect) { modeSelect.value = 'image'; modeSelect.dispatchEvent(new Event('change')); }
-                let statusId = (globalVarName === 'bgImage') ? 'mainBgStatus' : (globalVarName === 'cellBgImage' ? 'cellBgStatus' : 'cellBorderStatus');
-                let statusEl = document.getElementById(statusId);
-                if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh";
-                if (typeof window.updateUI === 'function') window.updateUI();
+        reader.onload = async function (e) {
+            try {
+                let fontFace = new FontFace(fontName, e.target.result);
+                await fontFace.load();
+                document.fonts.add(fontFace);
+                if (!window.customFonts.includes(fontName)) window.customFonts.push(fontName);
+                document.querySelectorAll('.font-selector').forEach(sel => { sel.dataset.lastUpload = fontName; });
+                window.initFontSelectors(true);
                 if (typeof window.drawCanvas === 'function') window.drawCanvas();
-                if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-            };
-            img.src = event.target.result;
+                alert("✅ Đã nạp font: " + fontName);
+            } catch (err) { alert("❌ Lỗi nạp font: " + err.message); }
         };
-        reader.readAsDataURL(file);
+        reader.readAsArrayBuffer(file);
+        event.target.value = '';
+    };
+
+    window.initFontSelectors();
+
+    window.setupAdvancedUploader = function (inputId, globalVarName) {
+        let inputEl = document.getElementById(inputId);
+        if (!inputEl) return;
+        let newEl = inputEl.cloneNode(true);
+        inputEl.parentNode.replaceChild(newEl, inputEl);
+        newEl.addEventListener('change', function (e) {
+            let file = e.target.files[0];
+            if (!file) return;
+            let reader = new FileReader();
+            reader.onload = function (event) {
+                let img = new Image();
+                img.onload = function () {
+                    window[globalVarName] = img;
+                    let modeSelectId = inputId.replace('Input', 'Mode');
+                    let modeSelect = document.getElementById(modeSelectId);
+                    if (modeSelect) { modeSelect.value = 'image'; modeSelect.dispatchEvent(new Event('change')); }
+                    let statusId = (globalVarName === 'bgImage') ? 'mainBgStatus' : (globalVarName === 'cellBgImage' ? 'cellBgStatus' : 'cellBorderStatus');
+                    let statusEl = document.getElementById(statusId);
+                    if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh";
+                    if (typeof window.updateUI === 'function') window.updateUI();
+                    if (typeof window.drawCanvas === 'function') window.drawCanvas();
+                    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    setTimeout(() => {
+        document.querySelectorAll('input[type="file"]').forEach(el => {
+            if (el.id && el.id.includes('Input')) {
+                let varName = el.id.replace('Input', 'Image');
+                window.setupAdvancedUploader(el.id, varName);
+            }
+        });
+        if (typeof window.updateUI === 'function') window.updateUI();
+        if (typeof window.drawCanvas === 'function') window.drawCanvas();
+    }, 500);
+
+    document.body.addEventListener('input', e => {
+        if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) && e.target.type !== 'file') {
+            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        }
     });
-};
+
+    document.body.addEventListener('change', e => {
+        if (['SELECT', 'INPUT'].includes(e.target.tagName) && e.target.type !== 'file') {
+            if (typeof window.updateUI === 'function') window.updateUI();
+            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        }
+    });
+});
 
 // --- B. QUICK SLIDER ---
 let originalValue = 0; let currentEditingInput = null; let longPressTimer = null;
@@ -2048,7 +2066,7 @@ window.restoreSession = function () {
 };
 
 // --- STARTUP LOGIC ---
-function initStartupLogic() {
+document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         const restored = window.restoreSession();
         if (!restored && typeof window.loadDefaultTemplate === 'function') window.loadDefaultTemplate();
@@ -2062,7 +2080,7 @@ function initStartupLogic() {
             if (sizeDisplay.innerText !== currentText) sizeDisplay.innerText = currentText;
         }
     }, 500);
-}
+});
 
 // --- MOBILE SIM LIST MODAL ---
 window.openSimListModal = function() {
@@ -2661,113 +2679,17 @@ window.initDynamicUI = function() {
 <div class="setting-row"><label>Watermark</label><div class="setting-inputs"><label><input type="checkbox" id="useWatermark" onchange="drawCanvas()"> Bật chữ ký</label><input type="text" id="watermarkText" value="VIP SIM TOOL" placeholder="Nội dung..." oninput="drawCanvas()"></div></div>
 <div class="setting-row"><label>Định dạng</label><div class="setting-inputs"><select id="exportFormat" class="flex-1"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option></select></div></div></div>
 </div>
-</div>`;
-    let modalHtml = `
-    <!-- Modal Bảng Màu -->
-    <div id="paletteModalOverlay" class="p-modal-overlay" onclick="if(event.target===this) window.togglePalette(false)">
-        <div class="p-modal-content">
-            <div class="p-modal-header">
-                <b>🎨 BỘ PHỐI MÀU CHUYÊN NGHIỆP</b>
-                <span class="p-modal-close" onclick="window.togglePalette(false)">✖</span>
-            </div>
-            <div id="paletteContainer" class="palette-grid">
-                <!-- Palettes will be injected here by populatePalettes() -->
-            </div>
-        </div>
-    </div>
+</div>
+`;
 
-    <!-- Modal Trợ Giúp -->
-    <div id="helpModalOverlay" class="p-modal-overlay" onclick="if(event.target===this) window.closeHelpModal()">
-        <div class="p-modal-content" style="max-width: 500px;">
-            <div class="p-modal-header">
-                <b>❓ TRỢ GIÚP & HƯỚNG DẪN</b>
-                <span class="p-modal-close" onclick="window.closeHelpModal()">✖</span>
-            </div>
-            <div class="p-modal-body" style="padding: 20px; line-height: 1.6;">
-                <p>1. <b>Chọn mẫu:</b> Sử dụng tab Quản lý mẫu để tải thiết kế có sẵn.</p>
-                <p>2. <b>Nhập dữ liệu:</b> Nhập danh sách SIM vào ô nhập liệu chính hoặc dùng file Excel.</p>
-                <p>3. <b>Tùy chỉnh:</b> Sử dụng các tab Cài đặt để thay đổi font, màu sắc, vị trí.</p>
-                <p>4. <b>Xuất file:</b> Chọn chất lượng và định dạng, sau đó nhấn Xuất Ảnh hoặc Xuất PDF.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Lớp phủ DRM (Bảo mật) -->
-    <div id="drmOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999999; flex-direction:column; align-items:center; justify-content:center; color:white; font-family:sans-serif; text-align:center; padding:20px;">
-        <div style="background:#1a1a1a; padding:40px; border-radius:15px; border:2px solid #e74c3c; max-width:400px; width:100%; box-shadow:0 0 30px rgba(231,76,60,0.3);">
-            <h1 style="color:#e74c3c; margin-bottom:10px;">⚠ PHẦN MỀM ĐÃ BỊ KHÓA</h1>
-            <p style="opacity:0.8; margin-bottom:20px;">Vui lòng kích hoạt bản quyền để tiếp tục sử dụng toàn bộ tính năng.</p>
-            <div style="background:#000; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #333;">
-                <span style="font-size:12px; color:#888; display:block; margin-bottom:5px;">MÃ MÁY CỦA BẠN:</span>
-                <b id="displayMac" style="font-family:monospace; font-size:20px; color:#2ecc71; letter-spacing:2px;">--------</b>
-            </div>
-            <input type="text" id="licenseKeyInput" placeholder="Nhập mã kích hoạt tại đây..." style="width:100%; padding:15px; border-radius:8px; border:none; margin-bottom:15px; font-size:16px; text-align:center;">
-            <button onclick="window.activateLicense()" style="width:100%; padding:15px; background:#e74c3c; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; transition:0.3s;">KÍCH HOẠT NGAY</button>
-            <p id="drmMessage" style="margin-top:15px; font-size:14px; min-height:20px;"></p>
-            <button onclick="window.copyMac()" style="margin-top:20px; background:none; border:none; color:#3498db; cursor:pointer; font-size:13px; text-decoration:underline;">Copy Mã Máy</button>
-        </div>
-    </div>
-    `;
-
-    container.innerHTML = layoutHtml + headHtml + globHtml + genHtml + modalHtml;
+    container.innerHTML = layoutHtml + headHtml + globHtml + genHtml;
     if (gTabsContainer) gTabsContainer.innerHTML = gTabs;
 };
 
-// --- FINAL INITIALIZATION ---
-function startApp() {
-    console.log("Starting App Initialization...");
-    // 1. Phải chạy initDynamicUI đầu tiên để tạo các thẻ DOM
-    if (typeof window.initDynamicUI === 'function') {
-        window.initDynamicUI();
-    } else {
-        console.error("initDynamicUI not found!");
-    }
-    
-    // 2. Khởi tạo các thành phần giao diện khác
-    if (typeof window.initFontSelectors === 'function') window.initFontSelectors();
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof window.initDynamicUI === 'function') window.initDynamicUI();
     if (typeof window.populatePalettes === 'function') window.populatePalettes();
-    if (typeof window.initModalPointerEvents === 'function') window.initModalPointerEvents();
-    
-    // 3. Thiếp lập Uploaders (từ script.js)
-    let prefixes = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2', 'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum', 'cell'];
-    prefixes.forEach(p => {
-        if(typeof window.setupAdvancedUploader === 'function') {
-            window.setupAdvancedUploader(p + 'ColorInput', p + 'ColorImage');
-            window.setupAdvancedUploader(p + 'BgInput', p + 'BgImage');
-            window.setupAdvancedUploader(p + 'BorderInput', p + 'BorderImage');
-        }
-    });
-    if(typeof window.setupAdvancedUploader === 'function') window.setupAdvancedUploader('bgInput', 'bgImage');
-
-    // 4. Cập nhật UI ban đầu
-    if (typeof window.updateUI === 'function') window.updateUI();
-    
-    // 5. Gắn sự kiện cho các Input
-    document.querySelectorAll('input, select, textarea').forEach(el => {
-        el.addEventListener('input', () => { 
-            if(typeof window.drawCanvas === 'function') window.drawCanvas(); 
-            if(typeof window.debouncedSave === 'function') window.debouncedSave();
-        });
-        if (el.tagName === 'SELECT' || el.type === 'checkbox') el.addEventListener('change', () => { 
-            if(typeof window.updateUI === 'function') window.updateUI(); 
-            if(typeof window.drawCanvas === 'function') window.drawCanvas(); 
-            if(typeof window.debouncedSave === 'function') window.debouncedSave();
-        });
-    });
-
-    // 6. Security & DRM
-    if (typeof window.checkLicense === 'function') window.checkLicense();
-    if (typeof window.setupDrag === 'function') window.setupDrag('unifiedMenuContainer', 'unifiedMenuBtn');
-
-    // 7. Khôi phục phiên làm việc
-    if (typeof initStartupLogic === 'function') initStartupLogic();
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startApp);
-} else {
-    startApp();
-}
+});
 
 // --- PALETTE SYSTEM ---
 window.populatePalettes = function() {
@@ -2810,289 +2732,4 @@ window.applyPalette = function(c1, c2) {
         if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
         window.togglePalette(false);
     }
-};
-
-// --- BỔ SUNG TỪ SCRIPT.JS ---
-window.applyZoom = function(val) {
-    let zVal = document.getElementById('zoomVal'); if(zVal) zVal.innerText = val + '%';
-    let canvas = document.getElementById('preview'); if(canvas) { canvas.style.transform = `scale(${val / 100})`; canvas.style.transformOrigin = 'top center'; }
-};
-
-window.fitZoom = function() {
-    let wrapper = document.getElementById('canvasWrapper'); let canvas = document.getElementById('preview');
-    if(!wrapper || !canvas || canvas.width === 0) return;
-    let scale = Math.min(1, (wrapper.clientWidth - 20) / canvas.width);
-    let finalVal = Math.floor(scale * 100);
-    let zSlider = document.getElementById('zoomSlider'); if(zSlider) zSlider.value = finalVal;
-    window.applyZoom(finalVal);
-};
-
-window.toggleFullscreen = function() {
-    let col = document.getElementById('previewColumn'); let btn = document.getElementById('toggleFullBtn');
-    if(!col) return;
-    let isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-        document.body.classList.toggle('studio-mode');
-        window.isFullscreen = document.body.classList.contains('studio-mode');
-        if (window.isFullscreen) {
-            if (btn) btn.innerText = '↙ Thu nhỏ';
-            if (typeof window.openMobileModal === 'function') window.openMobileModal('layout');
-        } else {
-            if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH';
-            if (typeof window.closeMobileModal === 'function') window.closeMobileModal();
-        }
-    } else {
-        col.classList.toggle('fullscreen');
-        window.isFullscreen = col.classList.contains('fullscreen');
-        if (window.isFullscreen) { if (btn) btn.innerText = '↙ Thu nhỏ'; } 
-        else { 
-            if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH'; 
-            if (typeof window.closeMobileModal === 'function') window.closeMobileModal(); 
-        }
-    }
-    setTimeout(window.fitZoom, 300);
-};
-
-window.updatePagination = function() {
-    let r = parseInt(document.getElementById('tableRows')?.value) || 10;
-    let c = parseInt(document.getElementById('tableCols')?.value) || 2;
-    let listLen = 0; if(typeof window.parseList === 'function') listLen = window.parseList().length;
-    let tot = Math.max(1, Math.ceil(listLen / (r * c)));
-    if(window.currentStep >= tot) window.currentStep = Math.max(0, tot - 1);
-    let pInp = document.getElementById('pageInput'); if(pInp) pInp.value = window.currentStep + 1;
-    let tTxt = document.getElementById('totalPagesText'); if(tTxt) tTxt.innerText = tot;
-};
-
-window.prevStep = function() { if(window.currentStep > 0) { window.currentStep--; if(typeof window.drawCanvas === 'function') window.drawCanvas(); } };
-window.nextStep = function() {
-    let r = parseInt(document.getElementById('tableRows')?.value) || 10; let c = parseInt(document.getElementById('tableCols')?.value) || 2;
-    let listLen = 0; if(typeof window.parseList === 'function') listLen = window.parseList().length;
-    let tot = Math.max(1, Math.ceil(listLen / (r * c)));
-    if(window.currentStep < tot - 1) { window.currentStep++; if(typeof window.drawCanvas === 'function') window.drawCanvas(); }
-};
-
-window.switchSubTab = function(tabId, btn) {
-    let parent = btn.closest('.tab-content') || document.getElementById('mobileModalBody');
-    if(!parent) return;
-    parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.remove('active'));
-    parent.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
-    let target = document.getElementById(tabId);
-    if(target) target.classList.add('active');
-    if(btn) btn.classList.add('active');
-    if(target && window.currentSubSubTab) {
-        let activeSubSubBtn = target.querySelector(`.sub-sub-tab-btn[onclick*="-${window.currentSubSubTab}'"], .sub-sub-tab-btn[onclick*='-${window.currentSubSubTab}"']`);
-        if(activeSubSubBtn && !activeSubSubBtn.classList.contains('active')) {
-            let match = activeSubSubBtn.getAttribute('onclick').match(/['"]([^'"]+)['"]/);
-            if(match) window.switchSubSubTab(match[1], activeSubSubBtn, true);
-        }
-    }
-};
-
-window.switchSubSubTab = function(tabId, btn, isAutoSync = false) {
-    if (window.isSyncingTabs) return;
-    let parent = btn.closest('.sub-tab-content'); if(!parent) return;
-    parent.querySelectorAll('.sub-sub-tab-content').forEach(c => c.classList.remove('active'));
-    parent.querySelectorAll('.sub-sub-tab-btn').forEach(b => b.classList.remove('active'));
-    let target = document.getElementById(tabId);
-    if(target) target.classList.add('active');
-    if(btn) btn.classList.add('active');
-    let parts = tabId.split('-'); let category = parts[parts.length - 1]; 
-    if (!isAutoSync && ['pos', 'format', 'bg'].includes(category)) {
-        window.currentSubSubTab = category; window.isSyncingTabs = true;
-        let allBtns = document.querySelectorAll(`.sub-sub-tab-btn[onclick*="-${category}'"], .sub-sub-tab-btn[onclick*='-${category}"']`);
-        allBtns.forEach(b => {
-            if (b !== btn) {
-                let match = b.getAttribute('onclick').match(/['"]([^'"]+)['"]/);
-                if (match) {
-                    let t = document.getElementById(match[1]);
-                    if(t) {
-                        b.closest('.sub-tab-content').querySelectorAll('.sub-sub-tab-content').forEach(c => c.classList.remove('active'));
-                        b.closest('.sub-tab-content').querySelectorAll('.sub-sub-tab-btn').forEach(x => x.classList.remove('active'));
-                        t.classList.add('active'); b.classList.add('active');
-                    }
-                }
-            }
-        });
-        window.isSyncingTabs = false;
-    }
-};
-
-window.applyAIColor = function(prefix) {
-    const list = typeof window.parseList === 'function' ? window.parseList() : [];
-    let designMenh = 'KIM';
-    if (list.length > 0) {
-        let firstSim = list[0][0] || "";
-        designMenh = (typeof getMenhFromPhone === 'function' ? getMenhFromPhone(firstSim) : 'KIM') || 'KIM';
-    }
-    const aiPalettes = {
-        'KIM': { main: '#ff9900', sub: '#ffffff', grad: '#ffd700' },
-        'MỘC': { main: '#0a8f0a', sub: '#ffffff', grad: '#2ecc71' },
-        'THỦY': { main: '#0066ff', sub: '#ffffff', grad: '#3498db' },
-        'HỎA': { main: '#ff0000', sub: '#ffffff', grad: '#e74c3c' },
-        'THỔ': { main: '#8b4513', sub: '#ffffff', grad: '#d35400' }
-    };
-    let p = aiPalettes[designMenh] || aiPalettes['KIM'];
-    let colorEl = document.getElementById(prefix + 'Color');
-    let grad1 = document.getElementById(prefix + 'ColorGradient1');
-    let grad2 = document.getElementById(prefix + 'ColorGradient2');
-    if (colorEl) colorEl.value = p.main;
-    if (grad1) grad1.value = p.main;
-    if (grad2) grad2.value = p.grad;
-    let bgEl = document.getElementById(prefix + 'Bg');
-    if (bgEl) {
-        bgEl.value = p.main;
-        let bgG1 = document.getElementById(prefix + 'BgGradient1');
-        let bgG2 = document.getElementById(prefix + 'BgGradient2');
-        if (bgG1) bgG1.value = p.main;
-        if (bgG2) bgG2.value = p.grad;
-    }
-    if (prefix === 'all') {
-        const prefixes = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2'];
-        prefixes.forEach(pf => {
-            let colorEl = document.getElementById(pf + 'Color');
-            if (colorEl) colorEl.value = p.main;
-            let g1 = document.getElementById(pf + 'ColorGradient1');
-            let g2 = document.getElementById(pf + 'ColorGradient2');
-            if (g1) g1.value = p.main;
-            if (g2) g2.value = p.grad;
-        });
-        alert(`✨ AI đã phối màu ĐỒNG BỘ cho mệnh ${designMenh}!`);
-    } else {
-        alert(`✨ AI đã gợi ý bộ màu cho mệnh ${designMenh}!`);
-    }
-    if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
-}
-
-window.exportToPDF = async function() {
-    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
-        alert("⚠ PHẦN MỀM CHƯA KÍCH HOẠT!\nVui lòng nhập mã bản quyền để sử dụng tính năng này.");
-        return;
-    }
-    const { jsPDF } = window.jspdf;
-    const list = typeof window.parseList === 'function' ? window.parseList() : [];
-    const r = parseInt(document.getElementById('tableRows')?.value) || 10;
-    const c = parseInt(document.getElementById('tableCols')?.value) || 2;
-    const totalCells = r * c;
-    const totalPages = Math.max(1, Math.ceil(list.length / totalCells));
-    const loading = document.getElementById('globalLoading');
-    if (loading) loading.style.display = 'flex';
-    const lText = document.getElementById('loadingText');
-    if (lText) lText.innerText = "Đang chuẩn bị PDF...";
-    try {
-        const oldStep = window.currentStep;
-        const pdf = new jsPDF({
-            orientation: 'p', unit: 'px',
-            format: [canvas.width / getVal('exportScale', 1), canvas.height / getVal('exportScale', 1)]
-        });
-        for (let i = 0; i < totalPages; i++) {
-            if (lText) lText.innerText = `Đang xử lý trang ${i + 1}/${totalPages}`;
-            window.currentStep = i;
-            await new Promise(resolve => { window.drawCanvas(); setTimeout(resolve, 300); });
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            if (i > 0) pdf.addPage();
-            pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-        }
-        pdf.save(`VIP_SIM_CATALOG_${new Date().getTime()}.pdf`);
-        window.currentStep = oldStep; window.drawCanvas();
-    } catch (err) { console.error(err); alert("❌ Lỗi khi xuất PDF!"); }
-    finally { if (loading) loading.style.display = 'none'; }
-};
-
-window.setupDrag = function(elementId, handleId) {
-    const el = document.getElementById(elementId); 
-    const handle = document.getElementById(handleId) || el;
-    if(!el || !handle) return; 
-    let isDragging = false, moved = false, startX, startY, initX, initY;
-    const start = (e) => { 
-        if(['BUTTON','INPUT','SELECT','A'].includes(e.target.tagName)) return; 
-        isDragging = true; moved = false; 
-        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
-        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
-        startX = clientX; startY = clientY; 
-        let rect = el.getBoundingClientRect();
-        initX = rect.left; initY = rect.top; 
-        el.style.left = initX + 'px'; el.style.top = initY + 'px';
-        el.style.bottom = 'auto'; el.style.right = 'auto'; el.style.margin = '0'; el.style.transform = 'none'; 
-    };
-    const move = (e) => { 
-        if(!isDragging) return; 
-        let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
-        let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
-        let dx = clientX - startX; let dy = clientY - startY; 
-        if(Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true; 
-        if(moved) { 
-            e.preventDefault(); 
-            let maxX = window.innerWidth - el.offsetWidth; 
-            let maxY = window.innerHeight - el.offsetHeight; 
-            let newX = Math.max(0, Math.min(initX + dx, maxX));
-            let newY = Math.max(0, Math.min(initY + dy, maxY));
-            el.style.left = newX + 'px'; el.style.top = newY + 'px'; 
-        } 
-    };
-    const end = () => { isDragging = false; };
-    handle.addEventListener('mousedown', start); 
-    handle.addEventListener('touchstart', start, {passive: false}); 
-    window.addEventListener('mousemove', move, {passive: false}); 
-    window.addEventListener('touchmove', move, {passive: false}); 
-    window.addEventListener('mouseup', end); 
-    window.addEventListener('touchend', end);
-    return () => moved;
-};
-
-// --- BẢO MẬT & DRM ---
-(function() {
-    function trap() {
-        try {
-            (function () {
-                (function a() {
-                    try {
-                        (function b(i) {
-                            if (("" + i / i).length !== 1 || i % 20 === 0) {
-                                (function () { }).constructor("debugger")();
-                            } else { debugger; }
-                            b(++i);
-                        })(0);
-                    } catch (e) { setTimeout(a, 1000); }
-                })();
-            })();
-        } catch (e) {}
-    }
-    document.addEventListener('contextmenu', e => {
-        if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.id === 'displayMac') return;
-        e.preventDefault();
-    }, false);
-    document.addEventListener('keydown', e => {
-        if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || 
-            (e.ctrlKey && [85, 83, 80, 65, 70].includes(e.keyCode))) {
-            e.preventDefault(); return false;
-        }
-    });
-    /* 
-    trap();
-    */
-    /* 
-    setInterval(function() {
-        var start = new Date().getTime();
-        debugger;
-        var end = new Date().getTime();
-        if (end - start > 100) { window.location.reload(); }
-    }, 2000);
-    */
-})();
-
-const STORAGE_ID_KEY = 'SYSTEM_LOG_DATA_CACHED'; const LICENSE_KEY = 'SYSTEM_LICENSE_ACTIVE'; const POS = [2, 5, 9, 14, 20, 27, 35, 44, 54, 59];
-window.getDeviceID = function() { try { let secret = localStorage.getItem(STORAGE_ID_KEY); if (!secret || secret.length < 60) { let charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let rawID = ""; for(let i=0; i<10; i++) rawID += charset.charAt(Math.floor(Math.random() * charset.length)); let junk = ""; for(let i=0; i<60; i++) junk += charset.charAt(Math.floor(Math.random() * charset.length)); let complexArr = junk.split(""); for(let i=0; i<10; i++) { complexArr[POS[i]] = rawID[i]; } secret = complexArr.join(""); localStorage.setItem(STORAGE_ID_KEY, secret); return rawID; } let realID = ""; for(let p of POS) { realID += secret[p]; } return realID; } catch (e) { return "ERROR_ID"; } };
-window.verifyLicense = function(keyStr) { if(!keyStr) return false; try { let myMac = window.getDeviceID(); let decoded = decodeURIComponent(atob(keyStr.split('').reverse().join(''))); let rawData = ""; for(let i=0; i<decoded.length; i++) { rawData += String.fromCharCode(decoded.charCodeAt(i) - 7); } let parts = rawData.split('|||'); if(parts.length !== 2) return false; let keyMac = parts[0]; let expTime = parseInt(parts[1]); if(keyMac === myMac && expTime > Date.now()) { return true; } return false; } catch(e) { console.log("DRM Error:", e); return false; } };
-window.checkLicense = function() { console.log("Checking License..."); let savedKey = localStorage.getItem(LICENSE_KEY); let overlay = document.getElementById('drmOverlay'); let macDisplay = document.getElementById('displayMac'); if(macDisplay) macDisplay.innerText = window.getDeviceID(); if(savedKey && window.verifyLicense(savedKey)) { console.log("License Valid."); if(overlay) overlay.style.display = 'none'; } else { console.log("License Required."); if(overlay) overlay.style.display = 'flex'; } };
-window.activateLicense = function() { console.log("Activating License..."); let keyInput = document.getElementById('licenseKeyInput').value.trim(); let msg = document.getElementById('drmMessage'); if(!keyInput) { msg.innerText = "Vui lòng nhập mã kích hoạt!"; return; } if(window.verifyLicense(keyInput)) { localStorage.setItem(LICENSE_KEY, keyInput); msg.style.color = "#2ecc71"; msg.innerText = "Kích hoạt thành công! Đang tải lại phần mềm..."; setTimeout(() => { document.getElementById('drmOverlay').style.display='none'; if(typeof window.fitZoom === 'function') window.fitZoom(); }, 1000); } else { msg.style.color = "#e74c3c"; msg.innerText = "Mã kích hoạt sai hoặc đã hết hạn!"; } };
-window.copyMac = function() { let mac = document.getElementById('displayMac').innerText; let tempInput = document.createElement("input"); tempInput.value = mac; document.body.appendChild(tempInput); tempInput.select(); tempInput.setSelectionRange(0, 99999); try { document.execCommand("copy"); alert("✅ Đã copy Mã Máy thành công: " + mac); } catch (err) { alert("❌ Vui lòng copy thủ công!"); } document.body.removeChild(tempInput); };
-window.isAuthorized = function() { try { let savedKey = localStorage.getItem(LICENSE_KEY); return !!(savedKey && window.verifyLicense(savedKey)); } catch(e) { return false; } };
-window.toggleCanvasSizeInputs = function() {
-    let mode = document.getElementById('canvasSizeMode')?.value;
-    let wrapper = document.getElementById('customCanvasSizeWrapper');
-    if(!wrapper) return;
-    wrapper.style.display = mode === 'auto' ? 'none' : 'flex';
-    let cH = document.getElementById('customCanvasH'); let lH = document.getElementById('labelCustomH');
-    if(cH) cH.style.display = mode === 'ratio' ? 'none' : 'block';
-    if(lH) lH.style.display = mode === 'ratio' ? 'none' : 'block';
 };
