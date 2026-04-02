@@ -1030,6 +1030,8 @@ window.switchTab = function(tabId, btn) {
         let activeSub = target.querySelector('.sub-tab-content.active') || target;
         syncTabUX(activeSub); 
     }, 50);
+
+    if (typeof window.updateMobileNavUI === 'function') setTimeout(window.updateMobileNavUI, 10);
 };
 
 window.switchSubTab = function(subTabId, btn) {
@@ -1048,6 +1050,7 @@ window.switchSubTab = function(subTabId, btn) {
         syncTabUX(document.getElementById('dynamic-tabs-container') || target);
     }
     if (typeof window.debouncedSave === 'function') window.debouncedSave();
+    if (typeof window.updateMobileNavUI === 'function') setTimeout(window.updateMobileNavUI, 10);
 };
 
 window.switchSubSubTab = function(subSubTabId, btn) {
@@ -1072,6 +1075,81 @@ window.switchSubSubTab = function(subSubTabId, btn) {
     }
 
     if (typeof window.debouncedSave === 'function') window.debouncedSave();
+    if (typeof window.updateMobileNavUI === 'function') setTimeout(window.updateMobileNavUI, 10);
+};
+
+// [KẾT THÚC] Hết logic cơ bản của Tab
+
+window.mobileStackLevel = 1;
+window.mobileNavLevel1Html = null;
+
+window.updateMobileNavUI = function() {
+    let menu = document.getElementById('mobileTabMenu');
+    let modalEl = document.getElementById('mobileSettingModal');
+    // Chỉ hoạt động nếu popup đang hiển thị
+    if (!menu || !modalEl || modalEl.style.display === 'none' || modalEl.style.display === '') return;
+    
+    if (!window.mobileNavLevel1Html) window.mobileNavLevel1Html = menu.innerHTML;
+
+    let bodyEl = document.getElementById('mobileModalBody');
+    let activeTabContent = bodyEl ? bodyEl.querySelector('.tab-content.active') : null;
+    
+    if (!activeTabContent || window.mobileStackLevel === 1) {
+        menu.innerHTML = window.mobileNavLevel1Html;
+        return;
+    }
+
+    if (window.mobileStackLevel === 3) {
+        let activeSubTabContent = activeTabContent.querySelector('.sub-tab-content.active');
+        if (activeSubTabContent) {
+            let level3Container = activeSubTabContent.querySelector('.sub-sub-tabs, .sub-tabs');
+            let btns = level3Container ? level3Container.querySelectorAll('.sub-sub-tab-btn, .sub-tab-btn') : []; 
+            if (btns.length > 0) {
+                let backName = "⬅ Lùi";
+                let activeLevel2Btn = activeTabContent.querySelector('.sub-tab-btn.active');
+                if (activeLevel2Btn) backName = "⬅ " + activeLevel2Btn.innerText.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim();
+
+                let html = `<button class="m-tab-lvl1" style="background:#e74c3c; color:white; border:none;" onclick="window.navGoBack()">${backName}</button>`;
+                btns.forEach(btn => {
+                    let isActive = btn.classList.contains('active') ? 'active' : '';
+                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; ${btn.getAttribute('onclick')}">${btn.innerHTML}</button>`;
+                });
+                menu.innerHTML = html;
+                setTimeout(() => { let ab = menu.querySelector('.active'); if(ab) ab.scrollIntoView({behavior: 'smooth', inline: 'center'}); }, 50);
+                return;
+            }
+        }
+        window.mobileStackLevel = 2; // Rớt cấp nếu ko tìm thấy
+    }
+
+    if (window.mobileStackLevel === 2) {
+        let level2Container = activeTabContent.querySelector(':scope > .sub-tabs, :scope > div > .sub-tabs') || activeTabContent.querySelector('.sub-tabs');
+        if (level2Container) {
+             let btns = level2Container.querySelectorAll('.sub-tab-btn');
+             if (btns.length > 0) {
+                 let t1Btn = document.querySelector(`button#mTab-${activeTabContent.id}`);
+                 let backName = t1Btn ? "⬅ " + t1Btn.innerText.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim() : "⬅ Menu Cài Đặt";
+
+                 let html = `<button class="m-tab-lvl1" style="background:#e74c3c; color:white; border:none;" onclick="window.navGoBack()">${backName}</button>`;
+                 btns.forEach(btn => {
+                    let isActive = btn.classList.contains('active') ? 'active' : '';
+                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; ${btn.getAttribute('onclick')}">${btn.innerHTML}</button>`;
+                 });
+                 menu.innerHTML = html;
+                 setTimeout(() => { let ab = menu.querySelector('.active'); if(ab) ab.scrollIntoView({behavior: 'smooth', inline: 'center'}); }, 50);
+                 return;
+             }
+        }
+        window.mobileStackLevel = 1;
+        menu.innerHTML = window.mobileNavLevel1Html;
+    }
+};
+
+window.navGoBack = function() {
+    if (window.mobileStackLevel > 1) {
+        window.mobileStackLevel--;
+        window.updateMobileNavUI();
+    }
 };
 
 function syncTabUX(container) {
@@ -1297,6 +1375,10 @@ window.openMobileModal = function(tid) {
     }
     
     if (modalEl) modalEl.style.display = 'flex';
+    
+    // Gắn hook Navigation Stack cho Mobile
+    window.mobileStackLevel = 3; 
+    if (typeof window.updateMobileNavUI === 'function') setTimeout(window.updateMobileNavUI, 50);
 };
 
 window.focusDesktopTab = function(tid) {
