@@ -1,6 +1,24 @@
 // ============================================================================
 // MAIN.JS - BẢN FULL V23 (FIX LỖI MẤT TIÊU ĐỀ VÀ DỮ LIỆU)
 // ============================================================================
+// --- TOAST NOTIFICATION UTILITY ---
+function showToast(message) {
+    let toast = document.getElementById('toastNotification');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toastNotification';
+        toast.className = 'toast-notification';
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<span>💬</span> ${message}`;
+    toast.classList.add('show');
+    clearTimeout(window.toastTimer);
+    window.toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2500);
+}
+
+
 const canvas = document.getElementById('preview'); 
 const ctx = canvas ? canvas.getContext('2d') : null;
 const wrapper = document.getElementById('canvasWrapper');
@@ -11,6 +29,7 @@ let currentZoom = 100; let isAutoFit = true;
 let isPanning = false, startX, startY, panStartX, panStartY, scrollLeft, scrollTop;
 let isDragging = false, dragTarget = null, dragStartX = 0, dragStartY = 0, dragStartOffsetX = 0, dragStartOffsetY = 0;
 let hoveredIndex = -1, isDragMoved = false, isFullscreen = false;
+let isPressed = false; // QUAN TRỌNG: Kiểm soát trạng thái có đang nhấn chuột hay không
 let lastClickTime = 0; 
 let longPressTimeout = null;
 let isLongPress = false;
@@ -622,34 +641,52 @@ window.updateZoomUI = function() {
         let expScale = (typeof getVal === 'function' ? getVal('exportScale', 1) : 1);
         let baseW = canvas.width / expScale;
         let baseH = canvas.height / expScale;
-        // Trừ đi Padding (Ngang 80px, Dọc 120px) để vừa vặn hơn
-        let zX = (wrapper.clientWidth - 80) / baseW;
-        let zY = (wrapper.clientHeight - 120) / baseH;
+        // Trừ đi Padding để vừa vặn hơn (Ngang 100px, Dọc 160px)
+        let zX = (wrapper.clientWidth - 100) / baseW;
+        let zY = (wrapper.clientHeight - 160) / baseH;
+        // z = Math.min(zX, zY) đảm bảo toàn bộ chiều dài/rộng đều nằm trong khung (Fit to View)
         let z = Math.min(zX, zY) * 100;
-        currentZoom = Math.floor(z < 10 ? 10 : (z > 400 ? 400 : z));
+        currentZoom = Math.floor(z < 5 ? 5 : (z > 400 ? 400 : z));
     }
     let zSlider = document.getElementById('zoomSlider'); if (zSlider) zSlider.value = currentZoom;
     let zValTxt = document.getElementById('zoomVal'); if (zValTxt) zValTxt.innerText = currentZoom + '%';
     let expScale = (typeof getVal === 'function' ? getVal('exportScale', 1) : 1);
     canvas.style.width = Math.floor((canvas.width / expScale) * currentZoom / 100) + 'px';
     canvas.style.height = 'auto';
-    canvas.style.transform = 'none'; // Đảm bảo không bị dính transform scale cũ
 };
-window.fitZoom = function() { isAutoFit = true; window.updateZoomUI(); if(wrapper && canvas) { wrapper.scrollTop = 0; wrapper.scrollLeft = (canvas.offsetWidth - wrapper.clientWidth) / 2; } };
-window.applyZoom = function(val) { currentZoom = parseInt(val); isAutoFit = false; window.updateZoomUI(); };
+
+window.fitZoom = function() { 
+    isAutoFit = true; 
+    window.updateZoomUI(); 
+    // Cuộn về 0,0 - CSS margin:auto sẽ lo phần căn giữa nếu ảnh nhỏ
+    if(wrapper) { wrapper.scrollTop = 0; wrapper.scrollLeft = 0; } 
+};
+
+window.applyZoom = function(val) { 
+    let oldZoom = currentZoom;
+    currentZoom = parseInt(val); 
+    isAutoFit = false; 
+    window.updateZoomUI();
+};
+
 
 if(wrapper) {
     wrapper.addEventListener('mousedown', (e) => { 
+        // v26.6: Bảo vệ PAN - Chỉ cho phép Pan khi click vào vùng trống (không phải canvas đang xử lý object)
+        if (e.target !== canvas && e.target !== wrapper) return;
         if (typeof isDragging !== 'undefined' && isDragging) return; 
+        
+        isPressed = true; // Khởi tạo nhấn chuột tại wrapper
         isPanning = true; 
         panStartX = e.pageX - wrapper.offsetLeft; 
         panStartY = e.pageY - wrapper.offsetTop; 
         scrollLeft = wrapper.scrollLeft; 
         scrollTop = wrapper.scrollTop; 
     });
-    wrapper.addEventListener('mouseleave', () => { isPanning = false; hoveredIndex = -1; if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); });
+    wrapper.addEventListener('mouseleave', () => { isPanning = false; isPressed = false; hoveredIndex = -1; if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); });
     canvas.addEventListener('mouseleave', () => { hoveredIndex = -1; if(typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); });
-    wrapper.addEventListener('mouseup', () => { isPanning = false; });
+    wrapper.addEventListener('mouseup', () => { isPanning = false; isPressed = false; });
+
     wrapper.addEventListener('mousemove', (e) => { 
         if (!isPanning) return; 
         e.preventDefault(); 
@@ -686,7 +723,8 @@ function getPointerPos(canvas, clientX, clientY) {
 
 let pendingTarget = null;
 function handleInteractStart(clientX, clientY) {
-    isPanning = true; 
+    isPressed = true; // Bắt đầu trạng thái nhấn
+    isPanning = true; // Mặc định là cho phép PAN nếu không trúng đối tượng nào
     isDragMoved = false; isLongPress = false; isDragging = false; 
     let pos = getPointerPos(canvas, clientX, clientY);
     pendingTarget = null;
@@ -713,23 +751,34 @@ function handleInteractStart(clientX, clientY) {
         }
 
         if (isInside) {
-            let lockCheck = document.getElementById(box.id + 'Locked'); let isLocked = lockCheck && lockCheck.checked;
+            let lockCheck = document.getElementById(box.id + 'Locked'); 
+            let isLocked = lockCheck && lockCheck.checked;
             pendingTarget = { ...box, isLocked };
             
-            // Khởi tạo Long-press (Nhấn giữ 500ms để bắt đầu kéo)
-            clearTimeout(longPressTimeout);
-            longPressTimeout = setTimeout(() => {
-                if (!isDragMoved && pendingTarget && !pendingTarget.isLocked) {
-                    isLongPress = true;
-                    isDragging = true;
-                    dragTarget = pendingTarget;
-                    dragStartX = pos.x; dragStartY = pos.y;
-                    let elX = document.getElementById(dragTarget.inputX); dragStartOffsetX = elX ? parseInt(elX.value)||0 : 0;
-                    let elY = document.getElementById(dragTarget.inputY); dragStartOffsetY = elY ? parseInt(elY.value)||0 : 0;
-                    if (typeof window.saveState === 'function') window.saveState();
-                    canvas.style.cursor = 'grabbing';
-                }
-            }, 500); 
+            if (isLocked) {
+                showToast("🔒 Đối tượng đang KHÓA. Hãy mở khóa để kéo thả!");
+                isPanning = false; // QUAN TRỌNG: Không cho phép kéo màn hình khi trúng đối tượng bị khóa
+            } else {
+                showToast("🔓 GIỮ 1 GIÂY để kéo thả hoặc KHÓA để cố định vị trí!");
+                isPanning = false; // QUAN TRỌNG: Mặc định tắt PAN để chuẩn bị cho Long-press
+                
+                // Khởi tạo Long-press (Nhấn giữ 500ms để bắt đầu kéo)
+                clearTimeout(longPressTimeout);
+                longPressTimeout = setTimeout(() => {
+                    if (!isDragMoved && pendingTarget && !pendingTarget.isLocked) {
+                        isLongPress = true;
+                        isDragging = true;
+                        dragTarget = pendingTarget;
+                        dragStartX = pos.x; dragStartY = pos.y;
+                        let elX = document.getElementById(dragTarget.inputX); dragStartOffsetX = elX ? parseInt(elX.value)||0 : 0;
+                        let elY = document.getElementById(dragTarget.inputY); dragStartOffsetY = elY ? parseInt(elY.value)||0 : 0;
+                        if (typeof window.saveState === 'function') window.saveState();
+                        canvas.style.cursor = 'grabbing';
+                        // Khi đã bắt đầu Drag thì chắc chắn không Pan
+                        isPanning = false;
+                    }
+                }, 500); 
+            }
 
             return true; 
         }
@@ -737,36 +786,10 @@ function handleInteractStart(clientX, clientY) {
     return false;
 }
 
-function handleInteractMove(clientX, clientY) {
-    let dx = clientX - startX; let dy = clientY - startY;
-    
-    // Nếu di chuyển quá 20px thì coi là đã thực sự có di chuyển (Hủy Long-press nếu chưa bắt đầu kéo)
-    // Tăng ngưỡng dX/dY lên 15px để tránh việc run tay làm hủy Long-press kéo thả
-    if (isPanning && (Math.abs(dx) > 15 || Math.abs(dy) > 15)) {
-        if (!isLongPress) {
-            isDragMoved = true;
-            clearTimeout(longPressTimeout);
-        }
-    }
 
-    if (isDragging && dragTarget && isLongPress) {
-        // --- CHẾ ĐỘ KÉO ĐỐI TƯỢNG (Sau khi Long-press) ---
-        isDragMoved = true; // Đánh dấu đã di chuyển để handleInteractEnd lưu lại
-        let pos = getPointerPos(canvas, clientX, clientY); 
-        let dX_obj = pos.x - dragStartX; let dY_obj = pos.y - dragStartY;
-        
-        let nx = dragStartOffsetX + dX_obj, ny = dragStartOffsetY + dY_obj;
-        let inputXEl = document.getElementById(dragTarget.inputX), inputYEl = document.getElementById(dragTarget.inputY);
-        if (inputXEl) inputXEl.value = Math.round(nx);
-        if (inputYEl) inputYEl.value = Math.round(ny);
-        
-        if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); else drawCanvas();
-    } else if (isDragMoved && wrapper) {
-        // --- CHẾ ĐỘ KÉO MÀN HÌNH (PAN) ---
-        wrapper.scrollLeft = scrollLeft - dx;
-        wrapper.scrollTop = scrollTop - dy;
-    } else {
-        // Hover hiệu ứng (Desktop)
+function handleInteractMove(clientX, clientY) {
+    if (!isPressed) {
+        // --- CHỈ XỬ LÝ HOVER NẾU KHÔNG NHẤN CHUỘT ---
         let pos = getPointerPos(canvas, clientX, clientY); let foundIdx = -1;
         for (let i = hitBoxes.length - 1; i >= 0; i--) {
             let box = hitBoxes[i];
@@ -786,8 +809,40 @@ function handleInteractMove(clientX, clientY) {
             else canvas.style.cursor = 'default';
             if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); else drawCanvas();
         }
+        return; 
+    }
+
+    let dx = clientX - startX; 
+    let dy = clientY - startY;
+    let dist = Math.sqrt(dx*dx + dy*dy);
+    
+    // Nếu chưa vào chế độ Dragging (đang trong thời gian chờ Long-press)
+    // Nếu di chuyển quá 20px thì hủy Long-press để quay về chế độ PAN
+    if (!isDragging && !isLongPress && dist > 20) {
+        clearTimeout(longPressTimeout);
+        isPanning = true; // Quay lại cho phép PAN màn hình
+        isDragMoved = true;
+    }
+
+    if (isDragging && dragTarget && isLongPress) {
+        // --- CHẾ ĐỘ KÉO ĐỐI TƯỢNG (Sau khi Long-press thành công) ---
+        isDragMoved = true; 
+        let pos = getPointerPos(canvas, clientX, clientY); 
+        let dX_obj = pos.x - dragStartX; let dY_obj = pos.y - dragStartY;
+        
+        let nx = dragStartOffsetX + dX_obj, ny = dragStartOffsetY + dY_obj;
+        let inputXEl = document.getElementById(dragTarget.inputX), inputYEl = document.getElementById(dragTarget.inputY);
+        if (inputXEl) inputXEl.value = Math.round(nx);
+        if (inputYEl) inputYEl.value = Math.round(ny);
+        
+        if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate(); else drawCanvas();
+    } else if (isPanning && isDragMoved && wrapper) {
+        // --- CHẾ ĐỘ KÉO MÀN HÌNH (PAN) ---
+        wrapper.scrollLeft = scrollLeft - dx;
+        wrapper.scrollTop = scrollTop - dy;
     }
 }
+
 
 function handleInteractEnd(e) {
     if (!e) return;
@@ -860,8 +915,10 @@ function handleInteractEnd(e) {
 
     isDragging = false; dragTarget = null; pendingTarget = null;
     isLongPress = false; isDragMoved = false; isPanning = false;
+    isPressed = false; // QUAN TRỌNG: Kết thúc trạng thái nhấn
     smartGuides = [];
 }
+
 
 if(canvas) {
     canvas.addEventListener('touchstart', function(e) { 
@@ -2899,36 +2956,44 @@ window.applyPalette = function(c1, c2) {
 // --- HẾT PHẦN BỔ SUNG ---
 
 window.toggleFullscreen = function() {
-    let col = document.getElementById('previewColumn'); let btn = document.getElementById('toggleFullBtn');
+    let col = document.getElementById('previewColumn'); 
+    let btn = document.getElementById('toggleFullBtn');
     if(!col) return;
+    
     let isMobile = window.innerWidth <= 768;
+    
+    // Ngăn chặn việc click quá nhanh gây lỗi chuyển đổi
+    if (window.lastToggle && (Date.now() - window.lastToggle < 500)) return;
+    window.lastToggle = Date.now();
+
     if (isMobile) {
         document.body.classList.toggle('studio-mode');
         window.isFullscreen = document.body.classList.contains('studio-mode');
         if (window.isFullscreen) {
-            if (btn) btn.innerText = '↙ Thu nhỏ';
+            if (btn) btn.innerHTML = '↙ THU NHỎ';
             if (typeof window.openMobileModal === 'function') window.openMobileModal('layout');
         } else {
-            if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH';
+            if (btn) btn.innerHTML = '🔲 TOÀN MÀN HÌNH';
             if (typeof window.closeMobileModal === 'function') window.closeMobileModal();
         }
     } else {
         col.classList.toggle('fullscreen');
         window.isFullscreen = col.classList.contains('fullscreen');
-        if (window.isFullscreen) { if (btn) btn.innerText = '↙ Thu nhỏ'; } 
-        else { 
-            if (btn) btn.innerText = '🔲 TOÀN MÀN HÌNH'; 
+        if (window.isFullscreen) { 
+            if (btn) btn.innerHTML = '↙ THU NHỎ'; 
+        } else { 
+            if (btn) btn.innerHTML = '🔲 TOÀN MÀN HÌNH'; 
             if (typeof window.closeMobileModal === 'function') window.closeMobileModal(); 
         }
     }
-    // Gọi FitZoom nhiều lần để bắt kịp Layout đang co giãn (đặc biệt quan trọng trên Mobile)
+    
+    // Đảm bảo cập nhật lại khung nhìn sau khi thay đổi layout
     if (typeof window.fitZoom === 'function') {
-        setTimeout(window.fitZoom, 50);
-        setTimeout(window.fitZoom, 150);
-        setTimeout(window.fitZoom, 300);
-        setTimeout(window.fitZoom, 600);
+        setTimeout(window.fitZoom, 100);
+        setTimeout(window.fitZoom, 400); // Thêm một lần nữa sau khi hiệu ứng CSS hoàn tất
     }
 };
+
 
 window.updatePagination = function() {
     let r = parseInt(document.getElementById('tableRows')?.value) || 10;

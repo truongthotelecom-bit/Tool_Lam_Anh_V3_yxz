@@ -132,6 +132,7 @@
         body.studio-mode {
             overflow: hidden !important;
             height: 100vh !important;
+            height: 100dvh !important; /* Dùng dvh để ổn định trên mobile */
             width: 100vw !important;
         }
         body.studio-mode .col-data, 
@@ -146,11 +147,12 @@
             left: 0 !important;
             width: 100vw !important;
             height: 50vh !important;
+            height: 50dvh !important;
             z-index: 1000 !important;
             background: #fff !important;
             margin: 0 !important;
             padding: 5px !important;
-            border: none !important;
+            border-bottom: 2px solid #ccc !important;
             display: flex !important;
             flex-direction: column !important;
         }
@@ -158,10 +160,11 @@
         #previewColumn.fullscreen #canvasWrapper {
             height: 100% !important;
             margin: 0 !important;
-            padding: 5px !important;
+            padding: 10px !important;
             position: relative;
             z-index: 5 !important;
         }
+
         /* [SIDEBAR & POPUP V26.6] - UNITY SYSTEM */
         #mobileSettingModal {
             display: none;
@@ -243,26 +246,53 @@
             height: 85vh;
             background: #e9ecef;
             overflow: auto;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Nhảy lên đỉnh để không bị "co" ở giữa */
-            padding: 60px 40px;
+            position: relative;
+            display: flex; /* Dùng flex + margin auto để căn giữa khi nhỏ và tự động neo Top-Left khi lớn */
+            padding: 20px;
             box-sizing: border-box;
             cursor: grab;
             scroll-behavior: smooth;
-        }
-
-        #canvasWrapper:active {
-            cursor: grabbing;
+            -webkit-overflow-scrolling: touch;
         }
 
         #preview {
             display: block;
             flex-shrink: 0;
-            margin: 0; /* Bỏ auto để không bị ép vào giữa theo chiều dọc */
+            margin: auto; /* QUAN TRỌNG: Kết hợp với flex (không justify-content) để căn giữa và neo góc */
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
             border: 1px solid #ddd;
+            transform-origin: 0 0;
+            transition: width 0.1s ease-out;
         }
+
+        /* Toast thông báo Pro */
+        .toast-notification {
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(44, 62, 80, 0.95);
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 10000000;
+            pointer-events: none;
+            opacity: 0;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
 
         /* CSS Đám Mây - Vòng Xoay & Item */
         .loading-box {
