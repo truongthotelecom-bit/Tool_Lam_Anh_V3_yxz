@@ -641,13 +641,18 @@ window.updateZoomUI = function() {
         let expScale = (typeof getVal === 'function' ? getVal('exportScale', 1) : 1);
         let baseW = canvas.width / expScale;
         let baseH = canvas.height / expScale;
-        // Trừ đi Padding để vừa vặn hơn (Ngang 100px, Dọc 160px)
-        let zX = (wrapper.clientWidth - 100) / baseW;
-        let zY = (wrapper.clientHeight - 160) / baseH;
-        // z = Math.min(zX, zY) đảm bảo toàn bộ chiều dài/rộng đều nằm trong khung (Fit to View)
+        
+        let isMobile = window.innerWidth <= 768;
+        // Tối ưu Padding cho Mobile (20px) và Desktop (100px)
+        let padX = isMobile ? 20 : 100;
+        let padY = isMobile ? 40 : 160;
+
+        let zX = (wrapper.clientWidth - padX) / baseW;
+        let zY = (wrapper.clientHeight - padY) / baseH;
         let z = Math.min(zX, zY) * 100;
         currentZoom = Math.floor(z < 5 ? 5 : (z > 400 ? 400 : z));
     }
+
     let zSlider = document.getElementById('zoomSlider'); if (zSlider) zSlider.value = currentZoom;
     let zValTxt = document.getElementById('zoomVal'); if (zValTxt) zValTxt.innerText = currentZoom + '%';
     let expScale = (typeof getVal === 'function' ? getVal('exportScale', 1) : 1);
@@ -913,11 +918,18 @@ function handleInteractEnd(e) {
         }
     }
 
+    // v26.6: Bảo vệ Pinch - Nếu đang Zoom 2 ngón tay thì KHÔNG đóng popup
+    if (typeof isPinching !== 'undefined' && isPinching) {
+        isPinching = false;
+        return; 
+    }
+
     isDragging = false; dragTarget = null; pendingTarget = null;
     isLongPress = false; isDragMoved = false; isPanning = false;
     isPressed = false; // QUAN TRỌNG: Kết thúc trạng thái nhấn
     smartGuides = [];
 }
+
 
 
 if(canvas) {
@@ -1088,11 +1100,12 @@ function syncTabUX(container) {
         console.log("UX Sync Action: Auto-clicking", subSubBtn.innerText);
         if (!subSubBtn.classList.contains('active')) subSubBtn.click();
     } else {
-        // Nếu không tìm thấy category cũ, click cái đầu tiên của tab content đang active
+        // Nếu không tìm thấy category cũ, click cái đầu tiên (Thường là vị trí)
         let activeScope = container.querySelector('.sub-tab-content.active') || container;
-        let firstBtn = activeScope.querySelector('.sub-sub-tab-btn');
+        let firstBtn = activeScope.querySelector(`.sub-sub-tab-btn[onclick*="-pos'"]`) || activeScope.querySelector('.sub-sub-tab-btn');
         if (firstBtn && !firstBtn.classList.contains('active')) firstBtn.click();
     }
+
     
     isSyncingTab = false;
 }
