@@ -42,7 +42,7 @@ window.colCheckMap = {
     'price': 'chkPrice', 'hPrice': 'chkPrice',
     'menh': 'chkMenh', 'hMenh': 'chkMenh',
     'mang': 'chkMang', 'hMang': 'chkMang',
-    'data1': 'chkData1', 'hData1': 'chkNum', // hData1 thường đi kèm num hoặc data1 tùy tool
+    'data1': 'chkData1', 'hData1': 'chkData1', // Đã sửa lỗi dính chùm với chkNum
     'data2': 'chkData2', 'hData2': 'chkData2'
 };
 

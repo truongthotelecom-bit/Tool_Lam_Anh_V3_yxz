@@ -1067,7 +1067,7 @@
         <div style="display: flex; margin-top: 10px; gap: 8px;">
             <button onclick="pasteList()" class="btn-success" style="flex:1; padding:12px;">📋 Dán SIM</button>
             <button
-                onclick="document.getElementById('list').value=''; if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();"
+                onclick="document.getElementById('list').value=''; if(typeof updatePreviewImmediate==='function') updatePreviewImmediate(); if(typeof window.debouncedSave==='function') window.debouncedSave();"
                 class="btn-danger" style="flex:1; padding:12px;">🗑️ Xóa hết</button>
         </div>
     </div>

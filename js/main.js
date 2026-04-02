@@ -1796,6 +1796,7 @@ window.pasteList = async function () {
         if (listEl && text) {
             listEl.value = text;
             if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+            if (typeof window.debouncedSave === 'function') window.debouncedSave();
         }
     } catch (e) {
         alert('❌ Không thể đọc clipboard! Hãy dán (Ctrl+V) trực tiếp vào ô nhập liệu.');
@@ -1940,6 +1941,17 @@ document.addEventListener('mousedown', e => {
     const container = document.getElementById('quickSliderContainer');
     if (container && container.style.display === 'block') {
         if (!container.contains(e.target) && e.target !== currentEditingInput) { window.closeQuickSlider(); }
+    }
+});
+
+// ĐỒNG BỘ NGƯỢC: Khi gõ trực tiếp vào ô input gốc, thanh trượt phải chạy theo
+document.addEventListener('input', e => {
+    if (typeof currentEditingInput !== 'undefined' && e.target === currentEditingInput) {
+        const slider = document.getElementById('quickSlider');
+        const sliderInput = document.getElementById('quickSliderValueInput');
+        let v = parseFloat(e.target.value) || 0;
+        if (slider && parseFloat(slider.value) !== v) slider.value = v;
+        if (sliderInput && parseFloat(sliderInput.value) !== v) sliderInput.value = v;
     }
 });
 
