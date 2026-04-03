@@ -185,19 +185,21 @@
             background: transparent !important;
         }
 
-        /* Ẩn các thanh Tab cũ nằm trong Body của Popup trên Mobile */
-        body.studio-mode #mobileModalBody .sub-tabs,
-        body.studio-mode #mobileModalBody .sub-sub-tabs {
-            display: none !important;
+        /* Ẩn các thanh Tab cũ nằm trong Body của Popup trên Mobile (tránh trùng lặp với menu điều hướng ở đỉnh popup) */
+        @media (max-width: 768px) {
+            #mobileModalBody .sub-tabs,
+            #mobileModalBody .sub-sub-tabs {
+                display: none !important;
+            }
         }
 
 
         /* CHẾ ĐỘ DESKTOP FULLSCREEN (ÔM KHÍT KHUNG LÀM VIỆC) */
         #previewColumn.fullscreen ~ #mobileSettingModal {
-            top: 85px !important; 
+            top: 115px !important; 
             right: 20px !important; 
-            width: 380px !important; /* Ép cứng 380px */
-            height: calc(100vh - 105px) !important; /* 85 top + 20 bottom = 105 */
+            width: 430px !important; /* Mở rộng bề ngang thêm 50px thành 430px */
+            height: calc(100vh - 135px) !important; /* 115 top + 20 bottom = 135 */
             left: auto !important;
             pointer-events: auto !important; /* Cho phép tương tác popup */
             background: transparent !important;
@@ -244,7 +246,7 @@
 
         /* Fix trượt cuối trang và tối ưu mobile (V26.6 - SIÊU TRÀN VIỀN) */
         .mobile-modal-body {
-            padding: 0px 5px 200px 5px !important; /* Triệt tiêu 30px rác, chỉ để lề 5px cực mỏng */
+            padding: 0px 5px 20px 5px !important; /* Đã tối ưu về 1 dòng: thu gọn lề đáy để không bị dư 2 dòng trống */
             overflow-y: auto !important;
             -webkit-overflow-scrolling: touch;
             box-sizing: border-box !important;
