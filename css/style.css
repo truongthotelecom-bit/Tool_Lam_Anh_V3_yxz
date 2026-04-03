@@ -75,7 +75,7 @@
     #canvasWrapper {flex: 1 1 0%; min-height: 0; min-width: 0; overflow: auto; background: #e9ecef; border: 1px dashed var(--primary); text-align: center; padding: 20px; margin-bottom: 10px; position: relative; transition: all 0.3s;}
 
     /* --- HỆ THỐNG TAB CẤP 1 (MENU CHÍNH) --- */
-    .tabs {display: flex; border-bottom: 2px solid var(--primary); margin-bottom: 12px; flex-wrap: nowrap; gap: 4px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;}
+    .tabs {display: flex; border-bottom: 2px solid var(--primary); margin-bottom: 12px; flex-wrap: wrap; gap: 4px;}
     .tabs::-webkit-scrollbar { display: none; }
     .tab-btn {background: #f4f7f6; border: 1px solid #ddd; border-bottom: none; padding: 10px 12px; font-weight: bold; cursor: pointer; color: #666; font-size: 12px; border-radius: 8px 8px 0 0; flex: 0 0 auto; white-space: nowrap; transition: 0.2s;}
     .tab-btn.active {color: var(--primary); background: #e8f4ff; border-color: var(--primary); border-bottom: 2px solid #e8f4ff; margin-bottom: -2px;}
@@ -89,7 +89,7 @@
     .col-settings .tab-content.active { scrollbar-width: thin; scrollbar-color: #ccc transparent; }
     
     /* --- HỆ THỐNG TAB CẤP 2 (PHÂN NHÓM) --- */
-    .sub-tabs { display: flex; background: #fdfdfd; padding: 4px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 12px; flex-wrap: nowrap; gap: 4px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;}
+    .sub-tabs { display: flex; background: #fdfdfd; padding: 4px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 12px; flex-wrap: wrap; gap: 4px; }
     .sub-tabs::-webkit-scrollbar { display: none; }
     .sub-tab-btn { background: transparent; border: none; padding: 8px 5px; font-weight: bold; cursor: pointer; color: #555; font-size: 11px; border-radius: 6px; flex: 0 0 auto; white-space: nowrap; text-align: center; transition: 0.2s; }
     .sub-tab-btn.active { color: #fff; background: var(--success); box-shadow: 0 2px 5px rgba(40,167,69,0.3); }
@@ -97,7 +97,7 @@
     .sub-tab-content.active { display: block; }
 
     /* --- HỆ THỐNG TAB CẤP 3 (CHI TIẾT) --- */
-    .sub-sub-tabs { display: flex; margin-bottom: 12px; flex-wrap: nowrap; gap: 6px; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 2px;}
+    .sub-sub-tabs { display: flex; margin-bottom: 12px; flex-wrap: wrap; gap: 6px; justify-content: flex-start; padding-bottom: 2px;}
     .sub-sub-tabs::-webkit-scrollbar { display: none; }
     .sub-sub-tab-btn { background: #fff; border: 1px solid #ccc; padding: 6px 15px; font-weight: bold; cursor: pointer; color: #777; font-size: 10px; border-radius: 20px; flex: 0 0 auto; white-space: nowrap; transition: 0.2s;}
     .sub-sub-tab-btn.active { color: #fff; background: var(--purple); border-color: var(--purple); box-shadow: 0 2px 5px rgba(108,92,231,0.3); }
@@ -377,7 +377,7 @@
         pointer-events: none; /* Cấm click khoảng đen trên máy tính */
     }
     .mobile-modal-content {
-        width: 380px; /* Bề ngang vừa phải */
+        width: 430px; /* Bề ngang nới rộng thêm 50px */
         max-height: 80vh;
         border-radius: 12px;
         box-shadow: 0 10px 50px rgba(0,0,0,0.3);
@@ -385,5 +385,39 @@
     }
     .mobile-modal-header-area { border-radius: 12px 12px 0 0; }
     .mobile-modal-drag-handle { display: none; } /* Ẩn tay cầm vuốt đi */
+    
+    /* TRẢ LẠI GIAO DIỆN TAB CẤP 1 TRUYỀN THỐNG TRÊN DESKTOP CHO POPUP */
+    #mobileTabMenu {
+        flex-wrap: nowrap; /* Ép buộc luôn nằm trên 1 dòng */
+        overflow-x: hidden; /* Cấm trượt ngang */
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 0px;
+        margin-bottom: 0px;
+        gap: 4px;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .m-tab-lvl1 {
+        background: #f4f7f6;
+        border: 1px solid #ddd;
+        border-bottom: none;
+        padding: 10px 5px; /* Giảm nhẹ khoảng cách viền trong để chắt lọc không gian cho 1 dòng */
+        font-weight: bold;
+        color: #666;
+        font-size: 12px;
+        border-radius: 8px 8px 0 0;
+        box-shadow: none;
+        white-space: nowrap;
+        flex: 1 1 0; /* Dàn đều tabs để chia sẻ hoàn hảo chiều ngang 430px mà không xuống dòng */
+        text-align: center;
+    }
+    .m-tab-lvl1.active {
+        color: var(--primary);
+        background: #e8f4ff;
+        border-color: var(--primary);
+        border-bottom: 2px solid #e8f4ff;
+        margin-bottom: -2px;
+        box-shadow: none;
+    }
 }
 @keyframes popUpRight { from { opacity: 0; transform: translateX(50px) scale(0.9); } to { opacity: 1; transform: translateX(0) scale(1); } }
