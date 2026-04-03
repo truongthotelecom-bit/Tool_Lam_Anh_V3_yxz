@@ -911,14 +911,17 @@ function handleInteractEnd(e) {
         setTimeout(() => { window.isOpeningModal = false; }, 200);
     } else if (!isDragMoved && !isLongPress && !targetRef) {
         // v26.4: Bấm vùng trống -> Tự động đóng Popup luôn
-        // [V27] Bỏ chức năng tự đóng trên Mobile, chỉ giữ tự đóng trên Desktop Fullscreen
-        if (isFS && window.innerWidth > 768) {
-            if (typeof window.closeMobileModal === 'function') {
-                console.log("Interact: Blank click, auto closing modal (Desktop)");
-                window.closeMobileModal();
+        if (window.innerWidth <= 768 || isFS) {
+            if (!document.body.classList.contains('studio-mode')) {
+                if (typeof window.closeMobileModal === 'function') {
+                    console.log("Interact: Blank click, auto closing modal");
+                    window.closeMobileModal();
+                }
             }
         }
     }
+
+
 
     // v26.6: Bảo vệ Pinch - Nếu đang Zoom 2 ngón tay thì KHÔNG đóng popup
     if (typeof isPinching !== 'undefined' && isPinching) {
@@ -1091,13 +1094,6 @@ window.updateMobileNavUI = function() {
     let bodyEl = document.getElementById('mobileModalBody');
     let activeTabContent = bodyEl ? bodyEl.querySelector('.tab-content.active') : null;
     
-    // Yêu cầu: Bản Desktop (khi bật Fullscreen) phải giữ NGUYÊN cấu trúc Popup như cũ
-    let isMobile = window.innerWidth <= 768 || document.body.classList.contains('studio-mode');
-    if (!isMobile) {
-        if (window.mobileNavLevel1Html) menu.innerHTML = window.mobileNavLevel1Html;
-        return;
-    }
-
     if (!activeTabContent || window.mobileStackLevel === 1) {
         menu.innerHTML = window.mobileNavLevel1Html;
         return;
@@ -1118,9 +1114,7 @@ window.updateMobileNavUI = function() {
                     let isActive = btn.classList.contains('active') ? 'active' : '';
                     let bid = btn.id;
                     if (!bid) { bid = 'gen_btn_' + Math.floor(Math.random()*1000000); btn.id = bid; }
-                    let rawOnClick = btn.getAttribute('onclick') || '';
-                    let hookedCode = rawOnClick.replace(/\bthis\b/g, `document.getElementById('${bid}')`);
-                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; ${hookedCode}">${btn.innerHTML}</button>`;
+                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; document.getElementById('${bid}').click()">${btn.innerHTML}</button>`;
                 });
                 menu.innerHTML = html;
                 setTimeout(() => { let ab = menu.querySelector('.active'); if(ab) ab.scrollIntoView({behavior: 'smooth', inline: 'center'}); }, 50);
@@ -1143,9 +1137,7 @@ window.updateMobileNavUI = function() {
                     let isActive = btn.classList.contains('active') ? 'active' : '';
                     let bid = btn.id;
                     if (!bid) { bid = 'gen_btn_' + Math.floor(Math.random()*1000000); btn.id = bid; }
-                    let rawOnClick = btn.getAttribute('onclick') || '';
-                    let hookedCode = rawOnClick.replace(/\bthis\b/g, `document.getElementById('${bid}')`);
-                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; ${hookedCode}">${btn.innerHTML}</button>`;
+                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; document.getElementById('${bid}').click()">${btn.innerHTML}</button>`;
                  });
                  menu.innerHTML = html;
                  setTimeout(() => { let ab = menu.querySelector('.active'); if(ab) ab.scrollIntoView({behavior: 'smooth', inline: 'center'}); }, 50);
@@ -3027,11 +3019,6 @@ function startApp() {
         // 7. Khôi phục phiên làm việc
         if (typeof initStartupLogic === 'function') initStartupLogic();
     } catch (e) { console.error("Error in Startup Logic:", e); }
-
-    // [V27] Tự động kích hoạt Popup cài đặt làm màn hình chính trên Mobile
-    if (window.innerWidth <= 768) {
-        setTimeout(() => { if (typeof window.openMobileModal === 'function') window.openMobileModal('layout'); }, 500);
-    }
 }
 
 // --- PALETTE SYSTEM ---
