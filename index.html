@@ -891,12 +891,12 @@
             font-family: monospace;
             box-sizing: border-box;
         }
-        .sim-modal-footer {
+        .sim-modal-toolbar {
             display: flex;
             gap: 8px;
-            padding: 12px 10px;
+            padding: 10px 10px;
             background: #f8f9fa;
-            border-top: 1px solid #eee;
+            border-bottom: 1px solid #ddd;
             flex-shrink: 0;
         }
         .btn-sim-action {
@@ -1254,13 +1254,13 @@
             <b style="font-size: 16px;">📝 NHẬP DANH SÁCH SIM</b>
             <span onclick="window.closeSimListModal()" style="cursor: pointer; font-size: 24px; color: #ff4757;">✖</span>
         </div>
-        <div class="sim-modal-body">
-            <textarea id="mobileListArea" placeholder="Dán danh sách SIM tại đây..."></textarea>
-        </div>
-        <div class="sim-modal-footer">
+        <div class="sim-modal-toolbar">
             <button class="btn-sim-action btn-sim-paste" onclick="window.pasteToMobileList()">📋 DÁN SIM</button>
             <button class="btn-sim-action btn-sim-clear" onclick="document.getElementById('mobileListArea').value = ''">🗑️ XÓA</button>
             <button class="btn-sim-action btn-sim-apply" onclick="window.applySimList()">✅ XÁC NHẬN</button>
+        </div>
+        <div class="sim-modal-body">
+            <textarea id="mobileListArea" placeholder="Dán danh sách SIM tại đây..."></textarea>
         </div>
     </div>
     
