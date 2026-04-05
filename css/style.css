@@ -240,7 +240,7 @@
     #fabBtn { background: var(--purple); color: white; width: 100%; height: 100%; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4); font-size: 24px; cursor: grab; user-select: none; -webkit-tap-highlight-color: transparent; transition: transform 0.1s;}
     #fabBtn:active { cursor: grabbing; transform: scale(0.95); }
 
-    #themeModalOverlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center; animation: fadeIn 0.2s; }
+    #themeModalOverlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 10000005; justify-content: center; align-items: center; animation: fadeIn 0.2s; }
     #themeModalContent { background: #fff; padding: 20px; border-radius: 12px; width: 340px; max-width: 90vw; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: popUpCenter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .theme-modal-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: var(--purple); border-bottom: 1px dashed #ccc; padding-bottom: 10px; font-size: 16px; }
     .theme-modal-close { cursor: pointer; color: #999; font-size: 22px; line-height: 1;}
