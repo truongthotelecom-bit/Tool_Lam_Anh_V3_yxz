@@ -1027,12 +1027,12 @@
                     KHO MẪU ĐÁM MÂY TỰ ĐỘNG</label>
                 <div style="padding-bottom: 10px;">
                     <div style="position: relative;">
-                        <span
-                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
+                        <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
                         <input type="text" id="searchTemplateInput"
                             onkeyup="liveSearch('searchTemplateInput', 'cloudTemplatesList')"
                             placeholder="Tìm mẫu (VD: vip, 3x8...)"
-                            style="width: 100%; padding: 8px 10px 8px 32px; border: 1px solid #ddd; border-radius: 20px; font-size: 12px; outline: none; box-sizing: border-box; transition: 0.3s;">
+                            style="width: 100%; padding: 8px 32px 8px 32px; border: 1px solid #ddd; border-radius: 20px; font-size: 12px; outline: none; box-sizing: border-box; transition: 0.3s;">
+                        <span onclick="document.getElementById('searchTemplateInput').value=''; liveSearch('searchTemplateInput', 'cloudTemplatesList')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #ff6b81; font-size: 14px; padding: 5px; font-weight: bold;" title="Xóa tìm kiếm">✖</span>
                     </div>
                 </div>
                 <div id="cloudTemplatesList"
@@ -1200,7 +1200,8 @@
             <div style="position: relative; margin-bottom: 15px;">
                 <input type="text" id="cloudSearchBox" onkeyup="liveSearch('cloudSearchBox', 'bgCloudList')"
                     placeholder="🔍 Gõ hashtag tìm nhanh (VD: #Tet, #Vang)..."
-                    style="width:100%; padding:12px 15px; border:2px solid #007bff; border-radius:25px; font-weight:bold; box-sizing:border-box; outline: none; transition: 0.3s; font-size: 14px;">
+                    style="width:100%; padding:12px 40px 12px 15px; border:2px solid #007bff; border-radius:25px; font-weight:bold; box-sizing:border-box; outline: none; transition: 0.3s; font-size: 14px;">
+                <span onclick="document.getElementById('cloudSearchBox').value=''; liveSearch('cloudSearchBox', 'bgCloudList')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #ff6b81; font-size: 18px; padding: 5px; font-weight: bold;" title="Xóa tìm kiếm">✖</span>
             </div>
 
             <div id="bgCloudList"
