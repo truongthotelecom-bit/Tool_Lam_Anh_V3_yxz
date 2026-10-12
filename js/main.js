@@ -17,6 +17,7 @@ function showToast(message) {
         toast.classList.remove('show');
     }, 1500);
 }
+window.showToast = showToast;
 
 
 const canvas = document.getElementById('preview'); 
@@ -910,18 +911,12 @@ function handleInteractEnd(e) {
         }
         setTimeout(() => { window.isOpeningModal = false; }, 200);
     } else if (!isDragMoved && !isLongPress && !targetRef) {
-        // v26.4: Bấm vùng trống -> Tự động đóng Popup luôn
-        if (window.innerWidth <= 768 || isFS) {
-            if (!document.body.classList.contains('studio-mode')) {
-                if (typeof window.closeMobileModal === 'function') {
-                    console.log("Interact: Blank click, auto closing modal");
-                    window.closeMobileModal();
-                }
-            }
+        // Bấm vùng trống -> Tự động đóng Popup cài đặt
+        if (typeof window.closeMobileModal === 'function') {
+            console.log("Interact: Blank click, auto closing modal");
+            window.closeMobileModal();
         }
     }
-
-
 
     // v26.6: Bảo vệ Pinch - Nếu đang Zoom 2 ngón tay thì KHÔNG đóng popup
     if (typeof isPinching !== 'undefined' && isPinching) {
@@ -999,11 +994,12 @@ if(canvas) {
 }
 
 window.closeMobileModal = function() {
-    let modalEl = document.getElementById('mobileSettingModal'); if (modalEl) modalEl.style.display = 'none';
+    let modalEl = document.getElementById('mobileSettingModal'); 
+    if (modalEl) modalEl.style.display = 'none';
+    document.body.classList.remove('mobile-modal-open');
     
     // v26.6: KHÔNG tự động thoát Studio Mode khi đóng Popup. 
     // Việc thoát Studio Mode chỉ được thực hiện bởi toggleFullscreen().
-
 
     document.querySelectorAll('.m-tab-lvl1').forEach(btn => btn.classList.remove('active'));
     if (window.activeMobileElement && window.placeholderNode && window.placeholderNode.parentNode) {
@@ -1027,10 +1023,8 @@ window.switchTab = function(tabId, btn) {
     
     // Trên Desktop, khi chuyển Level 1, ta cần sync sâu vào tab con đang active bên trong nó
     setTimeout(() => {
-        if (target) {
-            let activeSub = target.querySelector('.sub-tab-content.active') || target;
-            if (typeof syncTabUX === 'function') syncTabUX(activeSub); 
-        }
+        let activeSub = target.querySelector('.sub-tab-content.active') || target;
+        syncTabUX(activeSub); 
     }, 50);
 
     if (typeof window.updateMobileNavUI === 'function') setTimeout(window.updateMobileNavUI, 10);
@@ -1049,7 +1043,7 @@ window.switchSubTab = function(subTabId, btn) {
     if (target) {
         target.classList.add('active');
         // Đồng bộ hóa phân mục cho toàn bộ vùng cài đặt
-        if (typeof syncTabUX === 'function') syncTabUX(document.getElementById('dynamic-tabs-container') || target);
+        syncTabUX(document.getElementById('dynamic-tabs-container') || target);
     }
     if (typeof window.debouncedSave === 'function') window.debouncedSave();
     if (typeof window.updateMobileNavUI === 'function') setTimeout(window.updateMobileNavUI, 10);
@@ -1093,15 +1087,16 @@ window.updateMobileNavUI = function() {
     
     if (!window.mobileNavLevel1Html) window.mobileNavLevel1Html = menu.innerHTML;
 
-    // TRÊN DESKTOP: Không dùng menu động cấp 2/cấp 3 trên header, luôn khóa ở Menu Cấp 1
-    if (window.innerWidth > 768) {
-        menu.innerHTML = window.mobileNavLevel1Html;
-        return;
-    }
-
     let bodyEl = document.getElementById('mobileModalBody');
     let activeTabContent = bodyEl ? bodyEl.querySelector('.tab-content.active') : null;
     
+    // Yêu cầu: Bản Desktop (khi bật Fullscreen) phải giữ NGUYÊN cấu trúc Popup như cũ
+    let isMobile = window.innerWidth <= 768 || document.body.classList.contains('studio-mode');
+    if (!isMobile) {
+        if (window.mobileNavLevel1Html) menu.innerHTML = window.mobileNavLevel1Html;
+        return;
+    }
+
     if (!activeTabContent || window.mobileStackLevel === 1) {
         menu.innerHTML = window.mobileNavLevel1Html;
         return;
@@ -1122,7 +1117,9 @@ window.updateMobileNavUI = function() {
                     let isActive = btn.classList.contains('active') ? 'active' : '';
                     let bid = btn.id;
                     if (!bid) { bid = 'gen_btn_' + Math.floor(Math.random()*1000000); btn.id = bid; }
-                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; document.getElementById('${bid}').click()">${btn.innerHTML}</button>`;
+                    let rawOnClick = btn.getAttribute('onclick') || '';
+                    let hookedCode = rawOnClick.replace(/\bthis\b/g, `document.getElementById('${bid}')`);
+                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; ${hookedCode}">${btn.innerHTML}</button>`;
                 });
                 menu.innerHTML = html;
                 setTimeout(() => { let ab = menu.querySelector('.active'); if(ab) ab.scrollIntoView({behavior: 'smooth', inline: 'center'}); }, 50);
@@ -1145,7 +1142,9 @@ window.updateMobileNavUI = function() {
                     let isActive = btn.classList.contains('active') ? 'active' : '';
                     let bid = btn.id;
                     if (!bid) { bid = 'gen_btn_' + Math.floor(Math.random()*1000000); btn.id = bid; }
-                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; document.getElementById('${bid}').click()">${btn.innerHTML}</button>`;
+                    let rawOnClick = btn.getAttribute('onclick') || '';
+                    let hookedCode = rawOnClick.replace(/\bthis\b/g, `document.getElementById('${bid}')`);
+                    html += `<button class="m-tab-lvl1 ${isActive}" onclick="window.mobileStackLevel=3; ${hookedCode}">${btn.innerHTML}</button>`;
                  });
                  menu.innerHTML = html;
                  setTimeout(() => { let ab = menu.querySelector('.active'); if(ab) ab.scrollIntoView({behavior: 'smooth', inline: 'center'}); }, 50);
@@ -1279,8 +1278,8 @@ window.drawGlobalBackground = function(ctx, canvasW, canvasH) {
         let grd = ctx.createLinearGradient(0, 0, Math.abs(x2), Math.abs(y2)); grd.addColorStop(0, c1); grd.addColorStop(1, c2);
         ctx.fillStyle = grd; ctx.fillRect(0, 0, canvasW, canvasH);
     } 
-    else if (mode === 'image' && window.globalBgImage) {
-        let img = window.globalBgImage; let fit = document.getElementById('bgFitMode')?.value || 'stretch';
+    else if (mode === 'image' && (window.globalBgImage || window.bgImage)) {
+        let img = window.globalBgImage || window.bgImage; let fit = document.getElementById('bgFitMode')?.value || 'stretch';
         if (fit === 'stretch') { ctx.drawImage(img, 0, 0, canvasW, canvasH); } 
         else if (fit === 'cover') { let scale = Math.max(canvasW / img.width, canvasH / img.height); let nw = img.width * scale; let nh = img.height * scale; let nx = (canvasW - nw) / 2; let ny = (canvasH - nh) / 2; ctx.drawImage(img, nx, ny, nw, nh); } 
         else if (fit === 'contain') { let scale = Math.min(canvasW / img.width, canvasH / img.height); let nw = img.width * scale; let nh = img.height * scale; let nx = (canvasW - nw) / 2; let ny = (canvasH - nh) / 2; ctx.fillStyle = document.getElementById('bgColor')?.value || '#ffffff'; ctx.fillRect(0, 0, canvasW, canvasH); ctx.drawImage(img, nx, ny, nw, nh); }
@@ -1387,10 +1386,21 @@ window.openMobileModal = function(tid) {
     }
     
     if (modalEl) modalEl.style.display = 'flex';
+    document.body.classList.add('mobile-modal-open');
     
     // Gắn hook Navigation Stack cho Mobile
     window.mobileStackLevel = 3; 
     if (typeof window.updateMobileNavUI === 'function') setTimeout(window.updateMobileNavUI, 50);
+};
+
+window.toggleMobileSettingsModal = function() {
+    let modalEl = document.getElementById('mobileSettingModal');
+    if (!modalEl) return;
+    if (modalEl.style.display === 'flex') {
+        window.closeMobileModal();
+    } else {
+        window.openMobileModal('layout');
+    }
 };
 
 window.focusDesktopTab = function(tid) {
@@ -1705,8 +1715,9 @@ window.openTemplateManager = function() {
     let list = document.getElementById('subMenuList');
     if (list) list.style.display = 'none';
     
-    // Gọi hàm mở giao diện mẫu chính thức trong index.html
-    if (typeof window.openThemeModal === 'function') {
+    if (typeof window.openLocalTemplateManager === 'function') {
+        window.openLocalTemplateManager();
+    } else if (typeof window.openThemeModal === 'function') {
         window.openThemeModal();
     } else {
         let modal = document.getElementById('themeModalOverlay');
@@ -1860,12 +1871,26 @@ window.setLocalImage = function (inputEl, globalVarName, statusId) {
         let img = new Image();
         img.onload = function () {
             window[globalVarName] = img;
-            if (globalVarName === 'globalBgImage') window.bgImage = img;
+            if (globalVarName === 'globalBgImage' || globalVarName === 'bgImage') {
+                window.globalBgImage = img;
+                window.bgImage = img;
+                let bgModeSelect = document.getElementById('bgMode');
+                if (bgModeSelect) {
+                    bgModeSelect.value = 'image';
+                    let grpSolid = document.getElementById('bgSolidGrp');
+                    let grpGrad = document.getElementById('bgGradGrp');
+                    let grpImg = document.getElementById('bgImgGrp');
+                    if (grpSolid) grpSolid.style.display = 'none';
+                    if (grpGrad) grpGrad.style.display = 'none';
+                    if (grpImg) grpImg.style.display = 'flex';
+                }
+            }
             let statusEl = document.getElementById(statusId);
             if (statusEl) statusEl.innerHTML = '✅ Đã nạp ảnh';
             if (typeof window.updateUI === 'function') window.updateUI();
             if (typeof window.drawCanvas === 'function') window.drawCanvas();
             if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+            if (typeof window.debouncedSave === 'function') window.debouncedSave();
         };
         img.src = e.target.result;
     };
@@ -1874,13 +1899,17 @@ window.setLocalImage = function (inputEl, globalVarName, statusId) {
 
 window.removeImage = function (globalVarName, inputId, statusId) {
     window[globalVarName] = null;
-    if (globalVarName === 'globalBgImage') window.bgImage = null;
+    if (globalVarName === 'globalBgImage' || globalVarName === 'bgImage') {
+        window.globalBgImage = null;
+        window.bgImage = null;
+    }
     let inputEl = document.getElementById(inputId);
     if (inputEl) inputEl.value = '';
     let statusEl = document.getElementById(statusId);
     if (statusEl) statusEl.innerHTML = '❌ Chưa có ảnh';
     if (typeof window.drawCanvas === 'function') window.drawCanvas();
     if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+    if (typeof window.debouncedSave === 'function') window.debouncedSave();
 };
 
 window.pasteList = async function () {
@@ -1957,15 +1986,30 @@ window.setupAdvancedUploader = function (inputId, globalVarName) {
             let img = new Image();
             img.onload = function () {
                 window[globalVarName] = img;
+                if (globalVarName === 'bgImage' || globalVarName === 'globalBgImage' || inputId === 'bgInput') {
+                    window.bgImage = img;
+                    window.globalBgImage = img;
+                    let bgModeSelect = document.getElementById('bgMode');
+                    if (bgModeSelect) {
+                        bgModeSelect.value = 'image';
+                        let grpSolid = document.getElementById('bgSolidGrp');
+                        let grpGrad = document.getElementById('bgGradGrp');
+                        let grpImg = document.getElementById('bgImgGrp');
+                        if (grpSolid) grpSolid.style.display = 'none';
+                        if (grpGrad) grpGrad.style.display = 'none';
+                        if (grpImg) grpImg.style.display = 'flex';
+                    }
+                }
                 let modeSelectId = inputId.replace('Input', 'Mode');
                 let modeSelect = document.getElementById(modeSelectId);
                 if (modeSelect) { modeSelect.value = 'image'; modeSelect.dispatchEvent(new Event('change')); }
-                let statusId = (globalVarName === 'bgImage') ? 'mainBgStatus' : (globalVarName === 'cellBgImage' ? 'cellBgStatus' : 'cellBorderStatus');
+                let statusId = (globalVarName === 'bgImage' || globalVarName === 'globalBgImage' || inputId === 'bgInput') ? 'mainBgStatus' : (globalVarName === 'cellBgImage' ? 'cellBgStatus' : 'cellBorderStatus');
                 let statusEl = document.getElementById(statusId);
                 if (statusEl) statusEl.innerHTML = "✅ Đã nạp ảnh";
                 if (typeof window.updateUI === 'function') window.updateUI();
                 if (typeof window.drawCanvas === 'function') window.drawCanvas();
                 if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+                if (typeof window.debouncedSave === 'function') window.debouncedSave();
             };
             img.src = event.target.result;
         };
@@ -2054,12 +2098,21 @@ document.addEventListener('input', e => {
 window.allTemplates = []; window.cloudBgData = []; window.currentBgTarget = 'global';
 
 window.openThemeModal = function () {
-    const modal = document.getElementById('themeModalOverlay');
-    if (modal) { modal.style.display = 'flex'; window.loadCloudTemplates(); }
+    if (typeof window.openLocalTemplateManager === 'function') {
+        window.openLocalTemplateManager();
+    } else {
+        const modal = document.getElementById('themeModalOverlay');
+        if (modal) { modal.style.display = 'flex'; if (typeof window.loadCloudTemplates === 'function') window.loadCloudTemplates(); }
+    }
 };
 window.closeThemeModal = function () {
-    let modal = document.getElementById('themeModalOverlay');
-    if (modal) modal.style.display = 'none';
+    document.body.classList.remove('theme-modal-open');
+    if (typeof window.closeTemplateManager === 'function') {
+        window.closeTemplateManager();
+    } else {
+        let modal = document.getElementById('themeModalOverlay');
+        if (modal) modal.style.display = 'none';
+    }
 };
 document.getElementById('themeModalOverlay')?.addEventListener('click', function (e) { if (e.target === this) window.closeThemeModal(); });
 
@@ -2070,6 +2123,86 @@ window.toggleLoading = function(show, actionText = "Đang xử lý", mainText = 
     if (loader) {
         if (show) { loader.style.display = 'flex'; act.innerText = actionText; txt.innerText = mainText; }
         else { loader.style.opacity = '0'; setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 300); }
+    }
+};
+
+// ==========================================
+// TÌM KIẾM TRỰC TIẾP (LIVE SEARCH) THÔNG MINH
+// Hỗ trợ tiếng Việt có dấu, không dấu, hashtag (#)
+// Dùng cho: Kho Mẫu Đám Mây (#cloudTemplatesList) và Kho Ảnh Drive (#bgCloudList)
+// ==========================================
+function stripVietnameseTones(str) {
+    if (!str) return '';
+    return str
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd');
+}
+window.stripVietnameseTones = stripVietnameseTones;
+
+window.liveSearch = function(inputId, listContainerId) {
+    const input = document.getElementById(inputId);
+    const container = document.getElementById(listContainerId);
+    if (!input || !container) return;
+
+    const rawQuery = (input.value || '').trim();
+    const queryNorm = stripVietnameseTones(rawQuery);
+    const keywordsNorm = queryNorm.split(/\s+/).filter(Boolean).map(k => k.replace(/^#+/, ''));
+    const rawKeywords = rawQuery.toLowerCase().split(/\s+/).filter(Boolean).map(k => k.replace(/^#+/, ''));
+
+    // Lấy tất cả card phần tử con (bỏ qua thông báo loading hoặc thông báo rỗng)
+    const cards = Array.from(container.children).filter(child => {
+        if (child.classList.contains('live-search-empty-notice')) return false;
+        if (child.style.gridColumn === '1 / -1' || child.style.gridColumn === '1/-1') return false;
+        return child.classList.contains('cloud-item-card') || 
+               child.classList.contains('cloud-bg-card') || 
+               child.classList.contains('tpl-card') ||
+               child.dataset.id ||
+               child.tagName === 'DIV';
+    });
+
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+        if (!rawQuery) {
+            card.style.display = '';
+            visibleCount++;
+            return;
+        }
+
+        const cardText = (card.innerText || card.textContent || '');
+        const cardTextNorm = stripVietnameseTones(cardText);
+        const cardTextLower = cardText.toLowerCase();
+
+        // Kiểm tra xem tất cả các từ khóa gõ vào có xuất hiện trong tiêu đề / hashtag của card không
+        const isMatch = keywordsNorm.every((kwNorm, idx) => {
+            if (!kwNorm) return true;
+            const kwRaw = rawKeywords[idx] || kwNorm;
+            return cardTextNorm.includes(kwNorm) || cardTextLower.includes(kwRaw);
+        });
+
+        if (isMatch) {
+            card.style.display = '';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    // Thông báo nếu không tìm thấy mẫu nào
+    let emptyNotice = container.querySelector('.live-search-empty-notice');
+    if (rawQuery && visibleCount === 0 && cards.length > 0) {
+        if (!emptyNotice) {
+            emptyNotice = document.createElement('div');
+            emptyNotice.className = 'live-search-empty-notice';
+            emptyNotice.style.cssText = 'grid-column: 1/-1; text-align: center; padding: 36px 16px; color: #64748b; font-size: 13px; font-weight: 600; width: 100%; box-sizing: border-box;';
+            container.appendChild(emptyNotice);
+        }
+        emptyNotice.innerHTML = `🔍 Không tìm thấy kết quả nào khớp với từ khóa "<b>${rawQuery.replace(/</g, '&lt;')}</b>"`;
+        emptyNotice.style.display = 'block';
+    } else if (emptyNotice) {
+        emptyNotice.style.display = 'none';
     }
 };
 
@@ -2091,46 +2224,126 @@ window.loadCloudTemplates = async function() {
     }
 };
 
-window.liveSearch = function(inputId, listId) {
-    let input = document.getElementById(inputId);
-    if (!input) return;
-    let filter = input.value.toLowerCase();
-    let listContainer = document.getElementById(listId);
-    if (!listContainer) return;
-    
-    // Tìm các thẻ mẫu hoặc ảnh nền
-    let cards = listContainer.querySelectorAll('.cloud-item-card, .cloud-bg-card');
-    cards.forEach(card => {
-        let text = card.textContent || card.innerText;
-        if (text.toLowerCase().indexOf(filter) > -1) {
-            card.style.display = "";
-        } else {
-            card.style.display = "none";
-        }
-    });
-};
-
 window.renderTemplates = function(data) {
     const listContainer = document.getElementById('cloudTemplatesList');
     if (!listContainer) return;
+    if (!Array.isArray(data) || data.length === 0) {
+        listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; font-size: 13px; color: #64748b; padding: 30px;">Không có mẫu thiết kế nào trên đám mây.</div>';
+        return;
+    }
     listContainer.innerHTML = data.map(pt => {
         let thumb = pt.thumb || "";
+        let driveId = "";
         if (thumb.includes('drive.google.com')) {
             let m = thumb.match(/[-\w]{25,}/);
-            if (m) thumb = `https://drive.google.com/thumbnail?id=${m[0]}&sz=w400`;
+            if (m) driveId = m[0];
+        } else if (pt.id && pt.id.length >= 25) {
+            driveId = pt.id;
         }
-        return `<div class="cloud-item-card" onclick="importFromCloudID('${pt.id}', '${pt.name.replace(/'/g, "\\")}')">
+        let primaryThumb = driveId ? `https://lh3.googleusercontent.com/d/${driveId}=w800` : thumb;
+        let fallbackThumb = driveId ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w800` : "";
+        let safeName = (pt.name || "Mẫu đám mây").replace(/"/g, '&quot;');
+        return `<div class="cloud-item-card" data-id="${pt.id}" onclick="window.importFromCloudID('${pt.id}', this)">
+            <div class="local-loading-overlay" style="display:none;"><div class="local-spinner"></div></div>
             <div class="cloud-item-thumb">
-                <img src="${thumb}" onerror="this.src='https://placehold.co/200x120?text=No+Preview'">
+                <img src="${primaryThumb}" 
+                     onerror="if(this.src!=='${fallbackThumb}' && '${fallbackThumb}'){this.src='${fallbackThumb}';}else{this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'240\\' viewBox=\\'0 0 400 240\\'><rect width=\\'400\\' height=\\'240\\' fill=\\'%23f1f5f9\\'/><text x=\\'50%25\\' y=\\'50%25\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%2394a3b8\\' font-size=\\'15\\'>🖼️ Xem Trước Mẫu</text></svg>';}" 
+                     loading="lazy" alt="${safeName}">
                 <div class="cloud-item-badge">HOT</div>
             </div>
             <div class="cloud-item-info">
-                <b class="cloud-item-title">${pt.name}</b>
+                <b class="cloud-item-title" title="${safeName}">${safeName}</b>
                 <div class="cloud-item-tags">${pt.tags || '#VIP #PRO'}</div>
             </div>
             <div class="cloud-item-action">SỬ DỤNG NGAY</div>
         </div>`;
     }).join('');
+
+    // Tự động kích hoạt lọc lại nếu ô tìm kiếm đã có sẵn từ khóa
+    const searchInput = document.getElementById('searchTemplateInput');
+    if (searchInput && searchInput.value.trim()) {
+        window.liveSearch('searchTemplateInput', 'cloudTemplatesList');
+    }
+};
+
+window.importFromCloudID = async function (fileId, elementOrOverlay, galleryParent) {
+    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
+        alert("⚠ Vui lòng kích hoạt bản quyền để sử dụng mẫu đám mây!");
+        return;
+    }
+    let overlay = null;
+    let listContainer = document.getElementById('cloudTemplatesList');
+    if (elementOrOverlay) {
+        if (elementOrOverlay.classList && elementOrOverlay.classList.contains('local-loading-overlay')) {
+            overlay = elementOrOverlay;
+        } else if (elementOrOverlay.querySelector) {
+            overlay = elementOrOverlay.querySelector('.local-loading-overlay');
+        }
+    }
+    if (overlay) overlay.style.display = 'flex';
+    if (listContainer) listContainer.style.pointerEvents = 'none';
+    if (galleryParent) galleryParent.style.pointerEvents = 'none';
+
+    if (typeof window.toggleLoading === 'function') {
+        window.toggleLoading(true, "ĐANG TẢI MẪU ĐÁM MÂY", "Đang nạp cấu hình và hình ảnh...");
+    }
+
+    try {
+        let resp = await fetch(window.CLOUD_JSON_URL + "?action=get_image&id=" + fileId);
+        let text = await resp.text();
+        text = text.trim();
+        let configObj = null;
+
+        if (text.startsWith('{')) {
+            configObj = JSON.parse(text);
+        } else {
+            let base64 = text;
+            if (base64.includes('base64,')) {
+                base64 = base64.split('base64,')[1];
+            }
+            base64 = base64.trim();
+            let binary = atob(base64);
+            let bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            let decodedStr = new TextDecoder('utf-8').decode(bytes);
+            configObj = JSON.parse(decodedStr);
+        }
+
+        if (!configObj || typeof configObj !== 'object') {
+            throw new Error("Dữ liệu cấu hình mẫu không hợp lệ!");
+        }
+
+        // Nạp cấu hình vào giao diện (true: giữ nguyên danh sách SIM hiện có)
+        if (typeof window.applyConfigToUI === 'function') {
+            window.applyConfigToUI(configObj, true);
+        }
+
+        if (typeof window.updateUI === 'function') window.updateUI();
+        if (typeof window.drawCanvas === 'function') window.drawCanvas();
+        if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+        if (typeof window.debouncedSave === 'function') window.debouncedSave();
+
+        // Đóng modal quản lý mẫu
+        if (typeof window.closeTemplateManager === 'function') {
+            window.closeTemplateManager();
+        }
+
+        if (typeof window.showToast === 'function') {
+            window.showToast("✨ Đã nạp thành công mẫu thiết kế đám mây!");
+        }
+    } catch (err) {
+        console.error("Lỗi khi tải mẫu đám mây:", err);
+        alert("❌ Không thể nạp mẫu đám mây: " + err.message);
+    } finally {
+        if (overlay) overlay.style.display = 'none';
+        if (listContainer) listContainer.style.pointerEvents = 'auto';
+        if (galleryParent) galleryParent.style.pointerEvents = 'auto';
+        if (typeof window.toggleLoading === 'function') {
+            setTimeout(() => window.toggleLoading(false), 300);
+        }
+    }
 };
 
 window.openBgCloudModal = function (target, statusId = null) {
@@ -2157,16 +2370,28 @@ window.loadCloudBackgrounds = async function() {
 
 window.renderBackgrounds = function(data) {
     const gallery = document.getElementById('bgCloudList'); if (!gallery) return;
-    gallery.innerHTML = data.map(bg => `<div class="cloud-bg-card" onclick="window.handleCloudItemClick(this, '${bg.id}', 'image')">
+    gallery.innerHTML = data.map(bg => {
+        let primaryThumb = `https://lh3.googleusercontent.com/d/${bg.id}=w800`;
+        let fallbackThumb = `https://drive.google.com/thumbnail?id=${bg.id}&sz=w800`;
+        return `<div class="cloud-bg-card" onclick="window.handleCloudItemClick(this, '${bg.id}', 'image')">
         <div class="local-loading-overlay"><div class="local-spinner"></div></div>
         <div class="cloud-bg-thumb">
-            <img src="https://drive.google.com/thumbnail?id=${bg.id}&sz=w400" onerror="this.src='https://placehold.co/200x120?text=Lỗi+Ảnh'">
+            <img src="${primaryThumb}" 
+                 onerror="if(this.src!=='${fallbackThumb}'){this.src='${fallbackThumb}';}else{this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'240\\' viewBox=\\'0 0 400 240\\'><rect width=\\'400\\' height=\\'240\\' fill=\\'%230f172a\\'/><text x=\\'50%25\\' y=\\'50%25\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%2394a3b8\\' font-size=\\'15\\'>🖼️ Ảnh Nền Mẫu</text></svg>';}" 
+                 loading="lazy">
         </div>
         <div class="cloud-bg-info">
             <b title="${bg.name}">${bg.name}</b>
-            <div style="font-size:9px; color:#f1c40f; margin-top:2px;">${bg.tags || '#Background'}</div>
+            <div style="font-size:10px; color:#f1c40f; margin-top:2px;">${bg.tags || '#Background'}</div>
         </div>
-    </div>`).join('');
+    </div>`;
+    }).join('');
+
+    // Tự động kích hoạt lọc lại nếu ô tìm kiếm đã có sẵn từ khóa
+    const searchInput = document.getElementById('cloudSearchBox');
+    if (searchInput && searchInput.value.trim()) {
+        window.liveSearch('cloudSearchBox', 'bgCloudList');
+    }
 };
 
 window.handleCloudItemClick = function (element, fileId, type) {
@@ -2176,100 +2401,101 @@ window.handleCloudItemClick = function (element, fileId, type) {
     if (type === 'image') window.applyCloudBackground(fileId, overlay, element.parentElement);
     else window.importFromCloudID(fileId, overlay, element.parentElement);
 };
-window.importFromCloudID = async function(id, nameOrOverlay, galleryElement) {
-    let name = typeof nameOrOverlay === 'string' ? nameOrOverlay : "mẫu được chọn";
-    let overlay = typeof nameOrOverlay === 'object' ? nameOrOverlay : null;
-    let gallery = galleryElement || null;
-
-    if(!confirm("Bạn có chắc muốn nạp " + name + "?\nDữ liệu hiện tại của bạn sẽ bị thay thế hoàn toàn!")) {
-        if(overlay) overlay.style.display = 'none';
-        if(gallery) gallery.style.pointerEvents = 'auto';
-        return;
-    }
-    
-    window.toggleLoading(true, "Đang nạp", "Tải mẫu đám mây...");
-    try {
-        let resp = await fetch(window.CLOUD_JSON_URL + "?action=get_image&id=" + id);
-        let rawText = await resp.text();
-        
-        let textToParse = rawText;
-        if (rawText.includes("base64,")) {
-            let b64 = rawText.split("base64,")[1];
-            b64 = b64.replace(/['"]/g, '').trim();
-            try { textToParse = decodeURIComponent(escape(atob(b64))); } catch(e) { textToParse = atob(b64); }
-        }
-        
-        let data = {};
-        try { 
-            data = JSON.parse(textToParse); 
-        } catch(e) { 
-            if (textToParse.includes("PNG") || textToParse.includes("JFIF") || textToParse.includes("Exif")) {
-                alert("LỖI LIÊN KẾT NHẦM FILE:\nID bạn khai báo trong cơ sở dữ liệu đám mây đang trỏ đến một tệp Hình Ảnh (PNG/JPG) thay vì tệp Cấu hình Template (.lite).\n\nVui lòng mở Google Drive, copy đúng ID của tệp '.lite' bạn vừa xuất và cập nhật lại vào danh sách!");
-                window.toggleLoading(false);
-                if(overlay) overlay.style.display = 'none';
-                if(gallery) gallery.style.pointerEvents = 'auto';
-                return;
-            }
-            data = { config: textToParse }; 
-        }
-
-        let cfg = null;
-        if (data && data.config) {
-            cfg = typeof data.config === 'string' ? JSON.parse(data.config) : data.config;
-        } else if (data && Object.keys(data).length > 5) {
-            cfg = data; // Raw config object
-        }
-        
-        if (cfg && typeof cfg === 'object') {
-            if (typeof window.applyConfigToUI === 'function') window.applyConfigToUI(cfg, true);
-            if (typeof window.closeThemeModal === 'function') window.closeThemeModal();
-        } else {
-            alert("Dữ liệu mẫu bị lỗi hoặc sai định dạng!");
-        }
-    } catch(err) {
-        console.error(err);
-        alert("Lỗi kết nối khi nạp mẫu đám mây!\n" + err.message);
-    }
-    window.toggleLoading(false);
-    if(overlay) overlay.style.display = 'none';
-    if(gallery) gallery.style.pointerEvents = 'auto';
-};
 
 window.applyCloudBackground = async function(fileId, loaderOverlay, galleryElement) {
     try {
         let resp = await fetch(window.CLOUD_JSON_URL + "?action=get_image&id=" + fileId);
-        let text = await resp.text();
-        let dataUrl = text;
-        try { 
-            let json = JSON.parse(text); 
-            if (json.image) dataUrl = json.image; 
-            else if (json.data) dataUrl = json.data;
-        } catch(e) {}
-        dataUrl = dataUrl.replace(/^["']|["']$/g, ''); // Xóa nháy kép bọc thừa nếu có
-        
-        let img = new Image(); img.crossOrigin = "anonymous"; 
+        let dataUrl = await resp.text();
+        let img = new Image(); img.crossOrigin = "anonymous";
         img.onload = () => {
             const target = window.currentBgTarget;
-            if (target === 'global') { window.bgImage = img; window.globalBgImage = img; }
+            if (target === 'global' || target === 'globalBgImage' || target === 'bgImage') {
+                window.bgImage = img;
+                window.globalBgImage = img;
+                let bgModeSelect = document.getElementById('bgMode');
+                if (bgModeSelect) {
+                    bgModeSelect.value = 'image';
+                    let grpSolid = document.getElementById('bgSolidGrp');
+                    let grpGrad = document.getElementById('bgGradGrp');
+                    let grpImg = document.getElementById('bgImgGrp');
+                    if (grpSolid) grpSolid.style.display = 'none';
+                    if (grpGrad) grpGrad.style.display = 'none';
+                    if (grpImg) grpImg.style.display = 'flex';
+                }
+            }
             else if (target === 'cellBgImage') window.cellBgImage = img;
             else if (target === 'cellBorderImage') window.cellBorderImage = img;
             else window[target] = img;
-            if (window.currentStatusId) { let st = document.getElementById(window.currentStatusId); if (st) st.innerHTML = '☁️ Đang dùng ảnh Mây'; }
+
+            if (window.currentStatusId) {
+                let st = document.getElementById(window.currentStatusId);
+                if (st) st.innerHTML = '☁️ Đang dùng ảnh Mây';
+            }
+            if (typeof window.updateUI === 'function') window.updateUI();
             if (typeof window.drawCanvas === 'function') window.drawCanvas();
+            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+            if (typeof window.debouncedSave === 'function') window.debouncedSave();
             if (loaderOverlay) loaderOverlay.style.display = 'none';
             if (galleryElement) galleryElement.style.pointerEvents = 'auto';
             document.querySelectorAll('#bgCloudModalOverlay, #modal-bg-cloud').forEach(m => m.style.display = 'none');
+            if (typeof window.showToast === 'function') window.showToast("✅ Đã áp dụng ảnh nền đám mây!");
         };
         img.onerror = () => {
-            alert("Lỗi định dạng ảnh mây (base64 không hợp lệ).");
-            if (loaderOverlay) loaderOverlay.style.display = 'none';
             if (galleryElement) galleryElement.style.pointerEvents = 'auto';
+            if (loaderOverlay) loaderOverlay.style.display = 'none';
+            alert("❌ Không thể nạp ảnh nền từ máy chủ!");
         };
         img.src = dataUrl;
-    } catch (err) { 
+    } catch (err) {
+        if (galleryElement) galleryElement.style.pointerEvents = 'auto';
         if (loaderOverlay) loaderOverlay.style.display = 'none';
-        if (galleryElement) galleryElement.style.pointerEvents = 'auto'; 
-        alert("Lỗi kết nối tải ảnh đám mây!"); 
+        alert("Lỗi tải ảnh!");
+    }
+};
+
+window.handleBgDriveLink = function (link) {
+    if (!link || !link.trim()) return;
+    link = link.trim();
+    let fileId = null;
+    let m = link.match(/\/d\/([-\w]{25,})/);
+    if (m) fileId = m[1];
+    else {
+        let m2 = link.match(/id=([-\w]{25,})/);
+        if (m2) fileId = m2[1];
+    }
+    let st = document.getElementById('mainBgStatus');
+    if (fileId) {
+        if (st) st.innerHTML = "⏳ Đang tải từ Drive...";
+        window.currentBgTarget = 'global';
+        window.currentStatusId = 'mainBgStatus';
+        window.applyCloudBackground(fileId, null, null);
+    } else if (link.startsWith('http://') || link.startsWith('https://') || link.startsWith('data:image')) {
+        if (st) st.innerHTML = "⏳ Đang tải ảnh từ URL...";
+        let img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+            window.bgImage = img;
+            window.globalBgImage = img;
+            let bgModeSelect = document.getElementById('bgMode');
+            if (bgModeSelect) {
+                bgModeSelect.value = 'image';
+                let grpSolid = document.getElementById('bgSolidGrp');
+                let grpGrad = document.getElementById('bgGradGrp');
+                let grpImg = document.getElementById('bgImgGrp');
+                if (grpSolid) grpSolid.style.display = 'none';
+                if (grpGrad) grpGrad.style.display = 'none';
+                if (grpImg) grpImg.style.display = 'flex';
+            }
+            if (st) st.innerHTML = "✅ Đã nạp ảnh từ URL";
+            if (typeof window.updateUI === 'function') window.updateUI();
+            if (typeof window.drawCanvas === 'function') window.drawCanvas();
+            if (typeof window.updatePreviewImmediate === 'function') window.updatePreviewImmediate();
+            if (typeof window.debouncedSave === 'function') window.debouncedSave();
+        };
+        img.onerror = () => {
+            if (st) st.innerHTML = "❌ Không thể tải ảnh từ URL!";
+        };
+        img.src = link;
     }
 };
 
@@ -2400,17 +2626,11 @@ window.resetToDefault = function () { if (confirm('Khôi phục về trạng th�
 // --- AUTO-SAVE & SESSION RECOVERY ---
 window.saveSession = async function () {
     try {
-        let cfg = {}; 
-        // Lấy tất cả input/select trong cài đặt và mobile modal
-        let inputs = document.querySelectorAll('.col-settings input, .col-settings select, #list, #mobileModalBody input, #mobileModalBody select');
+        let cfg = {}; let inputs = document.querySelectorAll('.col-settings input, .col-settings select, #list');
         inputs.forEach(el => {
             if (!el.id || el.type === 'file' || el.id.includes('search')) return;
             cfg[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
         });
-        
-        // Ngăn chặn lưu đè nếu không tìm thấy dữ liệu (tránh lỗi khi modal đang tải)
-        if (Object.keys(cfg).length < 5) return;
-        
         localStorage.setItem('VIP_SIM_TOOL_SESSION_DATA', JSON.stringify(cfg));
         const keys = ['globalBgImage', 'bgImage', 'cellBgImage', 'cellBorderImage'];
         const pfx = ['num', 'price', 'menh', 'mang', 'data1', 'data2', 'hNum', 'hPrice', 'hMenh', 'hMang', 'hData1', 'hData2', 'header1', 'header2', 'footer1', 'footer2', 'ctl', 'ctr', 'cbl', 'cbr', 'pageNum'];
@@ -2938,7 +3158,7 @@ window.initDynamicUI = function() {
 
     layoutHtml += generateColTab('num', 'Cột Số', 0, false, 200, '#ffffff') + generateColTab('price', 'Cột Giá', 65, false, 110, '#ffffff') + generateColTab('menh', 'Cột Mệnh', 0, true, 70, '#ffffff') + generateColTab('mang', 'Cột Mạng', -80, true, 70, '#ffffff') + generateColTab('data1', 'Cột DL 1', 0, false, 100, '#ffffff') + generateColTab('data2', 'Cột DL 2', 0, false, 100, '#ffffff') + `</div>`;
 
-    let headHtml = `<div id="tab-colheader" class="tab-content"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-hCommon', this)">Bật/Tắt Tiêu Đề</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hNum', this)">T.Đề SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hPrice', this)">T.Đề GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMenh', this)">T.Đề MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMang', this)">T.Đề MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData1', this)">T.Đề DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData2', this)">T.Đề DL 2</button></div>`;
+    let headHtml = `<div id="tab-colheader" class="tab-content"><div class="sub-tabs"><button class="sub-tab-btn active" onclick="switchSubTab('sub-hCommon', this)">Bật/Tắt Tiêu Đề</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hNum', this)">SỐ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hPrice', this)">GIÁ</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMenh', this)">MỆNH</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hMang', this)">MẠNG</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData1', this)">DL 1</button><button class="sub-tab-btn" onclick="switchSubTab('sub-hData2', this)">DL 2</button></div>`;
     headHtml += `<div id="sub-hCommon" class="sub-tab-content active"><div class="setting-box"><div class="setting-title">🏷️ Kích Hoạt Tiêu Đề</div><div class="setting-row"><label>Trạng thái</label><div class="setting-inputs"><label><input type="checkbox" id="showHeaderRow" checked> Hiện hàng Tiêu Đề</label><span>Cao(H):</span><input type="number" id="headerRowHeight" value="50"></div></div></div></div>`;
     headHtml += generateHeaderTab('hNum', 'SỐ ĐẸP VIP', 0, 200) + generateHeaderTab('hPrice', 'GIÁ BÁN', 65, 110) + generateHeaderTab('hMenh', 'MỆNH', 0, 70) + generateHeaderTab('hMang', 'MẠNG', -80, 70) + generateHeaderTab('hData1', 'DỮ LIỆU 1', 0, 100) + generateHeaderTab('hData2', 'DỮ LIỆU 2', 0, 100) + `</div>`;
 
@@ -3050,7 +3270,7 @@ window.initDynamicUI = function() {
                 <button type="button" onclick="if(typeof removeImage==='function') removeImage('globalBgImage', 'bgInput', 'mainBgStatus');" class="btn-remove">✕</button>
             </div>
             <div id="mainBgStatus" class="status-info">❌ Chưa có ảnh</div>
-            <input type="text" id="bgDriveLink" placeholder="Dán Link Drive..." style="width:100%; padding:6px; border-radius: 4px;" oninput="if(typeof updatePreviewImmediate==='function') updatePreviewImmediate();">
+            <input type="text" id="bgDriveLink" placeholder="Dán Link Drive hoặc link ảnh..." style="width:100%; padding:6px; border-radius: 4px;" onchange="if(typeof handleBgDriveLink==='function') handleBgDriveLink(this.value);" onpaste="setTimeout(()=>{if(typeof handleBgDriveLink==='function') handleBgDriveLink(this.value);},100);" oninput="if(typeof handleBgDriveLink==='function') handleBgDriveLink(this.value);">
         </div>
     </div>
 </div>
@@ -3128,6 +3348,7 @@ function startApp() {
         // 7. Khôi phục phiên làm việc
         if (typeof initStartupLogic === 'function') initStartupLogic();
     } catch (e) { console.error("Error in Startup Logic:", e); }
+
 }
 
 // --- PALETTE SYSTEM ---
@@ -3394,39 +3615,265 @@ window.setupDrag = function(elementId, handleId) {
 const STORAGE_ID_KEY = 'SYSTEM_LOG_DATA_CACHED';
 const LICENSE_KEY = 'SYSTEM_LICENSE_ACTIVE';
 const POS = [2, 5, 9, 14, 20, 27, 35, 44, 54, 59];
-window.getDeviceID = function() { try { let secret = localStorage.getItem(STORAGE_ID_KEY); if (!secret || secret.length < 60) { let charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let rawID = ""; for(let i=0; i<10; i++) rawID += charset.charAt(Math.floor(Math.random() * charset.length)); let junk = ""; for(let i=0; i<60; i++) junk += charset.charAt(Math.floor(Math.random() * charset.length)); let complexArr = junk.split(""); for(let i=0; i<10; i++) { complexArr[POS[i]] = rawID[i]; } secret = complexArr.join(""); localStorage.setItem(STORAGE_ID_KEY, secret); return rawID; } let realID = ""; for(let p of POS) { realID += secret[p]; } return realID; } catch (e) { return "ERROR_ID"; } };
-window.verifyLicense = function(keyStr) { if(!keyStr) return false; try { let myMac = window.getDeviceID(); let decoded = decodeURIComponent(atob(keyStr.split('').reverse().join(''))); let rawData = ""; for(let i=0; i<decoded.length; i++) { rawData += String.fromCharCode(decoded.charCodeAt(i) - 7); } let parts = rawData.split('|||'); if(parts.length !== 2) return false; let keyMac = parts[0]; let expTime = parseInt(parts[1]); if(keyMac === myMac && expTime > Date.now()) { return true; } return false; } catch(e) { return false; } };
-window.checkLicense = function() { 
+
+window.getDeviceID = function() {
     try {
-        let savedKey = localStorage.getItem(LICENSE_KEY); 
-        let overlay = document.getElementById('drmOverlay'); 
-        let macDisplay = document.getElementById('displayMac'); 
-        let myID = window.getDeviceID();
-        
-        console.log("DRM System: Generated ID is", myID);
-        
-        if (macDisplay) {
-            macDisplay.innerText = myID;
-            // Retry once after 1s just in case of DOM lag
-            if (macDisplay.innerText.includes("ĐANG")) {
-                setTimeout(() => { macDisplay.innerText = myID; }, 1000);
+        let secret = localStorage.getItem(STORAGE_ID_KEY);
+        if (!secret || secret.length < 60) {
+            let charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            let rawID = "";
+            for(let i=0; i<10; i++) rawID += charset.charAt(Math.floor(Math.random() * charset.length));
+            let junk = "";
+            for(let i=0; i<60; i++) junk += charset.charAt(Math.floor(Math.random() * charset.length));
+            let complexArr = junk.split("");
+            for(let i=0; i<10; i++) {
+                complexArr[POS[i]] = rawID[i];
             }
+            secret = complexArr.join("");
+            localStorage.setItem(STORAGE_ID_KEY, secret);
+            return rawID;
         }
-        
-        if (savedKey && window.verifyLicense(savedKey)) { 
-            if (overlay) overlay.style.display = 'none'; 
-            console.log("DRM System: License Valid.");
-        } else { 
-            if (overlay) overlay.style.display = 'flex'; 
-            console.log("DRM System: License Required.");
-        } 
+        let realID = "";
+        for(let p of POS) {
+            realID += secret[p];
+        }
+        return realID;
     } catch (e) {
-        console.error("DRM System Error:", e);
+        return "ERROR_ID";
     }
 };
-window.activateLicense = function() { let keyInput = document.getElementById('licenseKeyInput').value.trim(); let msg = document.getElementById('drmMessage'); if(!keyInput) { msg.innerText = "Vui lòng nhập mã kích hoạt!"; return; } if(window.verifyLicense(keyInput)) { localStorage.setItem(LICENSE_KEY, keyInput); msg.style.color = "#2ecc71"; msg.innerText = "Kích hoạt thành công! Đang tải lại phần mềm..."; setTimeout(() => { document.getElementById('drmOverlay').style.display='none'; if(typeof window.fitZoom === 'function') window.fitZoom(); }, 1000); } else { msg.style.color = "#e74c3c"; msg.innerText = "Mã kích hoạt sai hoặc đã hết hạn!"; } };
-window.copyMac = function() { let mac = document.getElementById('displayMac').innerText; let tempInput = document.createElement("input"); tempInput.value = mac; document.body.appendChild(tempInput); tempInput.select(); tempInput.setSelectionRange(0, 99999); try { document.execCommand("copy"); alert("✅ Đã copy Mã Máy thành công: " + mac); } catch (err) { alert("❌ Vui lòng copy thủ công!"); } document.body.removeChild(tempInput); };
-window.isAuthorized = function() { try { let savedKey = localStorage.getItem(LICENSE_KEY); return !!(savedKey && window.verifyLicense(savedKey)); } catch(e) { return false; } };
+
+window.getLicenseDetails = function(keyStr) {
+    if(!keyStr) return null;
+    try {
+        let myMac = window.getDeviceID();
+        let decoded = decodeURIComponent(atob(keyStr.split('').reverse().join('')));
+        let rawData = "";
+        for(let i=0; i<decoded.length; i++) {
+            rawData += String.fromCharCode(decoded.charCodeAt(i) - 7);
+        }
+        let parts = rawData.split('|||');
+        if(parts.length !== 2) return null;
+        let keyMac = parts[0];
+        let expTime = parseInt(parts[1]);
+        let isValid = (keyMac === myMac && expTime > Date.now());
+        let daysLeft = Math.max(0, Math.ceil((expTime - Date.now()) / (24 * 3600 * 1000)));
+        let expDate = new Date(expTime);
+        let expDateStr = `${String(expDate.getDate()).padStart(2, '0')}/${String(expDate.getMonth() + 1).padStart(2, '0')}/${expDate.getFullYear()}`;
+        return {
+            valid: isValid,
+            keyMac: keyMac,
+            expTime: expTime,
+            daysLeft: daysLeft,
+            endDate: expDateStr
+        };
+    } catch(e) {
+        return null;
+    }
+};
+
+window.verifyLicense = function(keyStr) {
+    let details = window.getLicenseDetails(keyStr);
+    return !!(details && details.valid);
+};
+
+window.generateLicenseKey = function(mac, days = 365) {
+    try {
+        let targetMac = mac || window.getDeviceID();
+        let expTime = Date.now() + days * 24 * 3600 * 1000;
+        let rawData = targetMac + "|||" + expTime;
+        let enc = "";
+        for (let i = 0; i < rawData.length; i++) {
+            enc += String.fromCharCode(rawData.charCodeAt(i) + 7);
+        }
+        let b64 = btoa(encodeURIComponent(enc));
+        return b64.split('').reverse().join('');
+    } catch(e) {
+        return "ERROR";
+    }
+};
+
+window.updateLicenseBadge = function(status, mac, expHtml) {
+    try {
+        let badgeMac = document.getElementById('badgeMacText');
+        let badgeExp = document.getElementById('badgeExpText');
+        let dot = document.getElementById('badgeStatusDot');
+        let badgeExpRow = document.getElementById('badgeExpRow');
+        let macDisplay = document.getElementById('displayMac');
+        let myID = mac || window.getDeviceID();
+
+        if (badgeMac) badgeMac.innerText = myID;
+        if (macDisplay) macDisplay.innerText = myID;
+        if (badgeExp) badgeExp.innerHTML = expHtml || '---';
+
+        if (dot) {
+            dot.className = 'badge-status-dot ' + (status || 'checking');
+        }
+        if (badgeExpRow) {
+            badgeExpRow.className = 'badge-row-exp ' + (status || '');
+        }
+    } catch(e) {
+        console.error("Error updating license badge:", e);
+    }
+};
+
+window.checkLicense = async function(manualCheck = false) {
+    try {
+        let myID = window.getDeviceID();
+        let overlay = document.getElementById('drmOverlay');
+        let macDisplay = document.getElementById('displayMac');
+        if (macDisplay) macDisplay.innerText = myID;
+
+        // 0. Lấy ngày hôm nay theo giờ địa phương (YYYY-MM-DD)
+        let now = new Date();
+        let todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+        // 1. Kiểm tra cache: CHỈ CHECK BẢN QUYỀN 1 LẦN/NGÀY KHI F5 HOẶC MỞ LẠI
+        let lastCheckedDate = localStorage.getItem('LAST_LICENSE_CHECK_DATE');
+        let cachedRaw = localStorage.getItem('CACHED_LICENSE_DATA');
+        let cachedResult = null;
+        try { if (cachedRaw) cachedResult = JSON.parse(cachedRaw); } catch(e) {}
+
+        if (!manualCheck && lastCheckedDate === todayStr && cachedResult && cachedResult.success) {
+            console.log(`DRM System: Hôm nay (${todayStr}) đã xác thực bản quyền. Dùng cache, bỏ qua kiểm tra mạng.`);
+            sessionStorage.setItem('CURRENT_SESSION_ACTIVE', 'true');
+            if (overlay) overlay.style.display = 'none';
+
+            let daysTextPlain = cachedResult.daysLeft !== undefined ? `Còn ${cachedResult.daysLeft} ngày` : `Đang kích hoạt`;
+            let expStr = `Hạn: <b>${cachedResult.endDate || 'Vĩnh viễn'}</b> (Còn <b>${cachedResult.daysLeft !== undefined ? cachedResult.daysLeft : 0}</b> ngày)`;
+            if (cachedResult.customer) {
+                expStr = `${cachedResult.customer} | ` + expStr;
+            }
+            window.updateLicenseBadge('active', myID, expStr);
+            return true;
+        }
+
+        // 2. Nếu là ngày mới (hoặc bấm kiểm tra thủ công): Bắt buộc kiểm tra trực tuyến
+        if (!navigator.onLine) {
+            console.warn("DRM System: Offline detected on load/F5 for new day. Tool is locked.");
+            if (overlay) overlay.style.display = 'flex';
+            let msg = document.getElementById('drmMessage');
+            if (msg) {
+                msg.style.color = "#e74c3c";
+                msg.innerText = "⚠️ KHÔNG CÓ KẾT NỐI INTERNET! Phần mềm yêu cầu kết nối mạng để xác thực bản quyền 1 lần trong ngày.";
+            }
+            window.updateLicenseBadge('offline', myID, '<b>Mất mạng</b> (Yêu cầu kết nối Internet)');
+            if (manualCheck) alert("⚠️ Thiết bị hiện đang mất kết nối Internet!\nVui lòng kết nối mạng để kiểm tra bản quyền trực tuyến.");
+            return false;
+        }
+
+        // 3. Trạng thái đang kiểm tra
+        window.updateLicenseBadge('checking', myID, 'Đang kiểm tra trực tuyến...');
+
+        // 4. Gọi Google Apps Script kiểm tra bản quyền trực tuyến
+        let serverUrl = window.LICENSE_SERVER_URL || window.CLOUD_JSON_URL;
+        if (serverUrl) {
+            try {
+                let apiUrl = serverUrl + (serverUrl.includes('?') ? '&' : '?') + "action=check_license&mac=" + encodeURIComponent(myID) + "&_t=" + Date.now();
+                let resp = await fetch(apiUrl, { method: 'GET', cache: 'no-store' });
+                let result = await resp.json();
+
+                if (result && result.success) {
+                    // Bản quyền hợp lệ trên Google Sheet -> Lưu cache cho cả ngày hôm nay
+                    localStorage.setItem('CACHED_LICENSE_DATA', JSON.stringify(result));
+                    localStorage.setItem('LAST_LICENSE_CHECK_DATE', todayStr);
+                    sessionStorage.setItem('CURRENT_SESSION_ACTIVE', 'true');
+
+                    let daysTextPlain = result.daysLeft !== undefined ? `Còn ${result.daysLeft} ngày` : `Đang kích hoạt`;
+                    let expStr = `Hạn: <b>${result.endDate || 'Vĩnh viễn'}</b> (Còn <b>${result.daysLeft !== undefined ? result.daysLeft : 0}</b> ngày)`;
+                    if (result.customer) {
+                        expStr = `${result.customer} | ` + expStr;
+                    }
+                    window.updateLicenseBadge('active', myID, expStr);
+
+                    if (overlay) overlay.style.display = 'none';
+                    let msg = document.getElementById('drmMessage');
+                    if (msg) {
+                        msg.style.color = "#2ecc71";
+                        msg.innerText = "✅ " + (result.message || "Bản quyền hợp lệ");
+                    }
+                    console.log("DRM System: Online License Valid. Verified for today:", todayStr, result);
+                    if (manualCheck) alert(`✅ Bản quyền hợp lệ!\n${result.customer ? 'Khách hàng: ' + result.customer + '\n' : ''}Hạn dùng: ${result.endDate || 'Vĩnh viễn'} (${daysTextPlain})`);
+                    return true;
+                } else {
+                    // Bị từ chối trên Google Sheet (Chưa có trong sheet, hết hạn hoặc bị khóa)
+                    localStorage.removeItem('LAST_LICENSE_CHECK_DATE');
+                    sessionStorage.removeItem('CURRENT_SESSION_ACTIVE');
+                    let errMsg = (result && result.message) ? result.message : "Mã máy chưa được cấp quyền trên Google Sheet!";
+                    let statusType = (result && result.reason === 'BLOCKED') ? 'blocked' : 'expired';
+
+                    if (overlay) overlay.style.display = 'flex';
+                    let msg = document.getElementById('drmMessage');
+                    if (msg) {
+                        msg.style.color = "#e74c3c";
+                        msg.innerText = "❌ " + errMsg;
+                    }
+                    window.updateLicenseBadge(statusType, myID, `<b>${errMsg}</b>`);
+                    console.warn("DRM System: Online check denied:", result);
+                    if (manualCheck) alert("❌ " + errMsg);
+                    return false;
+                }
+            } catch (fetchErr) {
+                console.warn("DRM System: Online fetch failed on load/F5:", fetchErr);
+                sessionStorage.removeItem('CURRENT_SESSION_ACTIVE');
+                if (overlay) overlay.style.display = 'flex';
+                let msg = document.getElementById('drmMessage');
+                if (msg) {
+                    msg.style.color = "#e74c3c";
+                    msg.innerText = "⚠️ Không thể kết nối tới Google Sheet để kiểm tra bản quyền!";
+                }
+                window.updateLicenseBadge('error', myID, '<b>Lỗi kết nối máy chủ</b>');
+                if (manualCheck) alert("⚠️ Không thể kết nối đến máy chủ Google Sheet. Vui lòng thử lại!");
+                return false;
+            }
+        } else {
+            if (overlay) overlay.style.display = 'flex';
+            window.updateLicenseBadge('error', myID, '<b>Chưa cấu hình URL bản quyền</b>');
+            return false;
+        }
+    } catch (e) {
+        console.error("DRM System Error:", e);
+        return false;
+    }
+};
+
+window.copyMac = function() {
+    let myID = window.getDeviceID();
+    let tempInput = document.createElement("input");
+    tempInput.value = myID;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    tempInput.setSelectionRange(0, 99999);
+    try {
+        document.execCommand("copy");
+        alert("✅ Đã copy Mã Máy thành công:\n\n" + myID + "\n\n👉 Hãy dán mã này vào cột A của file Google Sheet để kích hoạt bản quyền!");
+    } catch (err) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(myID).then(() => {
+                alert("✅ Đã copy Mã Máy thành công: " + myID);
+            }).catch(() => {
+                prompt("Mã máy của bạn (Hãy copy):", myID);
+            });
+        } else {
+            prompt("Mã máy của bạn (Hãy copy):", myID);
+        }
+    }
+    document.body.removeChild(tempInput);
+};
+
+window.isAuthorized = function() {
+    let overlay = document.getElementById('drmOverlay');
+    return !overlay || overlay.style.display === 'none';
+};
+
+// Nếu tool đang bị khóa mà có mạng trở lại, tự động kiểm tra lại
+window.addEventListener('online', () => {
+    let overlay = document.getElementById('drmOverlay');
+    if (overlay && overlay.style.display !== 'none') {
+        console.log("Network online detected while locked. Re-checking license...");
+        window.checkLicense();
+    }
+});
 window.toggleCanvasSizeInputs = function() {
     let mode = document.getElementById('canvasSizeMode')?.value;
     let wrapper = document.getElementById('customCanvasSizeWrapper');

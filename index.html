@@ -174,21 +174,68 @@
             padding: 0 !important; /* Xóa mọi padding của cha */
         }
 
-        /* CHẾ ĐỘ MOBILE (50/50) */
-        body.studio-mode #mobileSettingModal {
-            top: auto !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 50dvh !important;
-            pointer-events: auto !important; /* v26.6: Fix lỗi bị gãy interaction trên mobile */
-            background: transparent !important;
-        }
-
-        /* Ẩn các thanh Tab cũ nằm trong Body của Popup trên Mobile (tránh trùng lặp với menu điều hướng ở đỉnh popup) */
+        /* CHẾ ĐỘ MOBILE (50/50), ÁP DỤNG TRÊN CẢ MAIN SCREEN & STUDIO MODE */
         @media (max-width: 768px) {
+            #mobileSettingModal {
+                top: auto !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                width: 100vw !important;
+                height: 52dvh !important;
+                pointer-events: auto !important;
+                background: transparent !important;
+            }
+
+            /* Ẩn cột cài đặt tĩnh trên mobile (dùng Popup / Drawer khi cần) */
+            .col-settings { display: none !important; }
+
+            /* Nút nổi tuỳ chỉnh trên Mobile */
+            .fab-container {
+                display: flex !important;
+                bottom: 85px;
+                right: 20px;
+            }
+
+            .unified-menu-container {
+                bottom: 20px;
+                right: 20px;
+                transition: bottom 0.3s cubic-bezier(0.1, 0.8, 0.1, 1);
+            }
+
+            /* KHI BẢNG TUỲ CHỌN HIỆN LÊN: ẨN NÚT CÀI ĐẶT (ĐÃ CÓ DẤU X) */
+            body.mobile-modal-open .fab-container,
+            body.mobile-modal-open #fabContainer {
+                display: none !important;
+            }
+
+            /* Nút menu vẫn giữ ở mép trên để không che ô nhập */
+            body.mobile-modal-open .unified-menu-container {
+                bottom: calc(52dvh + 15px) !important;
+            }
+
+            /* KHI MỞ MODAL QUẢN LÝ MẪU: ẨN TOÀN BỘ NÚT NỔI ĐỂ KHÔNG CHE GIAO DIỆN MẪU */
+            body.theme-modal-open .fab-container,
+            body.theme-modal-open #fabContainer,
+            body.theme-modal-open .unified-menu-container {
+                display: none !important;
+            }
+
+            .mobile-modal-close-btn {
+                display: flex !important;
+            }
+
+            /* Ẩn các thanh Tab cũ nằm trong Body của Popup trên Mobile */
             #mobileModalBody .sub-tabs,
             #mobileModalBody .sub-sub-tabs {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .fab-container {
+                display: none !important;
+            }
+            .mobile-only-menu-item {
                 display: none !important;
             }
         }
@@ -196,10 +243,10 @@
 
         /* CHẾ ĐỘ DESKTOP FULLSCREEN (ÔM KHÍT KHUNG LÀM VIỆC) */
         #previewColumn.fullscreen ~ #mobileSettingModal {
-            top: 115px !important; 
+            top: 85px !important; 
             right: 20px !important; 
-            width: 430px !important; /* Mở rộng bề ngang thêm 50px thành 430px */
-            height: calc(100vh - 135px) !important; /* 115 top + 20 bottom = 135 */
+            width: 380px !important; /* Ép cứng 380px */
+            height: calc(100vh - 105px) !important; /* 85 top + 20 bottom = 105 */
             left: auto !important;
             pointer-events: auto !important; /* Cho phép tương tác popup */
             background: transparent !important;
@@ -246,7 +293,7 @@
 
         /* Fix trượt cuối trang và tối ưu mobile (V26.6 - SIÊU TRÀN VIỀN) */
         .mobile-modal-body {
-            padding: 0px 5px 20px 5px !important; /* Đã tối ưu về 1 dòng: thu gọn lề đáy để không bị dư 2 dòng trống */
+            padding: 0px 5px 200px 5px !important; /* Triệt tiêu 30px rác, chỉ để lề 5px cực mỏng */
             overflow-y: auto !important;
             -webkit-overflow-scrolling: touch;
             box-sizing: border-box !important;
@@ -502,6 +549,7 @@
             flex-direction: column;
             align-items: flex-end;
             gap: 12px;
+            transition: bottom 0.3s cubic-bezier(0.1, 0.8, 0.1, 1);
         }
 
         .main-menu-btn {
@@ -518,11 +566,50 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
             transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 2000001;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .main-menu-btn:hover {
             transform: scale(1.1) rotate(180deg);
             background: #34495e;
+        }
+
+        /* NÚT NỔI TUỲ CHỈNH (FAB) CHO MOBILE */
+        .fab-container {
+            position: fixed;
+            bottom: 85px;
+            right: 20px;
+            z-index: 10000000 !important;
+            display: none;
+            transition: bottom 0.3s cubic-bezier(0.1, 0.8, 0.1, 1);
+        }
+
+        .fab-btn {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.45);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .fab-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 10px 30px rgba(108, 92, 231, 0.6);
+        }
+
+        .fab-btn:active {
+            transform: scale(0.92);
         }
 
         .sub-menu-list {
@@ -757,15 +844,25 @@
         }
         .cloud-item-thumb {
             width: 100%;
-            height: 100px;
+            aspect-ratio: 1 / 1;
             background: #f8f9fa;
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .cloud-item-thumb img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            padding: 6px;
+            box-sizing: border-box;
+            display: block;
+            transition: transform 0.3s;
+        }
+        .cloud-item-card:hover .cloud-item-thumb img {
+            transform: scale(1.05);
         }
         .cloud-item-badge {
             position: absolute;
@@ -822,9 +919,26 @@
             background: #000;
         }
         .cloud-bg-card:hover { border-color: #3498db; transform: scale(1.03); z-index: 10; }
-        .cloud-bg-thumb { height: 120px; overflow: hidden; opacity: 0.85; transition: 0.3s; }
+        .cloud-bg-thumb {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            height: auto;
+            overflow: hidden;
+            opacity: 0.9;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0f172a;
+        }
         .cloud-bg-card:hover .cloud-bg-thumb { opacity: 1; }
-        .cloud-bg-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .cloud-bg-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 6px;
+            box-sizing: border-box;
+        }
         .cloud-bg-info {
             position: absolute;
             bottom: 0;
@@ -837,11 +951,11 @@
             text-align: center;
         }
 
-        /* Fix trượt cuối trang trên điện thoại */
+        /* Fix trượt modal trên điện thoại: để ruột modal tự cuộn mượt mà */
         #themeModalContent {
-            max-height: 90vh;
-            overflow-y: auto;
-            padding-bottom: 80px !important;
+            max-height: 96vh;
+            overflow: hidden !important;
+            padding-bottom: 0 !important;
         }
 
         /* [MOBILE SIM LIST MODAL] - FULL SCREEN INPUT MODIFIED */
@@ -891,12 +1005,12 @@
             font-family: monospace;
             box-sizing: border-box;
         }
-        .sim-modal-toolbar {
+        .sim-modal-footer {
             display: flex;
             gap: 8px;
-            padding: 10px 10px;
+            padding: 12px 10px;
             background: #f8f9fa;
-            border-bottom: 1px solid #ddd;
+            border-top: 1px solid #eee;
             flex-shrink: 0;
         }
         .btn-sim-action {
@@ -941,6 +1055,21 @@
 
 <body>
 
+    <!-- BADGE HIỂN THỊ MÃ MÁY & HẠN DÙNG GÓC PHẢI TRÊN -->
+    <div id="licenseInfoBadge" class="license-info-badge" onclick="copyMac()" title="Mã máy & Bản quyền (Bấm để copy mã máy)">
+        <span class="badge-status-dot" id="badgeStatusDot"></span>
+        <div class="badge-content">
+            <div class="badge-row-mac">
+                <span class="badge-label">MÃ MÁY:</span>
+                <b id="badgeMacText" class="badge-val">ĐANG TẢI...</b>
+                <span class="badge-copy-icon" title="Copy mã máy">📋</span>
+            </div>
+            <div class="badge-row-exp" id="badgeExpRow">
+                <span id="badgeExpText">Đang kiểm tra bản quyền...</span>
+            </div>
+        </div>
+    </div>
+
     <div id="applyBtnContainer"
         style="display:none; position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 1000000; padding: 10px 25px; background: var(--success); color: white; border-radius: 30px; font-weight: bold; cursor: grab; box-shadow: 0 5px 15px rgba(40,167,69,0.4); font-size: 14px; user-select: none;">
         ✅ ÁP DỤNG (Chốt)</div>
@@ -971,7 +1100,9 @@
 
     <div id="unifiedMenuContainer" class="unified-menu-container">
         <div id="subMenuList" class="sub-menu-list">
+            <div class="sub-menu-item mobile-only-menu-item" onclick="window.openMobileModal('layout'); toggleUnifiedMenu();" style="color: #6c5ce7; font-weight: bold;">⚙️ Bảng Tuỳ Chỉnh</div>
             <div class="sub-menu-item" onclick="openTemplateManager();">🎨 Quản Lý Mẫu</div>
+            <div class="sub-menu-item" onclick="openSaveTemplateModal(); toggleUnifiedMenu();" style="color: #10b981; font-weight: bold;">💾 Lưu Mẫu Này</div>
             <div class="sub-menu-item" onclick="toggleExportSubMenu();">💾 Chức Năng Xuất</div>
             <div id="exportSubMenu"
                 style="display:none; flex-direction:column; gap:8px; align-items:flex-end; margin-right:15px; border-right:2px solid #ddd; padding-right:15px;">
@@ -994,67 +1125,313 @@
         </div>
     </div>
 
-    <div id="themeModalOverlay"
-        onclick="if(event.target===this) this.style.display='none'"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 10000005; justify-content: center; align-items: center; padding: 15px;">
-        <div id="themeModalContent"
-            style="background: #fff; padding: 20px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-            <div class="theme-modal-header"
-                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--success); padding-bottom: 10px; margin-bottom: 15px;">
-                <span style="font-weight: bold; color: var(--success); font-size: 16px;">🎨 QUẢN LÝ MẪU THIẾT KẾ</span>
-                <span class="theme-modal-close"
-                    onclick="document.getElementById('themeModalOverlay').style.display='none'"
-                    style="cursor: pointer; font-size: 24px; color: red; line-height: 1;">✖</span>
+    <!-- NÚT NỔI TUỲ CHỈNH (FAB CHO MOBILE) -->
+    <div id="fabContainer" class="fab-container">
+        <button id="fabBtn" class="fab-btn" onclick="window.toggleMobileSettingsModal()" title="Mở Bảng Tuỳ Chỉnh">
+            ⚙️
+        </button>
+    </div>
+
+    <!-- MODAL QUẢN LÝ MẪU NỘI BỘ (LOCAL PRO TEMPLATE MANAGER) -->
+    <div id="themeModalOverlay" onclick="if(event.target===this) window.closeTemplateManager();">
+        <div id="themeModalContent">
+            <!-- Header bar / Thanh Quản Lý Chung -->
+            <div class="tpl-header-bar">
+                <div class="tpl-header-title">
+                    <span>🎨 QUẢN LÝ MẪU THIẾT KẾ</span>
+                </div>
+                <div class="tpl-header-tools tpl-header-desktop-tools">
+                    <button type="button" class="btn-top-mgr" onclick="document.getElementById('importConfig').click();" title="Nạp file mẫu từ máy tính (.lite hoặc .json) vào bản vẽ">
+                        📂 Nạp File .lite
+                    </button>
+                    <button type="button" class="btn-top-mgr" onclick="exportConfig();" title="Xuất toàn bộ cấu hình thiết kế hiện tại ra file .lite">
+                        💾 Xuất File .lite
+                    </button>
+                    <button type="button" class="btn-top-mgr btn-top-mgr-reset" onclick="resetToDefault();" title="Khôi phục toàn bộ thiết kế về mẫu gốc mặc định">
+                        🔄 Về Gốc
+                    </button>
+                </div>
+                <button type="button" class="tpl-header-close" onclick="window.closeTemplateManager();" title="Đóng">✕</button>
+                <!-- File input nạp .lite dùng chung -->
+                <input type="file" id="importConfig" accept=".json,.lite" style="display:none" onchange="handleImport(event);">
             </div>
 
-            <select id="builtinTemplates"
-                onchange="if(typeof loadBuiltinTemplate === 'function') loadBuiltinTemplate(this.value); document.getElementById('themeModalOverlay').style.display='none';"
-                style="width: 100%; padding: 12px; border: 2px solid var(--success); border-radius: 8px; font-size: 14px; font-weight:bold; color: var(--success); cursor:pointer; text-align: center;">
-                <option value="">🌟 MẪU MẶC ĐỊNH (MẪU 1)</option>
-                <option value="mau_vip_1">🔥 Mẫu 1x1 - 1</option>
-                <option value="mau_vip_2">💎 Mẫu 1x1 - 2</option>
-                <option value="mau_vip_3">🌈 Mẫu 2x10 - 1</option>
-                <option value="mau_vip_4">⭐ Mẫu 2x10 - 2</option>
-                <option value="mau_vip_5">⚡ Mẫu 2x25 - 1</option>
-                <option value="mau_vip_6">⚡ Mẫu 3x36 -1</option>
-            </select>
-            <input type="file" id="importConfig" accept=".json,.lite" style="display:none"
-                onchange="handleImport(event); document.getElementById('themeModalOverlay').style.display='none';">
+            <!-- THANH ĐIỀU HƯỚNG 2 TAB CHÍNH -->
+            <div class="tpl-main-tabs">
+                <button class="tpl-main-tab-btn active" id="btnTabLocal" onclick="window.switchTplMainTab('local')">
+                    💾 KHO MÁY NỘI BỘ
+                </button>
+                <button class="tpl-main-tab-btn" id="btnTabCloud" onclick="window.switchTplMainTab('cloud')">
+                    ☁️ KHO ĐÁM MÂY & MẪU SẴN
+                </button>
+            </div>
 
-            <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
-                <label
-                    style="font-size: 11px; font-weight: bold; color: var(--primary); display: block; margin-bottom: 8px;">☁️
-                    KHO MẪU ĐÁM MÂY TỰ ĐỘNG</label>
-                <div style="padding-bottom: 10px;">
-                    <div style="position: relative;">
-                        <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
-                        <input type="text" id="searchTemplateInput"
-                            onkeyup="liveSearch('searchTemplateInput', 'cloudTemplatesList')"
-                            placeholder="Tìm mẫu (VD: vip, 3x8...)"
-                            style="width: 100%; padding: 8px 32px 8px 32px; border: 1px solid #ddd; border-radius: 20px; font-size: 12px; outline: none; box-sizing: border-box; transition: 0.3s;">
-                        <span onclick="document.getElementById('searchTemplateInput').value=''; liveSearch('searchTemplateInput', 'cloudTemplatesList')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #ff6b81; font-size: 14px; padding: 5px; font-weight: bold;" title="Xóa tìm kiếm">✖</span>
+            <!-- TAB 1: KHO MÁY NỘI BỘ (CỘT DANH MỤC TRÁI + LƯỚI PHẢI) -->
+            <div id="tplTabPaneLocal" class="tpl-tab-pane active">
+                <div class="tpl-layout-split">
+                    <!-- NỀN MỜ CHO HỘP TỦ KHI MỞ TRÊN MOBILE -->
+                    <div id="tplDrawerBackdrop" class="tpl-drawer-backdrop" onclick="window.toggleTemplateDrawer(false)"></div>
+
+                    <!-- CỘT TRÁI: SIDEBAR DANH MỤC MẪU (HỘP TỦ TRÊN MOBILE) -->
+                    <div id="tplSidebarCategories" class="tpl-sidebar-categories">
+                        <!-- TAY NẮM HỘP TỦ (LUÔN HIỆN Ở MÉP TRÁI TRÊN MOBILE) -->
+                        <button type="button" id="tplDrawerHandle" class="tpl-drawer-handle" onclick="window.toggleTemplateDrawer()" title="Mở / đóng hộp tủ danh mục">
+                            <span id="tplDrawerHandleIcon" class="tpl-drawer-handle-icon">🌟</span>
+                            <span id="tplDrawerHandleName" class="tpl-drawer-handle-name">Tất cả mẫu</span>
+                            <span id="tplDrawerHandleArrow" class="tpl-drawer-handle-arrow">▶</span>
+                        </button>
+
+                        <div class="tpl-sidebar-header">
+                            <span>📁 DANH MỤC MẪU</span>
+                            <button class="btn-sidebar-add-cat" onclick="window.openCategoryManagerModal()" title="Quản lý danh mục">⚙️ Sửa</button>
+                        </div>
+
+                        <!-- Danh sách các danh mục xếp dọc trên Desktop / Trượt ngang trên Mobile -->
+                        <div id="tplCategoryListSidebar" class="tpl-sidebar-nav">
+                            <!-- Sẽ được render động bởi template-manager.js -->
+                        </div>
+
+                        <div class="tpl-sidebar-footer">
+                            <button class="btn-sidebar-new-cat" onclick="window.openCategoryManagerModal()">
+                                ➕ Thêm Danh Mục
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CỘT PHẢI: KHÔNG GIAN LƯỚI MẪU & CÔNG CỤ -->
+                    <div class="tpl-main-view">
+                        <!-- Thanh Toolbar & Tìm kiếm -->
+                        <div class="tpl-toolbar">
+                            <div class="tpl-search-wrapper" style="flex: 1; min-width: 180px;">
+                                <span class="tpl-search-icon">🔍</span>
+                                <input type="text" id="tplSearchBox" class="tpl-search-input"
+                                       onkeyup="window.handleTplSearchInput(this.value)"
+                                       placeholder="Tìm mẫu local theo tên...">
+                            </div>
+                            <div class="tpl-toolbar-group">
+                                <button class="btn-tpl-save-now" onclick="window.openSaveTemplateModal();">
+                                    💾 LƯU MẪU HIỆN TẠI
+                                </button>
+                                <button class="btn-tpl-tool" onclick="window.exportAllTemplatesBackup();" title="Xuất toàn bộ kho mẫu ra file backup .json">
+                                    📤 Backup
+                                </button>
+                                <button class="btn-tpl-tool" onclick="document.getElementById('importBackupInput').click();" title="Nạp lại kho mẫu từ file backup .json">
+                                    📥 Khôi phục
+                                </button>
+                                <input type="file" id="importBackupInput" accept=".json" style="display:none;" onchange="window.handleImportTemplatesBackup(event)">
+                            </div>
+                        </div>
+
+                        <!-- Thanh báo danh mục đang chọn -->
+                        <div class="tpl-selected-cat-banner">
+                            <div id="tplSelectedCatTitle" class="tpl-cat-banner-title">
+                                🌟 Tất cả các mẫu
+                            </div>
+                            <div id="tplSelectedCatCount" class="tpl-cat-banner-count">
+                                Đang tải...
+                            </div>
+                        </div>
+
+                        <!-- Lưới hiển thị các thẻ mẫu -->
+                        <div id="localTemplatesGrid" class="tpl-cards-grid">
+                            <!-- Sẽ được render động bởi template-manager.js -->
+                        </div>
                     </div>
                 </div>
-                <div id="cloudTemplatesList"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 250px; overflow-y: auto; padding: 5px;">
-                    <div style="grid-column: 1/-1; text-align: center; font-size: 11px; color: #888;">Đang tải danh
-                        sách...</div>
+            </div>
+
+            <!-- TAB 2: KHO ĐÁM MÂY & MẪU HỆ THỐNG -->
+            <div id="tplTabPaneCloud" class="tpl-tab-pane" style="display: none;">
+                <div class="tpl-cloud-view">
+                    <!-- Khung công cụ mẫu hệ thống có sẵn -->
+                    <div class="tpl-cloud-tools-card">
+                        <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>⭐ MẪU GỐC CÓ SẴN CỦA HỆ THỐNG (PRESETS):</span>
+                            <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Chọn để nạp mẫu dựng sẵn nhanh)</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <select id="builtinTemplates"
+                                onchange="if(typeof loadBuiltinTemplate === 'function') loadBuiltinTemplate(this.value);"
+                                style="flex: 1; min-width: 240px; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 700; font-size: 13px; color: #0f172a; background: #fff;">
+                                <option value="">🌟 CHỌN MẪU MẶC ĐỊNH HỆ THỐNG</option>
+                                <option value="mau_vip_1">🔥 Mẫu 1x1 - 1</option>
+                                <option value="mau_vip_2">💎 Mẫu 1x1 - 2</option>
+                                <option value="mau_vip_3">🌈 Mẫu 2x10 - 1</option>
+                                <option value="mau_vip_4">⭐ Mẫu 2x10 - 2</option>
+                                <option value="mau_vip_5">⚡ Mẫu 2x25 - 1</option>
+                                <option value="mau_vip_6">⚡ Mẫu 3x36 - 1</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Khung tìm kiếm mẫu đám mây Google Drive -->
+                    <div style="display: flex; flex-direction: column; gap: 10px; flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 13px; font-weight: 700; color: #0284c7;">☁️ KHO MẪU ĐÁM MÂY TRỰC TUYẾN:</span>
+                            <button onclick="if(typeof window.loadCloudTemplates==='function') window.loadCloudTemplates();" class="btn-sidebar-add-cat" style="color: #0284c7;">🔄 Tải lại</button>
+                        </div>
+                        <div class="tpl-search-wrapper">
+                            <span class="tpl-search-icon">🔍</span>
+                            <input type="text" id="searchTemplateInput" 
+                                   onkeyup="liveSearch('searchTemplateInput', 'cloudTemplatesList')"
+                                   oninput="liveSearch('searchTemplateInput', 'cloudTemplatesList')"
+                                   placeholder="Tìm mẫu đám mây theo từ khóa (vip, tet, 3x8...)..."
+                                   class="tpl-search-input">
+                        </div>
+                        <div id="cloudTemplatesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; overflow-y: auto; padding: 4px;">
+                            <div style="grid-column: 1/-1; text-align: center; font-size: 12px; color: #888; padding: 30px;">Đang tải danh sách mẫu đám mây...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-top: 15px;">
-                <button onclick="createNewLite()"
-                    style="background:#007bff; border:1px solid #0056b3; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🆕
-                    TẠO MỚI</button>
-                <button onclick="document.getElementById('importConfig').click()"
-                    style="background:#f4f7f6; border:1px solid #ccc; color:#333; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">📂
-                    NẠP MẪU</button>
-                <button onclick="exportConfig(); document.getElementById('themeModalOverlay').style.display='none';"
-                    style="background:#e74c3c; border:1px solid #c0392b; color:#fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">💾
-                    XUẤT LITE</button>
-                <button onclick="resetToDefault(); document.getElementById('themeModalOverlay').style.display='none';"
-                    style="background:#ffc107; border:1px solid #d39e00; color:#000; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🔄
-                    VỀ GỐC</button>
+            <!-- THANH THAO TÁC CỐ ĐỊNH CHÂN MÀN HÌNH (DÀNH CHO MOBI) -->
+            <div class="tpl-mobile-bottom-bar">
+                <button type="button" class="btn-top-mgr" onclick="document.getElementById('importConfig').click();" title="Nạp file mẫu (.lite hoặc .json)">
+                    📂 Nạp File .lite
+                </button>
+                <button type="button" class="btn-top-mgr" onclick="exportConfig();" title="Xuất toàn bộ cấu hình thiết kế ra file .lite">
+                    💾 Xuất File .lite
+                </button>
+                <button type="button" class="btn-top-mgr btn-top-mgr-reset" onclick="resetToDefault();" title="Khôi phục về mẫu gốc mặc định">
+                    🔄 Về Gốc
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PHỤ 1: LƯU MẪU MỚI (CHỌN NHIỀU DANH MỤC) -->
+    <div id="saveTemplateModalOverlay" class="tpl-submodal-overlay" onclick="if(event.target===this) window.closeSaveTemplateModal();">
+        <div class="tpl-submodal-box">
+            <div class="tpl-submodal-header">
+                <span>💾 LƯU MẪU THIẾT KẾ VÀO MÁY</span>
+                <span onclick="window.closeSaveTemplateModal();" style="cursor:pointer; font-size:16px;">✕</span>
+            </div>
+            <div class="tpl-submodal-body">
+                <!-- Thumbnail Preview -->
+                <div style="text-align: center;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 4px;">ẢNH XEM TRƯỚC (THUMBNAIL):</div>
+                    <img id="saveTplThumbPreview" src="" alt="Thumbnail" style="width: 100%; max-height: 220px; aspect-ratio: 1 / 1; object-fit: contain; background: #f8fafc; border-radius: 8px; border: 1px solid #cbd5e1; padding: 6px; box-sizing: border-box;">
+                </div>
+
+                <!-- Tên mẫu -->
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">TÊN MẪU THIẾT KẾ: <span style="color:red;">*</span></label>
+                    <input type="text" id="saveTplNameInput" placeholder="Ví dụ: Bảng Đỏ Tết Viettel 2x10..." 
+                           style="width: 100%; padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none;">
+                </div>
+
+                <!-- Danh mục / Tab (Multi-select) có tích hợp thêm tab mới trực tiếp -->
+                <div style="background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #1e293b; margin: 0;">🏷️ CHỌN TAB / DANH MỤC (CÓ THỂ CHỌN NHIỀU):</label>
+                    </div>
+                    <div style="font-size: 11px; color: #64748b; margin-bottom: 8px;">Tích chọn các tab phân loại (mẫu sẽ xuất hiện ở tất cả các tab được chọn):</div>
+                    
+                    <!-- Lưới các chip checkbox tab/danh mục -->
+                    <div id="saveTplCategoryList" class="tpl-chips-group" style="margin-bottom: 10px;">
+                        <!-- Sẽ render động các chip checkbox -->
+                    </div>
+
+                    <!-- KHU VỰC THÊM TAB MỚI TRỰC TIẾP TẠI ĐÂY -->
+                    <div style="border-top: 1px dashed #cbd5e1; padding-top: 8px; margin-top: 4px;">
+                        <div style="font-size: 11px; font-weight: 700; color: #0284c7; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>➕ THÊM TAB / DANH MỤC MỚI:</span>
+                            <span style="font-size: 10px; color: #64748b; font-weight: normal;">(Tự động chọn cho mẫu sau khi thêm)</span>
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <input type="color" id="quickSaveCatColor" value="#007bff" title="Chọn màu cho tab"
+                                   style="width: 32px; height: 32px; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; padding: 0; background: #fff; flex-shrink: 0;">
+                            <input type="text" id="quickSaveCatName" placeholder="Nhập tên tab mới (VD: Mẫu Đơn, Mẫu Tết, Mẫu Viettel...)"
+                                   onkeydown="if(event.key==='Enter'){event.preventDefault(); window.submitQuickAddCatInSaveModal();}"
+                                   style="flex: 1; min-width: 130px; padding: 7px 10px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: 600; outline: none; background: #fff;">
+                            <button type="button" onclick="window.submitQuickAddCatInSaveModal();" 
+                                    style="background: #0284c7; color: #fff; border: none; padding: 7px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; white-space: nowrap;">
+                                ➕ Thêm Tab
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tpl-submodal-footer">
+                <button onclick="window.closeSaveTemplateModal();" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:600; font-size:12px;">Hủy Bỏ</button>
+                <button onclick="window.confirmSaveTemplate();" style="background:#10b981; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer; font-weight:700; font-size:13px;">✅ XÁC NHẬN LƯU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PHỤ 2: CHỈNH SỬA TÊN & DANH MỤC CỦA MẪU ĐÃ LƯU -->
+    <div id="editTemplateModalOverlay" class="tpl-submodal-overlay" onclick="if(event.target===this) window.closeEditTemplateModal();">
+        <div class="tpl-submodal-box">
+            <div class="tpl-submodal-header">
+                <span>✏️ CHỈNH SỬA MẪU THIẾT KẾ</span>
+                <span onclick="window.closeEditTemplateModal();" style="cursor:pointer; font-size:16px;">✕</span>
+            </div>
+            <div class="tpl-submodal-body">
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">TÊN MẪU:</label>
+                    <input type="text" id="editTplNameInput" 
+                           style="width: 100%; padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; box-sizing: border-box; outline: none;">
+                </div>
+                <div style="background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <label style="font-size: 12px; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">🏷️ TAB / DANH MỤC LIÊN KẾT (CÓ THỂ CHỌN NHIỀU):</label>
+                    <div id="editTplCategoryList" class="tpl-chips-group" style="margin-bottom: 10px;">
+                        <!-- Sẽ render động các chip checkbox -->
+                    </div>
+
+                    <!-- KHU VỰC THÊM TAB MỚI TRỰC TIẾP TẠI ĐÂY -->
+                    <div style="border-top: 1px dashed #cbd5e1; padding-top: 8px; margin-top: 4px;">
+                        <div style="font-size: 11px; font-weight: 700; color: #0284c7; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>➕ THÊM TAB / DANH MỤC MỚI:</span>
+                            <span style="font-size: 10px; color: #64748b; font-weight: normal;">(Tự động chọn cho mẫu sau khi thêm)</span>
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <input type="color" id="quickEditCatColor" value="#007bff" title="Chọn màu cho tab"
+                                   style="width: 32px; height: 32px; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; padding: 0; background: #fff; flex-shrink: 0;">
+                            <input type="text" id="quickEditCatName" placeholder="Nhập tên tab mới..."
+                                   onkeydown="if(event.key==='Enter'){event.preventDefault(); window.submitQuickAddCatInEditModal();}"
+                                   style="flex: 1; min-width: 130px; padding: 7px 10px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: 600; outline: none; background: #fff;">
+                            <button type="button" onclick="window.submitQuickAddCatInEditModal();" 
+                                    style="background: #0284c7; color: #fff; border: none; padding: 7px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; white-space: nowrap;">
+                                ➕ Thêm Tab
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tpl-submodal-footer">
+                <button onclick="window.closeEditTemplateModal();" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:600; font-size:12px;">Hủy</button>
+                <button onclick="window.confirmEditTemplate();" style="background:#007bff; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer; font-weight:700; font-size:13px;">💾 CẬP NHẬT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PHỤ 3: QUẢN LÝ DANH MỤC (THÊM / ĐỔI TÊN / XÓA) -->
+    <div id="categoryManagerModalOverlay" class="tpl-submodal-overlay" onclick="if(event.target===this) window.closeCategoryManagerModal();">
+        <div class="tpl-submodal-box">
+            <div class="tpl-submodal-header">
+                <span>🏷️ QUẢN LÝ DANH SÁCH DANH MỤC</span>
+                <span onclick="window.closeCategoryManagerModal();" style="cursor:pointer; font-size:16px;">✕</span>
+            </div>
+            <div class="tpl-submodal-body">
+                <!-- Thêm mới danh mục -->
+                <div style="background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 6px;">➕ TẠO THÊM DANH MỤC MỚI:</div>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <input type="color" id="newCatColorInput" value="#007bff" style="width:32px; height:32px; border:none; border-radius:6px; cursor:pointer; padding:0;">
+                        <input type="text" id="newCatNameInput" placeholder="Nhập tên (VD: Mẫu Đơn, Mẫu Tết...)"
+                               style="flex: 1; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: 600; outline: none;">
+                        <button onclick="window.addNewCategorySubmit();" style="background:#10b981; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:12px;">Thêm</button>
+                    </div>
+                </div>
+
+                <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-top: 4px;">DANH SÁCH DANH MỤC HIỆN CÓ:</div>
+                <div id="categoryManagerList" class="cat-mgr-list">
+                    <!-- Sẽ render động danh sách danh mục -->
+                </div>
+            </div>
+            <div class="tpl-submodal-footer">
+                <button onclick="window.closeCategoryManagerModal();" style="background:#007bff; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:700; font-size:12px;">Đóng</button>
             </div>
         </div>
     </div>
@@ -1149,10 +1526,10 @@
 
         <div class="mobile-modal-content">
             <div class="mobile-modal-header-area">
-                <div class="mobile-modal-drag-handle"></div>
-                <div class="mobile-modal-top-row" style="display: none;">
-                    <span id="mobileModalTitle" class="mobile-modal-title">Cài Đặt</span>
-                    <button class="mobile-modal-close-btn" onclick="window.closeMobileModal()" title="Đóng">✕</button>
+                <div class="mobile-modal-drag-handle" onclick="window.closeMobileModal()" title="Bấm để đóng bảng tuỳ chỉnh"></div>
+                <div class="mobile-modal-top-row">
+                    <span id="mobileModalTitle" class="mobile-modal-title">⚙️ Cài Đặt</span>
+                    <button class="mobile-modal-close-btn" onclick="window.closeMobileModal()" title="Đóng bảng cài đặt">✕</button>
                 </div>
                 <div id="mobileTabMenu">
                     <button class="m-tab-lvl1" id="mTab-tab-layout" onclick="openMobileModal('layout')">&#128202;
@@ -1172,11 +1549,13 @@
     <div id="drmOverlay">
         <div class="drm-box">
             <h2>⚠ PHẦN MỀM ĐÃ BỊ KHÓA</h2>
-            <div class="drm-mac" id="displayMac">ĐANG TẠO MÃ...</div><button onclick="copyMac()" class="drm-btn"
-                style="background:#007bff; margin-bottom:20px;">📋 COPY MÃ MÁY NÀY</button><input type="text"
-                id="licenseKeyInput" class="drm-input" placeholder="Nhập Key..."><button class="drm-btn"
-                onclick="activateLicense()">🔓 KÍCH HOẠT NGAY</button>
-            <div id="drmMessage"></div>
+            <p style="font-size:13.5px; color:#555; margin-bottom:12px; line-height:1.5;">
+                Vui lòng gửi <b>Mã Máy</b> này cho quản trị viên để được kích hoạt bản quyền trực tuyến:
+            </p>
+            <div class="drm-mac" id="displayMac">ĐANG TẠO MÃ...</div>
+            <button onclick="copyMac()" class="drm-btn" style="background:#007bff; margin-bottom:12px;">📋 COPY MÃ MÁY NÀY</button>
+            <button onclick="checkLicense(true)" class="drm-btn" style="background:#27ae60; margin-bottom:12px;">🔄 KIỂM TRA LẠI BẢN QUYỀN (ONLINE)</button>
+            <div id="drmMessage" style="margin-top: 10px;"></div>
         </div>
     </div>
     <div id="printArea"></div>
@@ -1186,7 +1565,7 @@
 
     <div id="modal-bg-cloud"
         onclick="if(event.target === this) this.style.display = 'none'"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000005; justify-content:center; align-items:center; padding: 15px; box-sizing: border-box; backdrop-filter: blur(3px);">
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000000; justify-content:center; align-items:center; padding: 15px; box-sizing: border-box; backdrop-filter: blur(3px);">
         <div
             style="background:#fff; width:100%; max-width:600px; border-radius:15px; padding:20px; box-shadow:0 15px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; position: relative;">
 
@@ -1198,10 +1577,11 @@
             </div>
 
             <div style="position: relative; margin-bottom: 15px;">
-                <input type="text" id="cloudSearchBox" onkeyup="liveSearch('cloudSearchBox', 'bgCloudList')"
+                <input type="text" id="cloudSearchBox" 
+                    onkeyup="liveSearch('cloudSearchBox', 'bgCloudList')"
+                    oninput="liveSearch('cloudSearchBox', 'bgCloudList')"
                     placeholder="🔍 Gõ hashtag tìm nhanh (VD: #Tet, #Vang)..."
-                    style="width:100%; padding:12px 40px 12px 15px; border:2px solid #007bff; border-radius:25px; font-weight:bold; box-sizing:border-box; outline: none; transition: 0.3s; font-size: 14px;">
-                <span onclick="document.getElementById('cloudSearchBox').value=''; liveSearch('cloudSearchBox', 'bgCloudList')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #ff6b81; font-size: 18px; padding: 5px; font-weight: bold;" title="Xóa tìm kiếm">✖</span>
+                    style="width:100%; padding:12px 15px; border:2px solid #007bff; border-radius:25px; font-weight:bold; box-sizing:border-box; outline: none; transition: 0.3s; font-size: 14px;">
             </div>
 
             <div id="bgCloudList"
@@ -1255,17 +1635,18 @@
             <b style="font-size: 16px;">📝 NHẬP DANH SÁCH SIM</b>
             <span onclick="window.closeSimListModal()" style="cursor: pointer; font-size: 24px; color: #ff4757;">✖</span>
         </div>
-        <div class="sim-modal-toolbar">
+        <div class="sim-modal-body">
+            <textarea id="mobileListArea" placeholder="Dán danh sách SIM tại đây..."></textarea>
+        </div>
+        <div class="sim-modal-footer">
             <button class="btn-sim-action btn-sim-paste" onclick="window.pasteToMobileList()">📋 DÁN SIM</button>
             <button class="btn-sim-action btn-sim-clear" onclick="document.getElementById('mobileListArea').value = ''">🗑️ XÓA</button>
             <button class="btn-sim-action btn-sim-apply" onclick="window.applySimList()">✅ XÁC NHẬN</button>
         </div>
-        <div class="sim-modal-body">
-            <textarea id="mobileListArea" placeholder="Dán danh sách SIM tại đây..."></textarea>
-        </div>
     </div>
     
     <!-- Scripts loaded from external files -->
+    <script src="js/template-manager.js"></script>
     <script src="js/main.js"></script>
 </body>
 
