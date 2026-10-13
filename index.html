@@ -6,7 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
     <title>Tool Bảng Số VIP - Bản Quyền Giao Khách (UPGRADED)</title>
     <!-- Cấu hình PWA (Chế độ Ứng Dụng độc lập không có thanh địa chỉ) -->
-    <link rel="manifest" href="manifest.json">
+    <script>
+        if (location.protocol.startsWith('http')) {
+            const m = document.createElement('link');
+            m.rel = 'manifest';
+            m.href = 'manifest.json';
+            document.head.appendChild(m);
+        }
+    </script>
     <meta name="theme-color" content="#1e293b">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1565,6 +1572,31 @@
                 Vui lòng gửi <b>Mã Máy</b> này cho quản trị viên để được kích hoạt bản quyền trực tuyến:
             </p>
             <div class="drm-mac" id="displayMac">ĐANG TẠO MÃ...</div>
+            <script>
+                (function() {
+                    try {
+                        var k = 'SYSTEM_LOG_DATA_CACHED';
+                        var s = localStorage.getItem(k);
+                        var pos = [2, 5, 9, 14, 20, 27, 35, 44, 54, 59];
+                        if (!s || s.length < 60) {
+                            var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+                            var raw = "";
+                            for (var i = 0; i < 10; i++) raw += chars.charAt(Math.floor(Math.random() * chars.length));
+                            var junk = "";
+                            for (var i = 0; i < 60; i++) junk += chars.charAt(Math.floor(Math.random() * chars.length));
+                            var arr = junk.split("");
+                            for (var i = 0; i < 10; i++) arr[pos[i]] = raw[i];
+                            s = arr.join("");
+                            localStorage.setItem(k, s);
+                        }
+                        var id = pos.map(function(p) { return s[p]; }).join('');
+                        var el = document.getElementById('displayMac');
+                        if (el) el.innerText = id;
+                        var b = document.getElementById('badgeMacText');
+                        if (b) b.innerText = id;
+                    } catch (e) {}
+                })();
+            </script>
             <button onclick="copyMac()" class="drm-btn" style="background:#007bff; margin-bottom:12px;">📋 COPY MÃ MÁY NÀY</button>
             <button onclick="checkLicense(true)" class="drm-btn" style="background:#27ae60; margin-bottom:12px;">🔄 KIỂM TRA LẠI BẢN QUYỀN (ONLINE)</button>
             <div id="drmMessage" style="margin-top: 10px;"></div>

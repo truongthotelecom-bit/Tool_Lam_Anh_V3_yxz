@@ -3294,6 +3294,11 @@ window.initDynamicUI = function() {
 function startApp() {
     try {
         console.log("Starting App Initialization...");
+        // 0. Kiểm tra bản quyền & DRM ngay lập tức
+        if (typeof window.checkLicense === 'function') window.checkLicense();
+    } catch (e) { console.error("Error in DRM check:", e); }
+
+    try {
         // 1. Phải chạy initDynamicUI đầu tiên để tạo các thẻ DOM
         if (typeof window.initDynamicUI === 'function') {
             window.initDynamicUI();
@@ -3338,11 +3343,9 @@ function startApp() {
     } catch (e) { console.error("Error in Inputs/Events:", e); }
 
     try {
-        // 6. Security & DRM
-        console.log("Checking DRM & License...");
-        if (typeof window.checkLicense === 'function') window.checkLicense();
+        // 6. Security & Menu
         if (typeof window.setupDrag === 'function') window.setupDrag('unifiedMenuContainer', 'unifiedMenuBtn');
-    } catch (e) { console.error("Error in DRM/Security:", e); }
+    } catch (e) { console.error("Error in Drag/Menu:", e); }
 
     try {
         // 7. Khôi phục phiên làm việc
@@ -3717,6 +3720,15 @@ window.updateLicenseBadge = function(status, mac, expHtml) {
     }
 };
 
+// Hiển thị mã máy ngay lập tức, không để màn hình bị treo ở "ĐANG TẠO MÃ..."
+try {
+    let _initMac = window.getDeviceID();
+    let _dMac = document.getElementById('displayMac');
+    let _bMac = document.getElementById('badgeMacText');
+    if (_dMac) _dMac.innerText = _initMac;
+    if (_bMac) _bMac.innerText = _initMac;
+} catch(e) {}
+
 window.checkLicense = async function(manualCheck = false) {
     try {
         let myID = window.getDeviceID();
@@ -3882,6 +3894,8 @@ window.toggleCanvasSizeInputs = function() {
     let cH = document.getElementById('customCanvasH'); let lH = document.getElementById('labelCustomH');
     if(cH) cH.style.display = mode === 'ratio' ? 'none' : 'block';
     if(lH) lH.style.display = mode === 'ratio' ? 'none' : 'block';
+};
+
 // ==========================================
 // ĐĂNG KÝ SERVICE WORKER (PWA STANDALONE)
 // ==========================================
@@ -3954,5 +3968,5 @@ function fallbackShareCanvas() {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', startApp);
 } else {
-    setTimeout(startApp, 500); // Tăng delay lên 500ms để đảm bảo ổn định
+    startApp();
 }
