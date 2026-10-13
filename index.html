@@ -1344,6 +1344,15 @@
                             </div>
                         </div>
 
+                        <!-- Banner cảnh báo an toàn dữ liệu (Phương án 2) -->
+                        <div id="tplBackupNotice" class="tpl-backup-notice">
+                            <div class="tpl-notice-content">
+                                <span class="tpl-notice-icon">💡</span>
+                                <span class="tpl-notice-text"><b>Khuyên dùng:</b> Hãy bấm <b>📤 Backup</b> thường xuyên để lưu trữ file ra máy, tránh mất mẫu khi dọn rác/xóa cache trình duyệt!</span>
+                            </div>
+                            <button type="button" class="btn-close-notice" onclick="window.dismissBackupNotice();" title="Đóng thông báo">✕</button>
+                        </div>
+
                         <!-- Thanh báo danh mục đang chọn -->
                         <div class="tpl-selected-cat-banner">
                             <div id="tplSelectedCatTitle" class="tpl-cat-banner-title">
@@ -1365,16 +1374,19 @@
             <!-- TAB 2: KHO ĐÁM MÂY & MẪU HỆ THỐNG -->
             <div id="tplTabPaneCloud" class="tpl-tab-pane" style="display: none;">
                 <div class="tpl-cloud-view">
-                    <!-- Khung công cụ mẫu hệ thống có sẵn -->
-                    <div class="tpl-cloud-tools-card">
-                        <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-                            <span>⭐ MẪU GỐC CÓ SẴN CỦA HỆ THỐNG (PRESETS):</span>
-                            <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Chọn để nạp mẫu dựng sẵn nhanh)</span>
+                    <!-- KHỐI 1: MẪU GỐC CÓ SẴN (HỆ THỐNG) - MÀU VÀNG AMBER PHÂN BIỆT -->
+                    <div class="tpl-cloud-section tpl-section-builtin">
+                        <div class="tpl-section-header tpl-header-amber">
+                            <div class="tpl-section-title">
+                                <span class="tpl-section-icon">⭐</span>
+                                <span class="tpl-section-text">MẪU GỐC CÓ SẴN (HỆ THỐNG)</span>
+                            </div>
+                            <span class="tpl-section-badge">Dựng sẵn nạp nhanh</span>
                         </div>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <div class="tpl-section-body">
                             <select id="builtinTemplates"
                                 onchange="if(typeof loadBuiltinTemplate === 'function') loadBuiltinTemplate(this.value);"
-                                style="flex: 1; min-width: 240px; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 700; font-size: 13px; color: #0f172a; background: #fff;">
+                                class="tpl-select-custom tpl-select-amber">
                                 <option value="">🌟 CHỌN MẪU MẶC ĐỊNH HỆ THỐNG</option>
                                 <option value="mau_vip_1">🔥 Mẫu 1x1 - 1</option>
                                 <option value="mau_vip_2">💎 Mẫu 1x1 - 2</option>
@@ -1386,23 +1398,32 @@
                         </div>
                     </div>
 
-                    <!-- Khung tìm kiếm mẫu đám mây Google Drive -->
-                    <div style="display: flex; flex-direction: column; gap: 10px; flex: 1;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 13px; font-weight: 700; color: #0284c7;">☁️ KHO MẪU ĐÁM MÂY TRỰC TUYẾN:</span>
-                            <button onclick="if(typeof window.loadCloudTemplates==='function') window.loadCloudTemplates();" class="btn-sidebar-add-cat" style="color: #0284c7;">🔄 Tải lại</button>
+                    <!-- KHỐI 2: KHO MẪU ĐÁM MÂY (TRỰC TUYẾN) - MÀU XANH SKY BLUE PHÂN BIỆT -->
+                    <div class="tpl-cloud-section tpl-section-cloud">
+                        <div class="tpl-section-header tpl-header-sky">
+                            <div class="tpl-section-title">
+                                <span class="tpl-section-icon">☁️</span>
+                                <span class="tpl-section-text">KHO MẪU ĐÁM MÂY TRỰC TUYẾN</span>
+                            </div>
+                            <button type="button" onclick="if(typeof window.loadCloudTemplates==='function') window.loadCloudTemplates();" class="btn-refresh-cloud" title="Tải lại danh sách đám mây">
+                                🔄 Tải lại
+                            </button>
                         </div>
-                        <div class="tpl-search-wrapper">
-                            <span class="tpl-search-icon">🔍</span>
-                            <input type="text" id="searchTemplateInput" 
-                                   onkeyup="liveSearch('searchTemplateInput', 'cloudTemplatesList')"
-                                   oninput="liveSearch('searchTemplateInput', 'cloudTemplatesList')"
-                                   placeholder="Tìm mẫu đám mây theo từ khóa (vip, tet, 3x8...)..."
-                                   class="tpl-search-input">
+                        <div class="tpl-section-body">
+                            <div class="tpl-search-wrapper">
+                                <span class="tpl-search-icon">🔍</span>
+                                <input type="text" id="searchTemplateInput" 
+                                       onkeyup="liveSearch('searchTemplateInput', 'cloudTemplatesList')"
+                                       oninput="liveSearch('searchTemplateInput', 'cloudTemplatesList')"
+                                       placeholder="Tìm mẫu đám mây theo từ khóa (vip, tet, 3x8...)..."
+                                       class="tpl-search-input">
+                            </div>
                         </div>
-                        <div id="cloudTemplatesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; overflow-y: auto; padding: 4px;">
-                            <div style="grid-column: 1/-1; text-align: center; font-size: 12px; color: #888; padding: 30px;">Đang tải danh sách mẫu đám mây...</div>
-                        </div>
+                    </div>
+
+                    <!-- DANH SÁCH THẺ MẪU ĐÁM MÂY -->
+                    <div id="cloudTemplatesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; overflow-y: auto; padding: 4px;">
+                        <div style="grid-column: 1/-1; text-align: center; font-size: 12px; color: #888; padding: 30px;">Đang tải danh sách mẫu đám mây...</div>
                     </div>
                 </div>
             </div>

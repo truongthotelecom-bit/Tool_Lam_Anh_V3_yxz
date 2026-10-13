@@ -788,12 +788,89 @@
     flex-direction: column;
     gap: 14px;
 }
-.tpl-cloud-tools-card {
+/* CÁC KHỐI PHÂN BIỆT MÀU NỀN TRONG TAB ĐÁM MÂY */
+.tpl-cloud-section {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
     border-radius: 10px;
-    padding: 14px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+.tpl-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+    border-bottom: 1px solid #e2e8f0;
+}
+/* Màu nền tiêu đề Vàng Amber cho Mẫu Gốc Hệ Thống */
+.tpl-header-amber {
+    background: #fffbeb;
+    border-bottom-color: #fde68a;
+    border-left: 4px solid #f59e0b;
+    color: #92400e;
+}
+/* Màu nền tiêu đề Xanh Sky Blue cho Mẫu Đám Mây Trực Tuyến */
+.tpl-header-sky {
+    background: #f0f9ff;
+    border-bottom-color: #bae6fd;
+    border-left: 4px solid #0284c7;
+    color: #0369a1;
+}
+.tpl-section-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+}
+.tpl-section-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+    font-weight: 600;
+}
+.btn-refresh-cloud {
+    background: #e0f2fe;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: 0.15s ease;
+}
+.btn-refresh-cloud:hover {
+    background: #0284c7;
+    color: #ffffff;
+}
+.tpl-section-body {
+    padding: 10px 14px;
+}
+.tpl-select-custom {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    color: #0f172a;
+    background: #ffffff;
+    cursor: pointer;
+    outline: none;
+}
+.tpl-select-amber {
+    border-color: #fcd34d;
+}
+.tpl-select-amber:focus {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
 }
 
 /* Ẩn các thành phần Drawer & Bottom bar Mobile trên Desktop */
@@ -949,28 +1026,78 @@
 }
 
 /* Banner báo danh mục đang chọn */
+/* Banner báo danh mục đang chọn - Màu Xanh Indigo phân biệt Kho Nội Bộ */
 .tpl-selected-cat-banner {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 8px 14px;
-    background: #ffffff;
+    background: #eff6ff;
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    border-left: 4px solid var(--primary);
+    border: 1px solid #bfdbfe;
+    border-left: 4px solid #2563eb;
 }
 .tpl-cat-banner-title {
     font-size: 13px;
     font-weight: 700;
-    color: #1e293b;
+    color: #1e40af;
     display: flex;
     align-items: center;
     gap: 6px;
 }
 .tpl-cat-banner-count {
     font-size: 12px;
-    color: #64748b;
-    font-weight: 600;
+    color: #1d4ed8;
+    background: rgba(37, 99, 235, 0.12);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+/* Banner cảnh báo sao lưu nội bộ (Phương án 2) */
+.tpl-backup-notice {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-left: 4px solid #f97316;
+    border-radius: 8px;
+    color: #9a3412;
+    font-size: 11.5px;
+    gap: 8px;
+    box-shadow: 0 1px 3px rgba(249, 115, 22, 0.05);
+}
+.tpl-notice-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+.tpl-notice-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+}
+.tpl-notice-text {
+    line-height: 1.35;
+}
+.btn-close-notice {
+    background: transparent;
+    border: none;
+    color: #c2410c;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: 0.15s ease;
+    flex-shrink: 0;
+}
+.btn-close-notice:hover {
+    background: rgba(249, 115, 22, 0.15);
+    color: #9a3412;
 }
 
 /* Thanh nút thao tác đầu modal */
@@ -1968,24 +2095,125 @@
     .txt-save-full { display: none !important; }
     .txt-save-short { display: inline !important; }
 
-    /* Banner thông tin danh mục trên Mobile */
+    /* Banner thông tin danh mục trên Mobile (Màu Xanh Indigo phân biệt Kho Nội Bộ) */
     .tpl-selected-cat-banner {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        padding: 3px 8px !important;
-        background: #ffffff !important;
+        padding: 4px 8px !important;
+        background: #eff6ff !important;
         border-radius: 6px !important;
-        border: 1px solid #e2e8f0 !important;
-        border-left: 3px solid var(--primary) !important;
+        border: 1px solid #bfdbfe !important;
+        border-left: 4px solid #2563eb !important;
         margin: 0 !important;
     }
     .tpl-cat-banner-title {
         font-size: 11px !important;
         font-weight: 700 !important;
+        color: #1e40af !important;
     }
     .tpl-cat-banner-count {
-        font-size: 10.5px !important;
+        font-size: 10px !important;
+        color: #1d4ed8 !important;
+        background: rgba(37, 99, 235, 0.12) !important;
+        padding: 1px 6px !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+    }
+
+    /* Tối ưu Tab Đám Mây trên Mobile: Phân biệt rõ ràng màu nền tiêu đề */
+    .tpl-cloud-section {
+        margin: 0 !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        border: 1px solid #e2e8f0 !important;
+        background: #ffffff !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+        flex-shrink: 0 !important;
+    }
+    .tpl-section-header {
+        padding: 5px 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+    .tpl-header-amber {
+        background: #fffbeb !important;
+        border-bottom: 1px solid #fde68a !important;
+        border-left: 4px solid #f59e0b !important;
+        color: #92400e !important;
+    }
+    .tpl-header-sky {
+        background: #f0f9ff !important;
+        border-bottom: 1px solid #bae6fd !important;
+        border-left: 4px solid #0284c7 !important;
+        color: #0369a1 !important;
+    }
+    .tpl-section-title {
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+    }
+    .tpl-section-badge {
+        font-size: 9.5px !important;
+        padding: 1px 5px !important;
+        border-radius: 4px !important;
+        background: rgba(245, 158, 11, 0.15) !important;
+        color: #b45309 !important;
+        font-weight: 600 !important;
+    }
+    .btn-refresh-cloud {
+        font-size: 10px !important;
+        padding: 2px 6px !important;
+        border-radius: 5px !important;
+        background: #e0f2fe !important;
+        color: #0284c7 !important;
+        border: 1px solid #bae6fd !important;
+        font-weight: 700 !important;
+        cursor: pointer !important;
+    }
+    .tpl-section-body {
+        padding: 5px 8px !important;
+    }
+    .tpl-select-custom {
+        width: 100% !important;
+        height: 29px !important;
+        padding: 3px 8px !important;
+        font-size: 11px !important;
+        border-radius: 6px !important;
+        border: 1px solid #fcd34d !important;
+        box-sizing: border-box !important;
+        font-weight: 600 !important;
+    }
+    #searchTemplateInput {
+        width: 100% !important;
+        height: 28px !important;
+        padding: 3px 8px 3px 26px !important;
+        font-size: 11px !important;
+        border-radius: 6px !important;
+        border: 1px solid #bae6fd !important;
+    }
+
+    /* Banner cảnh báo sao lưu trên Mobile */
+    .tpl-backup-notice {
+        padding: 3px 6px !important;
+        margin: 0 !important;
+        font-size: 10px !important;
+        border-radius: 6px !important;
+        gap: 4px !important;
+    }
+    .tpl-notice-icon {
+        font-size: 11px !important;
+    }
+    .tpl-notice-text {
+        font-size: 9.5px !important;
+        line-height: 1.25 !important;
+    }
+    .btn-close-notice {
+        font-size: 11px !important;
+        padding: 1px 4px !important;
     }
 
     /* Tối ưu co theo tỉ lệ khi màn hình điện thoại ngắn / xoay ngang (chiều cao <= 640px) */
@@ -2000,6 +2228,8 @@
         .tpl-toolbar { margin-top: 20px !important; padding: 4px !important; gap: 3px !important; }
         .tpl-search-input { height: 25px !important; font-size: 10.5px !important; }
         .btn-tpl-save-now, .btn-tpl-tool { padding: 4px 1px !important; font-size: 10px !important; }
+        .tpl-backup-notice { padding: 2px 4px !important; }
+        .tpl-notice-text { font-size: 9px !important; }
         .tpl-selected-cat-banner { padding: 2px 6px !important; }
         .tpl-mobile-bottom-bar { padding: 4px 6px !important; gap: 3px !important; }
         .tpl-mobile-bottom-bar .btn-top-mgr { padding: 5px 1px !important; font-size: 9.5px !important; }

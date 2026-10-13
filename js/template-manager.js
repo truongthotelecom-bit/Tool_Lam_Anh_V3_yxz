@@ -1016,6 +1016,11 @@
         if (typeof window.showToast === 'function') window.showToast("📤 Đã tải file sao lưu kho mẫu!");
     };
 
+    window.dismissBackupNotice = function () {
+        const el = document.getElementById('tplBackupNotice');
+        if (el) el.style.display = 'none';
+    };
+
     window.handleImportTemplatesBackup = function (event) {
         const file = event.target.files[0];
         if (!file) return;
