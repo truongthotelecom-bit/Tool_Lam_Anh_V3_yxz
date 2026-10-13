@@ -2726,13 +2726,18 @@ window.openSimListModal = function() {
     if (listEl && mListArea && modal) {
         mListArea.value = listEl.value;
         modal.style.display = 'flex';
+        document.body.classList.add('sim-modal-open');
         document.body.style.overflow = 'hidden';
     }
 };
 
 window.closeSimListModal = function() {
     let modal = document.getElementById('mobileSimListModal');
-    if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.classList.remove('sim-modal-open');
+        document.body.style.overflow = '';
+    }
 };
 
 window.applySimList = function() {
@@ -3954,9 +3959,7 @@ window.shareCanvasImage = async function () {
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
                         await navigator.share({
-                            files: [file],
-                            title: 'Bảng Sim Số Đẹp',
-                            text: 'Bảng Sim Số Đẹp'
+                            files: [file]
                         });
                         if (typeof window.showToast === 'function') {
                             window.showToast("✅ Đã chia sẻ thành công!");

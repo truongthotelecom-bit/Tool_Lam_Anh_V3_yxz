@@ -366,6 +366,13 @@
     body.studio-mode #licenseInfoBadge {
         display: none !important;
     }
+
+    body.sim-modal-open .fab-container,
+    body.sim-modal-open #fabContainer,
+    body.sim-modal-open .unified-menu-container,
+    body.sim-modal-open #unifiedMenuContainer {
+        display: none !important;
+    }
     
     /* --- LỚP BẢO VỆ ĐÃ BỊ XOÁ BỎ THEO YÊU CẦU ĐỂ TƯƠNG TÁC XUYÊN THẤU --- */
     .mobile-modal-content {
