@@ -719,7 +719,7 @@
 
         try {
             const config = await extractCurrentConfig();
-            await TemplateDB.saveTemplate({
+            const savedItem = await TemplateDB.saveTemplate({
                 name,
                 categoryIds,
                 thumbnail: pendingThumbnailData || captureCanvasThumbnail(640, 640),
@@ -729,8 +729,6 @@
             window.closeSaveTemplateModal();
             if (typeof window.showToast === 'function') {
                 window.showToast(`✅ Đã lưu mẫu "${name}" thành công!`);
-            } else {
-                alert(`✅ Đã lưu mẫu "${name}" vào bộ nhớ máy thành công!`);
             }
 
             // Nếu modal quản lý mẫu đang mở thì cập nhật lại lưới
@@ -738,9 +736,45 @@
             if (mainModal && mainModal.style.display === 'flex') {
                 await refreshTemplateManagerUI();
             }
+
+            // Mở hộp thoại hỏi người dùng có muốn tải thêm file .lite về máy không
+            if (savedItem && typeof window.openSaveLiteConfirmModal === 'function') {
+                window.openSaveLiteConfirmModal(savedItem.id, savedItem.name);
+            }
         } catch (err) {
             console.error("Lỗi khi lưu mẫu:", err);
             alert("❌ Đã có lỗi xảy ra khi lưu mẫu: " + err.message);
+        }
+    };
+
+    // ==========================================
+    // 5.1 HỘP THOẠI HỎI TẢI FILE .LITE SAU KHI LƯU
+    // ==========================================
+    let lastSavedTemplateForLite = null;
+
+    window.openSaveLiteConfirmModal = function (tplId, tplName) {
+        lastSavedTemplateForLite = { id: tplId, name: tplName };
+        const nameEl = document.getElementById('saveLiteConfirmTplName');
+        if (nameEl) nameEl.textContent = `📁 ${tplName}`;
+        const modal = document.getElementById('saveLiteConfirmModalOverlay');
+        if (modal) modal.style.display = 'flex';
+    };
+
+    window.closeSaveLiteConfirmModal = function () {
+        const modal = document.getElementById('saveLiteConfirmModalOverlay');
+        if (modal) modal.style.display = 'none';
+        lastSavedTemplateForLite = null;
+    };
+
+    window.confirmDownloadLiteAfterSave = async function () {
+        if (!lastSavedTemplateForLite || !lastSavedTemplateForLite.id) {
+            window.closeSaveLiteConfirmModal();
+            return;
+        }
+        const tplId = lastSavedTemplateForLite.id;
+        window.closeSaveLiteConfirmModal();
+        if (typeof window.exportSingleTemplateLite === 'function') {
+            await window.exportSingleTemplateLite(tplId);
         }
     };
 

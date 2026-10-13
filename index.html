@@ -1452,6 +1452,38 @@
         </div>
     </div>
 
+    <!-- MODAL PHỤ 4: HỎI TẢI FILE .LITE DỰ PHÒNG SAU KHI LƯU MẪU -->
+    <div id="saveLiteConfirmModalOverlay" class="tpl-submodal-overlay" style="z-index: 3000010;" onclick="if(event.target===this) window.closeSaveLiteConfirmModal();">
+        <div class="tpl-submodal-box" style="max-width: 430px; text-align: center; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.35);">
+            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; padding: 22px 20px 18px 20px;">
+                <div style="font-size: 42px; margin-bottom: 6px; line-height: 1;">🎉</div>
+                <div style="font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">ĐÃ LƯU MẪU THÀNH CÔNG!</div>
+            </div>
+            <div class="tpl-submodal-body" style="padding: 20px; gap: 14px;">
+                <div id="saveLiteConfirmTplName" style="font-size: 14px; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 10px 14px; border-radius: 8px; border: 1.5px dashed #cbd5e1; word-break: break-word;">
+                    📁 Mẫu Thiết Kế
+                </div>
+                <p style="margin: 0; font-size: 13.5px; color: #475569; line-height: 1.55;">
+                    Mẫu đã được lưu an toàn vào <b>Kho Máy Nội Bộ</b>.<br>
+                    Bạn có muốn <b>tải thêm file dự phòng (.lite)</b> về máy không?
+                </p>
+                <div style="font-size: 11.5px; color: #64748b; background: #fffbeb; border: 1px solid #fde68a; padding: 9px 12px; border-radius: 8px; text-align: left; line-height: 1.45;">
+                    💡 <i>File .lite giúp bạn gửi mẫu cho người khác hoặc nạp lại trên các thiết bị khác bất cứ lúc nào.</i>
+                </div>
+            </div>
+            <div class="tpl-submodal-footer" style="padding: 14px 20px; justify-content: stretch; gap: 10px; background: #f8fafc;">
+                <button type="button" onclick="window.closeSaveLiteConfirmModal();" 
+                        style="flex: 1; background: #f1f5f9; border: 1.5px solid #cbd5e1; color: #64748b; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s;">
+                    ✕ Bỏ Qua
+                </button>
+                <button type="button" id="btnDownloadLiteFromConfirm" onclick="window.confirmDownloadLiteAfterSave();" 
+                        style="flex: 1.5; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); transition: 0.2s;">
+                    📥 TẢI FILE .LITE
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="column col-data">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <h3 style="margin:0;">1. DANH SÁCH SIM</h3><span id="saveStatus">✔ Đã lưu</span>
