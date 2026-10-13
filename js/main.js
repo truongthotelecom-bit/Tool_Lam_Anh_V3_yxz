@@ -3882,7 +3882,73 @@ window.toggleCanvasSizeInputs = function() {
     let cH = document.getElementById('customCanvasH'); let lH = document.getElementById('labelCustomH');
     if(cH) cH.style.display = mode === 'ratio' ? 'none' : 'block';
     if(lH) lH.style.display = mode === 'ratio' ? 'none' : 'block';
+// ==========================================
+// ĐĂNG KÝ SERVICE WORKER (PWA STANDALONE)
+// ==========================================
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+            console.log('SW registration note:', err);
+        });
+    });
+}
+
+// ==========================================
+// CHỨC NĂNG CHIA SẺ ẢNH (NATIVE SHARE / COPY)
+// ==========================================
+window.shareCanvasImage = async function () {
+    const canvas = document.getElementById('mainCanvas');
+    if (!canvas) return;
+
+    if (typeof window.showToast === 'function') {
+        window.showToast("⏳ Đang chuẩn bị ảnh chia sẻ...");
+    }
+
+    // Kiểm tra hỗ trợ Web Share API (Gửi thẳng qua Zalo, Messenger, AirDrop hoặc Lưu vào Ảnh)
+    if (navigator.share && navigator.canShare) {
+        canvas.toBlob(async (blob) => {
+            if (!blob) {
+                fallbackShareCanvas();
+                return;
+            }
+            const fileName = `bang-sim-${Date.now()}.png`;
+            const file = new File([blob], fileName, { type: 'image/png' });
+
+            if (navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Bảng Sim Số Đẹp',
+                        text: 'Bảng Sim Số Đẹp'
+                    });
+                    if (typeof window.showToast === 'function') {
+                        window.showToast("✅ Đã chia sẻ thành công!");
+                    }
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return; // Người dùng bấm hủy
+                    console.warn("Lỗi Web Share:", err);
+                }
+            }
+            fallbackShareCanvas();
+        }, 'image/png');
+    } else {
+        fallbackShareCanvas();
+    }
 };
+
+function fallbackShareCanvas() {
+    if (typeof window.copyCanvas === 'function') {
+        window.copyCanvas();
+        if (typeof window.showToast === 'function') {
+            window.showToast("📋 Đã copy ảnh! Bạn có thể dán (Paste) ngay vào Zalo / Messenger.");
+        } else {
+            alert("📋 Đã copy ảnh! Bạn có thể dán (Paste) ngay vào Zalo / Messenger.");
+        }
+    } else if (typeof window.downloadSingleImage === 'function') {
+        window.downloadSingleImage();
+    }
+}
 
 // --- ENTRY POINT ---
 if (document.readyState === 'loading') {

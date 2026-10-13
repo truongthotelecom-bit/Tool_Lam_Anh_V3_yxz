@@ -5,6 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
     <title>Tool Bảng Số VIP - Bản Quyền Giao Khách (UPGRADED)</title>
+    <!-- Cấu hình PWA (Chế độ Ứng Dụng độc lập không có thanh địa chỉ) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bảng Số VIP">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
     <link
         href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Oswald:wght@400;700&family=Pattaya&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;700&family=Outfit:wght@400;700&family=Playfair+Display:wght@400;700&family=Bungee&family=Lobster&family=Pacifico&family=Saira+Stencil+One&family=Charm:wght@400;700&family=Sedgwick+Ave+Display&display=swap"
         rel="stylesheet">
@@ -1502,6 +1511,9 @@
             <button onclick="downloadSingleImage()"
                 style="background:#17a2b8; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">💾
                 Lưu 1 Ảnh</button>
+            <button id="btnShareCanvas" onclick="shareCanvasImage()"
+                style="background:#f39c12; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📤
+                Chia Sẻ</button>
             <button id="btnPrintA4" class="btn-print-a4" onclick="printAllPages()"
                 style="background:#8e44ad; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">🖨️
                 In A4</button>
