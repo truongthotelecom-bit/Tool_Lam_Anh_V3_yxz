@@ -152,9 +152,7 @@
             width: 100vw !important;
         }
         body.studio-mode .col-data, 
-        body.studio-mode .preview-header,
-        body.studio-mode .preview-pagination,
-        body.studio-mode .preview-actions {
+        body.studio-mode .preview-header {
             display: none !important;
         }
         body.studio-mode #previewColumn {
@@ -172,13 +170,88 @@
             display: flex !important;
             flex-direction: column !important;
         }
-        body.studio-mode #canvasWrapper,
-        #previewColumn.fullscreen #canvasWrapper {
+        body.studio-mode #canvasWrapper {
+            flex: 1 1 0 !important;
+            min-height: 0 !important;
             height: 100% !important;
             margin: 0 !important;
-            padding: 10px !important;
+            padding: 6px !important;
             position: relative;
             z-index: 5 !important;
+            overflow: auto !important;
+        }
+
+        /* Khi Modal Tuỳ Chỉnh ĐANG MỞ:
+           View xem chiếm trọn vẹn 1/2 màn hình ĐT (50dvh), các nút chức năng ẩn đi (nằm dưới modal) */
+        body.studio-mode.mobile-modal-open .preview-pagination,
+        body.studio-mode.mobile-modal-open .preview-actions {
+            display: none !important;
+        }
+
+        /* Khi ĐÓNG Modal Tuỳ Chỉnh: MỚI HIỆN các nút chức năng tại VỊ TRÍ 2 (Nửa dưới màn hình, mục tiêu view xem không co giãn) */
+        body.studio-mode:not(.mobile-modal-open) .preview-pagination {
+            position: fixed !important;
+            top: calc(50dvh + 12px) !important;
+            left: 0 !important;
+            width: 100vw !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 6px !important;
+            margin: 0 !important;
+            z-index: 1005 !important;
+            pointer-events: auto !important;
+        }
+        body.studio-mode:not(.mobile-modal-open) .preview-pagination .btn-page-nav {
+            padding: 4px 12px !important;
+            font-size: 11.5px !important;
+            border-radius: 5px !important;
+            background: #007bff !important;
+            color: #fff !important;
+            border: none !important;
+            font-weight: bold !important;
+            box-shadow: 0 2px 5px rgba(0,123,255,0.2) !important;
+        }
+        body.studio-mode:not(.mobile-modal-open) .preview-pagination .page-indicator {
+            padding: 4px 8px !important;
+            font-size: 11.5px !important;
+            background: #eee !important;
+            border-radius: 5px !important;
+            font-weight: bold !important;
+        }
+        body.studio-mode:not(.mobile-modal-open) .preview-pagination input[type="number"] {
+            width: 32px !important;
+            font-size: 11.5px !important;
+            padding: 2px !important;
+            text-align: center !important;
+        }
+        body.studio-mode:not(.mobile-modal-open) .preview-actions {
+            position: fixed !important;
+            top: calc(50dvh + 48px) !important;
+            left: 0 !important;
+            width: 100vw !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 5px !important;
+            margin: 0 !important;
+            z-index: 1005 !important;
+            pointer-events: auto !important;
+        }
+        body.studio-mode:not(.mobile-modal-open) .preview-actions .btn-preview-action {
+            padding: 5px 9px !important;
+            font-size: 11px !important;
+            border-radius: 6px !important;
+            gap: 3px !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important;
+        }
+        body.studio-mode #btnPrintA4,
+        body.studio-mode .btn-print-a4 {
+            display: none !important;
+        }
+        body.studio-mode #mobileSettingModal {
+            height: 50dvh !important;
+            max-height: 50dvh !important;
         }
 
         /* [SIDEBAR & POPUP V26.6] - UNITY SYSTEM */
@@ -205,34 +278,51 @@
             /* Ẩn cột cài đặt tĩnh trên mobile (dùng Popup / Drawer khi cần) */
             .col-settings { display: none !important; }
 
-            /* Nút nổi tuỳ chỉnh trên Mobile */
-            .fab-container {
+            /* Nút nổi tuỳ chỉnh trên Mobile (Đặt ở DƯỚI CÙNG theo Phương án 1) */
+            .fab-container,
+            #fabContainer {
                 display: flex !important;
-                bottom: 85px;
-                right: 20px;
+                bottom: 20px !important;
+                right: 20px !important;
+                width: 52px !important;
+                height: 52px !important;
+                min-width: 52px !important;
+                min-height: 52px !important;
+                max-width: 52px !important;
+                max-height: 52px !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
             }
 
-            .unified-menu-container {
-                bottom: 20px;
-                right: 20px;
-                transition: bottom 0.3s cubic-bezier(0.1, 0.8, 0.1, 1);
+            /* Nút menu thống nhất trên Mobile (Đặt ở PHÍA TRÊN nút cài đặt) */
+            .unified-menu-container,
+            #unifiedMenuContainer {
+                bottom: 85px !important;
+                right: 20px !important;
+                width: 52px !important;
+                min-width: 52px !important;
+                max-width: 52px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-end !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+                transition: opacity 0.2s, transform 0.2s;
             }
 
-            /* KHI BẢNG TUỲ CHỌN HIỆN LÊN: ẨN NÚT CÀI ĐẶT (ĐÃ CÓ DẤU X) */
+            /* KHI BẢNG TUỲ CHỌN HIỆN LÊN: ẨN CẢ 2 NÚT NỔI (ĐÃ CÓ DẤU X ĐÓNG BẢNG - PHƯƠNG ÁN 1) */
             body.mobile-modal-open .fab-container,
-            body.mobile-modal-open #fabContainer {
+            body.mobile-modal-open #fabContainer,
+            body.mobile-modal-open .unified-menu-container,
+            body.mobile-modal-open #unifiedMenuContainer {
                 display: none !important;
-            }
-
-            /* Nút menu vẫn giữ ở mép trên để không che ô nhập */
-            body.mobile-modal-open .unified-menu-container {
-                bottom: calc(52dvh + 15px) !important;
             }
 
             /* KHI MỞ MODAL QUẢN LÝ MẪU: ẨN TOÀN BỘ NÚT NỔI ĐỂ KHÔNG CHE GIAO DIỆN MẪU */
             body.theme-modal-open .fab-container,
             body.theme-modal-open #fabContainer,
-            body.theme-modal-open .unified-menu-container {
+            body.theme-modal-open .unified-menu-container,
+            body.theme-modal-open #unifiedMenuContainer {
                 display: none !important;
             }
 
@@ -569,25 +659,36 @@
         }
 
         .main-menu-btn {
-            width: 55px;
-            height: 55px;
+            width: 52px !important;
+            height: 52px !important;
+            min-width: 52px !important;
+            min-height: 52px !important;
+            max-width: 52px !important;
+            max-height: 52px !important;
+            aspect-ratio: 1 / 1 !important;
             background: #2c3e50;
             color: #fff;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            border-radius: 50% !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
             font-size: 24px;
             cursor: pointer;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 2000001;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            flex-shrink: 0 !important;
+            flex-grow: 0 !important;
+            box-sizing: border-box !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+            overflow: hidden !important;
         }
 
         .main-menu-btn:hover {
-            transform: scale(1.1) rotate(180deg);
+            transform: scale(1.08) rotate(90deg);
             background: #34495e;
         }
 
@@ -1528,37 +1629,20 @@
 
         <div id="canvasWrapper"><canvas id="preview"></canvas></div>
 
-        <div class="preview-pagination"
-            style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 10px;">
-            <button onclick="prevStep()"
-                style="cursor:pointer; padding:5px 15px; border-radius:4px; background:#007bff; color:#fff; border:none; font-weight:bold;">◀
-                Lùi</button>
-            <span style="font-size:13px; font-weight:bold; background:#eee; padding:5px 10px; border-radius:4px;">Trang
-                <input type="number" id="pageInput" value="1" onchange="goToPage(this.value)"
-                    style="width:40px; text-align:center; border:1px solid #ccc; border-radius:3px;"> / <span
-                    id="totalPagesText">1</span></span>
-            <button onclick="nextStep()"
-                style="cursor:pointer; padding:5px 15px; border-radius:4px; background:#007bff; color:#fff; border:none; font-weight:bold;">Tới
-                ▶</button>
+        <div class="preview-pagination">
+            <button class="btn-page-nav" onclick="prevStep()">◀ Lùi</button>
+            <span class="page-indicator">Trang
+                <input type="number" id="pageInput" value="1" onchange="goToPage(this.value)"> / <span id="totalPagesText">1</span>
+            </span>
+            <button class="btn-page-nav" onclick="nextStep()">Tới ▶</button>
         </div>
 
-        <div class="preview-actions"
-            style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
-            <button onclick="copyCanvas()"
-                style="background:#007bff; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📋
-                Copy</button>
-            <button onclick="downloadSingleImage()"
-                style="background:#17a2b8; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">💾
-                Lưu 1 Ảnh</button>
-            <button id="btnShareCanvas" onclick="shareCanvasImage()"
-                style="background:#f39c12; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📤
-                Chia Sẻ</button>
-            <button id="btnPrintA4" class="btn-print-a4" onclick="printAllPages()"
-                style="background:#8e44ad; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">🖨️
-                In A4</button>
-            <button onclick="generateAllImages()"
-                style="background:#27ae60; color:white; border-radius: 6px; padding: 8px 15px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📦
-                Tải ZIP</button>
+        <div class="preview-actions">
+            <button class="btn-preview-action btn-copy" onclick="copyCanvas()">📋 Copy</button>
+            <button class="btn-preview-action btn-save-one" onclick="downloadSingleImage()">💾 Lưu 1 Ảnh</button>
+            <button id="btnShareCanvas" class="btn-preview-action btn-share" onclick="shareCanvasImage()">📤 Chia Sẻ</button>
+            <button id="btnPrintA4" class="btn-preview-action btn-print-a4" onclick="printAllPages()">🖨️ In A4</button>
+            <button class="btn-preview-action btn-zip" onclick="generateAllImages()">📦 Tải ZIP</button>
         </div>
     </div>
 

@@ -998,6 +998,22 @@ window.closeMobileModal = function() {
     if (modalEl) modalEl.style.display = 'none';
     document.body.classList.remove('mobile-modal-open');
     
+    // Đảm bảo vị trí Menu và Nút Tuỳ Chọn luôn quay lại đúng vị trí ban đầu
+    let menuContainer = document.getElementById('unifiedMenuContainer');
+    if (menuContainer) {
+        menuContainer.style.removeProperty('top');
+        menuContainer.style.removeProperty('left');
+        menuContainer.style.removeProperty('bottom');
+        menuContainer.style.removeProperty('right');
+    }
+    let fabContainer = document.getElementById('fabContainer');
+    if (fabContainer) {
+        fabContainer.style.removeProperty('top');
+        fabContainer.style.removeProperty('left');
+        fabContainer.style.removeProperty('bottom');
+        fabContainer.style.removeProperty('right');
+    }
+
     // v26.6: KHÔNG tự động thoát Studio Mode khi đóng Popup. 
     // Việc thoát Studio Mode chỉ được thực hiện bởi toggleFullscreen().
 
@@ -3407,7 +3423,7 @@ window.toggleFullscreen = function() {
     let isMobile = window.innerWidth <= 768;
     
     // Ngăn chặn việc click quá nhanh gây lỗi chuyển đổi
-    if (window.lastToggle && (Date.now() - window.lastToggle < 500)) return;
+    if (window.lastToggle && (Date.now() - window.lastToggle < 300)) return;
     window.lastToggle = Date.now();
 
     if (isMobile) {
@@ -3422,9 +3438,11 @@ window.toggleFullscreen = function() {
         }
     } else {
         col.classList.toggle('fullscreen');
+        col.classList.remove('fullscreen-mode');
         window.isFullscreen = col.classList.contains('fullscreen');
         if (window.isFullscreen) { 
             if (btn) btn.innerHTML = '↙ THU NHỎ'; 
+            if (typeof window.openMobileModal === 'function') window.openMobileModal('layout');
         } else { 
             if (btn) btn.innerHTML = '🔲 TOÀN MÀN HÌNH'; 
             if (typeof window.closeMobileModal === 'function') window.closeMobileModal(); 
@@ -3552,15 +3570,13 @@ window.setupDrag = function(elementId, handleId) {
         startX = clientX; startY = clientY; 
         let rect = el.getBoundingClientRect();
         initX = rect.left; initY = rect.top; 
-        el.style.left = initX + 'px'; el.style.top = initY + 'px';
-        el.style.bottom = 'auto'; el.style.right = 'auto'; el.style.margin = '0'; el.style.transform = 'none'; 
     };
     const move = (e) => { 
         if(!isDragging) return; 
         let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
         let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
         let dx = clientX - startX; let dy = clientY - startY; 
-        if(Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true; 
+        if(Math.abs(dx) > 15 || Math.abs(dy) > 15) moved = true; 
         if(moved) { 
             e.preventDefault(); 
             let maxX = window.innerWidth - el.offsetWidth; 
@@ -3568,6 +3584,7 @@ window.setupDrag = function(elementId, handleId) {
             let newX = Math.max(0, Math.min(initX + dx, maxX));
             let newY = Math.max(0, Math.min(initY + dy, maxY));
             el.style.left = newX + 'px'; el.style.top = newY + 'px'; 
+            el.style.bottom = 'auto'; el.style.right = 'auto'; el.style.margin = '0'; el.style.transform = 'none'; 
         } 
     };
     const end = () => { isDragging = false; };
@@ -3911,7 +3928,11 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 // CHỨC NĂNG CHIA SẺ ẢNH (NATIVE SHARE / COPY)
 // ==========================================
 window.shareCanvasImage = async function () {
-    const canvas = document.getElementById('mainCanvas');
+    if (typeof window.isAuthorized === 'function' && !window.isAuthorized()) {
+        alert("⚠️ PHẦN MỀM CHƯA KÍCH HOẠT!\nVui lòng kích hoạt bản quyền để sử dụng tính năng này.");
+        return;
+    }
+    const canvas = document.getElementById('preview');
     if (!canvas) return;
 
     if (typeof window.showToast === 'function') {
@@ -3919,46 +3940,47 @@ window.shareCanvasImage = async function () {
     }
 
     // Kiểm tra hỗ trợ Web Share API (Gửi thẳng qua Zalo, Messenger, AirDrop hoặc Lưu vào Ảnh)
-    if (navigator.share && navigator.canShare) {
-        canvas.toBlob(async (blob) => {
-            if (!blob) {
-                fallbackShareCanvas();
-                return;
-            }
-            const fileName = `bang-sim-${Date.now()}.png`;
-            const file = new File([blob], fileName, { type: 'image/png' });
-
-            if (navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: 'Bảng Sim Số Đẹp',
-                        text: 'Bảng Sim Số Đẹp'
-                    });
-                    if (typeof window.showToast === 'function') {
-                        window.showToast("✅ Đã chia sẻ thành công!");
-                    }
+    if (navigator.share) {
+        try {
+            canvas.toBlob(async (blob) => {
+                if (!blob) {
+                    fallbackShareCanvas();
                     return;
-                } catch (err) {
-                    if (err.name === 'AbortError') return; // Người dùng bấm hủy
-                    console.warn("Lỗi Web Share:", err);
                 }
-            }
-            fallbackShareCanvas();
-        }, 'image/png');
-    } else {
-        fallbackShareCanvas();
+                const fileName = `bang-sim-${Date.now()}.png`;
+                const file = new File([blob], fileName, { type: 'image/png' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Bảng Sim Số Đẹp',
+                            text: 'Bảng Sim Số Đẹp'
+                        });
+                        if (typeof window.showToast === 'function') {
+                            window.showToast("✅ Đã chia sẻ thành công!");
+                        }
+                        return;
+                    } catch (err) {
+                        if (err.name === 'AbortError') return; // Người dùng bấm hủy
+                        console.warn("Lỗi Web Share:", err);
+                        fallbackShareCanvas();
+                    }
+                } else {
+                    fallbackShareCanvas();
+                }
+            }, 'image/png');
+            return;
+        } catch (err) {
+            console.warn("Lỗi Web Share blob:", err);
+        }
     }
+    fallbackShareCanvas();
 };
 
 function fallbackShareCanvas() {
     if (typeof window.copyCanvas === 'function') {
         window.copyCanvas();
-        if (typeof window.showToast === 'function') {
-            window.showToast("📋 Đã copy ảnh! Bạn có thể dán (Paste) ngay vào Zalo / Messenger.");
-        } else {
-            alert("📋 Đã copy ảnh! Bạn có thể dán (Paste) ngay vào Zalo / Messenger.");
-        }
     } else if (typeof window.downloadSingleImage === 'function') {
         window.downloadSingleImage();
     }

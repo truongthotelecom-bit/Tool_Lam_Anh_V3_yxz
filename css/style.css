@@ -65,11 +65,118 @@
     #canvasWrapper {flex-grow: 1; overflow: auto; background: #e9ecef; border: 1px dashed var(--primary); text-align: center; padding: 20px; margin-bottom: 10px; position: relative; transition: all 0.3s;}
     canvas {box-shadow: 0 4px 15px rgba(0,0,0,0.2); transform-origin: top center; transition: transform 0.1s; display: inline-block; vertical-align: middle;}
     
-    .fullscreen-mode { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999990 !important; background: #222 !important; margin: 0 !important; border: none !important; border-radius: 0 !important; display: flex; flex-direction: column; align-items: center; justify-content: flex-start !important; padding: 15px 10px 90px 10px !important;}
-    .fullscreen-mode #canvasWrapper { background: transparent !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: calc(100% - 70px) !important; overflow: auto !important; display: block !important; text-align: center; }
-    .fullscreen-mode canvas { box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-    .fullscreen-mode .preview-header, .fullscreen-mode .preview-pagination, .fullscreen-mode .preview-actions { display: none !important; }
-    .fullscreen-mode .zoom-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 450px; z-index: 999995; background: rgba(255,255,255,0.95); box-shadow: 0 10px 30px rgba(0,0,0,0.5); padding: 10px 15px !important; margin: 0 !important; border-radius: 30px !important; }
+    /* --- BẢN VẼ: PHÂN TRANG & NÚT THAO TÁC --- */
+    .preview-pagination {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+        margin-top: 10px;
+    }
+    .preview-pagination .btn-page-nav {
+        cursor: pointer;
+        padding: 5px 15px;
+        border-radius: 6px;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        font-weight: bold;
+        font-size: 13px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        transition: 0.2s;
+    }
+    .preview-pagination .btn-page-nav:hover { background: #0069d9; }
+    .preview-pagination .page-indicator {
+        font-size: 13px;
+        font-weight: bold;
+        background: #eee;
+        padding: 5px 10px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .preview-pagination input[type="number"] {
+        width: 40px;
+        text-align: center;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 3px;
+        font-weight: bold;
+    }
+
+    .preview-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+    .preview-actions .btn-preview-action {
+        border-radius: 6px;
+        padding: 8px 15px;
+        font-weight: bold;
+        font-size: 13px;
+        border: none;
+        cursor: pointer;
+        color: #ffffff;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: transform 0.15s, opacity 0.2s, box-shadow 0.2s;
+        user-select: none;
+        white-space: nowrap;
+    }
+    .preview-actions .btn-preview-action:active { transform: scale(0.96); }
+    .preview-actions .btn-copy { background: #007bff; }
+    .preview-actions .btn-copy:hover { background: #0069d9; }
+    .preview-actions .btn-save-one { background: #17a2b8; }
+    .preview-actions .btn-save-one:hover { background: #138496; }
+    .preview-actions .btn-share { background: #f39c12; }
+    .preview-actions .btn-share:hover { background: #e67e22; }
+    .preview-actions .btn-print-a4 { background: #8e44ad; }
+    .preview-actions .btn-print-a4:hover { background: #732d91; }
+    .preview-actions .btn-zip { background: #27ae60; }
+    .preview-actions .btn-zip:hover { background: #219653; }
+
+    /* --- CHẾ ĐỘ TOÀN MÀN HÌNH MÁY TÍNH (.fullscreen) --- */
+    #previewColumn.fullscreen {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 999990 !important;
+        background: #f0f2f5 !important;
+        margin: 0 !important;
+        padding: 15px 20px 20px 20px !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    #previewColumn.fullscreen .preview-header,
+    #previewColumn.fullscreen .zoom-bar,
+    #previewColumn.fullscreen .preview-pagination,
+    #previewColumn.fullscreen .preview-actions {
+        display: flex !important;
+    }
+    #previewColumn.fullscreen #canvasWrapper {
+        flex: 1 1 0% !important;
+        min-height: 400px !important;
+        overflow: auto !important;
+        background: #e9ecef !important;
+        border: 1px dashed var(--primary) !important;
+        text-align: center !important;
+        padding: 20px !important;
+        margin-bottom: 10px !important;
+        position: relative !important;
+    }
+    #previewColumn.fullscreen canvas {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
     
     /* --- KHUNG CHỨA ẢNH (CHỐNG TRÀN KHI ZOOM) --- */
     #canvasWrapper {flex: 1 1 0%; min-height: 0; min-width: 0; overflow: auto; background: #e9ecef; border: 1px dashed var(--primary); text-align: center; padding: 20px; margin-bottom: 10px; position: relative; transition: all 0.3s;}
@@ -354,7 +461,7 @@
         z-index: 1000001 !important;
     }
     
-    #fabContainer { position: fixed; bottom: 85px; right: 20px; z-index: 10000000; width: 52px; height: 52px; }
+    #fabContainer { position: fixed; bottom: 20px; right: 20px; z-index: 10000000; width: 52px; height: 52px; }
     #fabBtn { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); color: white; width: 100%; height: 100%; border-radius: 50%; border: none; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 25px rgba(108, 92, 231, 0.45); font-size: 24px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
     #fabBtn:active { transform: scale(0.92); }
 
@@ -390,7 +497,7 @@
         .tab-btn { padding: 10px 15px; font-size: 13px; }
         #canvasWrapper { max-height: 50vh; padding: 5px; width: 100%; border-radius: 6px;}
         .setting-row { grid-template-columns: 85px 1fr; padding: 10px; }
-        #fabContainer { bottom: 85px; right: 20px; }
+        #fabContainer { bottom: 20px; right: 20px; }
     }
 
     @media print {
@@ -1285,6 +1392,40 @@
     #btnPrintA4,
     .btn-print-a4 {
         display: none !important;
+    }
+
+    /* Giảm 1/3 kích thước các nút thao tác trên mobile theo yêu cầu */
+    .preview-actions {
+        gap: 5px !important;
+        margin-top: 8px !important;
+    }
+    .preview-actions .btn-preview-action,
+    .preview-actions button {
+        padding: 5px 8px !important;
+        font-size: 11px !important;
+        border-radius: 6px !important;
+        gap: 3px !important;
+    }
+    .preview-pagination {
+        gap: 6px !important;
+        margin-top: 6px !important;
+    }
+    .preview-pagination .btn-page-nav,
+    .preview-pagination button {
+        padding: 4px 10px !important;
+        font-size: 11px !important;
+        border-radius: 5px !important;
+    }
+    .preview-pagination .page-indicator,
+    .preview-pagination span {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+        border-radius: 5px !important;
+    }
+    .preview-pagination input[type="number"] {
+        width: 32px !important;
+        font-size: 11px !important;
+        padding: 2px !important;
     }
 
     #themeModalOverlay {
