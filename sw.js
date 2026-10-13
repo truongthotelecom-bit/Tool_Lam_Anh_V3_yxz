@@ -1,8 +1,8 @@
 // Service Worker cho Tool Bảng Số VIP (PWA Standalone)
-const CACHE_NAME = 'bang-so-vip-v1';
+const CACHE_NAME = 'bang-so-vip-v2';
 const STATIC_ASSETS = [
-  './',
   './index.html',
+  'index.html',
   './css/style.css',
   './js/main.js',
   './js/configs.js',
@@ -14,10 +14,14 @@ const STATIC_ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch(err => {
-        console.warn('Cache addAll warning:', err);
-      });
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const asset of STATIC_ASSETS) {
+        try {
+          await cache.add(asset);
+        } catch (err) {
+          console.warn('Lỗi nạp cache asset:', asset, err);
+        }
+      }
     })
   );
   self.skipWaiting();
@@ -49,7 +53,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Fetch background update
+        // Cập nhật ngầm trong nền nếu có mạng
         fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             caches.open(CACHE_NAME).then((cache) => {
@@ -59,7 +63,14 @@ self.addEventListener('fetch', (event) => {
         }).catch(() => {});
         return cachedResponse;
       }
-      return fetch(event.request);
+
+      return fetch(event.request).catch(async () => {
+        // Fallback offline cho trang web khi mở từ màn hình chính
+        if (event.request.mode === 'navigate') {
+          const fallback = await caches.match('./index.html') || await caches.match('index.html');
+          if (fallback) return fallback;
+        }
+      });
     })
   );
 });

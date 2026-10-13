@@ -4011,7 +4011,7 @@ window.toggleCanvasSizeInputs = function() {
 };
 
 // ĐĂNG KÝ SERVICE WORKER (PWA STANDALONE)
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch((err) => {
             console.log('SW registration note:', err);

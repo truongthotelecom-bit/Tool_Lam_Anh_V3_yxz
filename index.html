@@ -6,14 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
     <title>Tool Bảng Số VIP - Bản Quyền Giao Khách (UPGRADED)</title>
     <!-- Cấu hình PWA (Chế độ Ứng Dụng độc lập không có thanh địa chỉ) -->
-    <script>
-        if (location.protocol.startsWith('http')) {
-            const m = document.createElement('link');
-            m.rel = 'manifest';
-            m.href = 'manifest.json';
-            document.head.appendChild(m);
-        }
-    </script>
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e293b">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1338,7 +1331,8 @@
                             </div>
                             <div class="tpl-toolbar-group">
                                 <button class="btn-tpl-save-now" onclick="window.openSaveTemplateModal();">
-                                    💾 LƯU MẪU HIỆN TẠI
+                                    <span class="txt-save-full">💾 LƯU MẪU HIỆN TẠI</span>
+                                    <span class="txt-save-short">💾 Lưu Mẫu</span>
                                 </button>
                                 <button class="btn-tpl-tool" onclick="window.exportAllTemplatesBackup();" title="Xuất toàn bộ kho mẫu ra file backup .json">
                                     📤 Backup
