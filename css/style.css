@@ -1281,6 +1281,12 @@
 
 /* Responsive trên điện thoại */
 @media (max-width: 768px) {
+    /* Ẩn nút In A4 trên giao diện Mobile theo yêu cầu */
+    #btnPrintA4,
+    .btn-print-a4 {
+        display: none !important;
+    }
+
     #themeModalOverlay {
         padding: 6px !important;
     }
