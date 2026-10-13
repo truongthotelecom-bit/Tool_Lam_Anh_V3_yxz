@@ -1,7 +1,11 @@
 // ============================================================================
-// MAIN.JS - BẢN FULL V23 (FIX LỖI MẤT TIÊU ĐỀ VÀ DỮ LIỆU)
+// MAIN.JS - BẢN FULL V23 (HỆ THỐNG ĐIỀU HÀNH VÀ BẢN QUYỀN BẢNG SỐ VIP)
 // ============================================================================
-// --- TOAST NOTIFICATION UTILITY ---
+
+// ============================================================================
+// [PHẦN 1: ĐẦU FILE - KHÔNG CẦN MÃ HÓA] TIỆN ÍCH THÔNG BÁO TOAST
+// (Đoạn này không chứa thuật toán nhạy cảm, bạn có thể để nguyên dạng rõ)
+// ============================================================================
 function showToast(message) {
     let toast = document.getElementById('toastNotification');
     if (!toast) {
@@ -19,6 +23,17 @@ function showToast(message) {
 }
 window.showToast = showToast;
 
+
+// ============================================================================
+// >>>>>>>>>>>>>>>>>> BẮT ĐẦU VÙNG CẦN MÃ HÓA (CORE & DRM) <<<<<<<<<<<<<<<<<<<<
+// ============================================================================
+// 👉 BẠN HÃY COPY TOÀN BỘ ĐOẠN TỪ ĐÂY ĐẾN ĐIỂM [KẾT THÚC VÙNG CẦN MÃ HÓA]
+//    ĐỂ DÁN VÀO CÔNG CỤ MÃ HÓA (VÍ DỤ: https://obfuscator.io/)
+// Bao gồm:
+//   1. Khởi tạo Canvas, biến trạng thái, chuột & cảm ứng chạm đa điểm (zoom/pan)
+//   2. Toàn bộ thuật toán tính toán ma trận bảng SIM, render và xuất file ảnh
+//   3. Toàn bộ Hệ thống Bản quyền DRM: Chống F12, mã máy, kiểm tra Google Apps Script
+// ============================================================================
 
 const canvas = document.getElementById('preview'); 
 const ctx = canvas ? canvas.getContext('2d') : null;
@@ -3597,7 +3612,14 @@ window.setupDrag = function(elementId, handleId) {
     return () => moved;
 };
 
-// --- BẢO MẬT & DRM ---
+// ============================================================================
+// 🔒 [KHỐI HỆ THỐNG BẢN QUYỀN DRM TRỰC TUYẾN & CHỐNG F12]
+// 💡 LƯU Ý CHO BẠN:
+//    - Nếu bạn CHỈ MUỐN MÃ HÓA RIÊNG KHỐI BẢN QUYỀN DRM (nhẹ, nhanh, an toàn),
+//      bạn chỉ cần copy từ đây xuống đến hết dòng window.isAuthorized()
+//      rồi đưa vào công cụ mã hóa.
+//    - Link Google Apps Script đã được nhúng an toàn trực tiếp bên dưới.
+// ============================================================================
     function trap() {
         try {
             const t = function() {
@@ -3794,8 +3816,8 @@ window.checkLicense = async function(manualCheck = false) {
         // 3. Trạng thái đang kiểm tra
         window.updateLicenseBadge('checking', myID, 'Đang kiểm tra trực tuyến...');
 
-        // 4. Gọi Google Apps Script kiểm tra bản quyền trực tuyến
-        let serverUrl = window.LICENSE_SERVER_URL || window.CLOUD_JSON_URL;
+        // 4. Gọi Google Apps Script kiểm tra bản quyền trực tuyến (URL có cơ chế bảo vệ dự phòng)
+        let serverUrl = window.LICENSE_SERVER_URL || "https://script.google.com/macros/s/AKfycbxr8CUR8c07HF2TWM5tkRhzIgXa4R8HsH7B9cshMi-gO0jC3WABiuNLBFwCIfisRpE8gA/exec";
         if (serverUrl) {
             try {
                 let apiUrl = serverUrl + (serverUrl.includes('?') ? '&' : '?') + "action=check_license&mac=" + encodeURIComponent(myID) + "&_t=" + Date.now();
@@ -3903,26 +3925,6 @@ window.addEventListener('online', () => {
         window.checkLicense();
     }
 });
-window.toggleCanvasSizeInputs = function() {
-    let mode = document.getElementById('canvasSizeMode')?.value;
-    let wrapper = document.getElementById('customCanvasSizeWrapper');
-    if(!wrapper) return;
-    wrapper.style.display = mode === 'auto' ? 'none' : 'flex';
-    let cH = document.getElementById('customCanvasH'); let lH = document.getElementById('labelCustomH');
-    if(cH) cH.style.display = mode === 'ratio' ? 'none' : 'block';
-    if(lH) lH.style.display = mode === 'ratio' ? 'none' : 'block';
-};
-
-// ==========================================
-// ĐĂNG KÝ SERVICE WORKER (PWA STANDALONE)
-// ==========================================
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch((err) => {
-            console.log('SW registration note:', err);
-        });
-    });
-}
 
 // ==========================================
 // CHỨC NĂNG CHIA SẺ ẢNH (NATIVE SHARE / COPY)
@@ -3939,7 +3941,6 @@ window.shareCanvasImage = async function () {
         window.showToast("⏳ Đang chuẩn bị ảnh chia sẻ...");
     }
 
-    // Kiểm tra hỗ trợ Web Share API (Gửi thẳng qua Zalo, Messenger, AirDrop hoặc Lưu vào Ảnh)
     if (navigator.share) {
         try {
             canvas.toBlob(async (blob) => {
@@ -3962,7 +3963,7 @@ window.shareCanvasImage = async function () {
                         }
                         return;
                     } catch (err) {
-                        if (err.name === 'AbortError') return; // Người dùng bấm hủy
+                        if (err.name === 'AbortError') return;
                         console.warn("Lỗi Web Share:", err);
                         fallbackShareCanvas();
                     }
@@ -3986,7 +3987,36 @@ function fallbackShareCanvas() {
     }
 }
 
-// --- ENTRY POINT ---
+// ============================================================================
+// <<<<<<<<<<<<<<<<<<<< KẾT THÚC VÙNG CẦN MÃ HÓA >>>>>>>>>>>>>>>>>>>>
+// ============================================================================
+
+
+// ============================================================================
+// [PHẦN 2: CUỐI FILE - KHÔNG CẦN MÃ HÓA] KHỞI ĐỘNG ỨNG DỤNG & SERVICE WORKER PWA
+// (Giữ nguyên các hàm này ở dạng rõ để trình duyệt khởi chạy mượt mà, không lỗi)
+// ============================================================================
+
+window.toggleCanvasSizeInputs = function() {
+    let mode = document.getElementById('canvasSizeMode')?.value;
+    let wrapper = document.getElementById('customCanvasSizeWrapper');
+    if(!wrapper) return;
+    wrapper.style.display = mode === 'auto' ? 'none' : 'flex';
+    let cH = document.getElementById('customCanvasH'); let lH = document.getElementById('labelCustomH');
+    if(cH) cH.style.display = mode === 'ratio' ? 'none' : 'block';
+    if(lH) lH.style.display = mode === 'ratio' ? 'none' : 'block';
+};
+
+// ĐĂNG KÝ SERVICE WORKER (PWA STANDALONE)
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+            console.log('SW registration note:', err);
+        });
+    });
+}
+
+// KHỞI ĐỘNG APP KHI TRANG SẴN SÀNG
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', startApp);
 } else {

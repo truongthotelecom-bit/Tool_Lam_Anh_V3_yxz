@@ -1,6 +1,11 @@
 /**
- * CONFIGS.JS - TRUNG TÂM CẤU HÌNH HỆ THỐNG (STATIC DATA)
- * Nơi chứa toàn bộ dữ liệu tĩnh, định danh và các mẫu thiết kế.
+ * ============================================================================
+ * [FILE NÀY KHÔNG CẦN MÃ HÓA - ĐỂ NGUYÊN DẠNG RÕ]
+ * ============================================================================
+ * Lý do: File này chứa danh sách Font, màu sắc và kho mẫu thiết kế (nặng ~560KB
+ * chứa ảnh base64). TUYỆT ĐỐI KHÔNG đưa file này vào công cụ mã hóa vì sẽ làm
+ * phình to dung lượng lên 2-3MB và gây đơ/treo trình duyệt web!
+ * ============================================================================
  */
 
 // --- 1. DANH SÁCH FONT HỆ THỐNG ---

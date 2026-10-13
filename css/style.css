@@ -362,6 +362,10 @@
             font-size: 9.5px;
         }
     }
+    body.studio-mode .license-info-badge,
+    body.studio-mode #licenseInfoBadge {
+        display: none !important;
+    }
     
     /* --- LỚP BẢO VỆ ĐÃ BỊ XOÁ BỎ THEO YÊU CẦU ĐỂ TƯƠNG TÁC XUYÊN THẤU --- */
     .mobile-modal-content {
